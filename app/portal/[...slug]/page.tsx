@@ -11,52 +11,52 @@ import { OperationsManager } from "@/components/operations/operations-manager"
 
 const SECTION_META: Record<string, { title: string; description: string; ctaLabel: string; emptyLabel: string; listHref: string }> = {
   conversas: {
-    title: "Conversas",
-    description: "Acompanhe conversas e solicitacoes do portal em um so lugar.",
-    ctaLabel: "Nova conversa",
-    emptyLabel: "Nenhuma conversa registrada ainda.",
+    title: "Reservas",
+    description: "Acompanhe reservas, confirmações e próximos passos da operação.",
+    ctaLabel: "Nova reserva",
+    emptyLabel: "Nenhuma reserva registrada ainda.",
     listHref: "/portal/conversas",
   },
   cadastros: {
-    title: "Cadastros",
-    description: "Gerencie clientes, contatos e relacionamentos.",
+    title: "Clientes",
+    description: "Gerencie clientes, contatos e relacionamentos da agência.",
     ctaLabel: "Novo cliente",
-    emptyLabel: "Nenhum cadastro disponivel ainda.",
+    emptyLabel: "Nenhum cliente disponível ainda.",
     listHref: "/portal/cadastros",
   },
   operacoes: {
-    title: "Operacoes",
-    description: "Organize processos, atendimentos e fluxos operacionais.",
-    ctaLabel: "Nova operacao",
-    emptyLabel: "Nenhuma operacao cadastrada ainda.",
+    title: "Contratos",
+    description: "Organize contratos, etapas de assinatura e documentos vinculados.",
+    ctaLabel: "Novo contrato",
+    emptyLabel: "Nenhum contrato cadastrado ainda.",
     listHref: "/portal/operacoes",
   },
   vendas: {
-    title: "Vendas",
-    description: "Acompanhe propostas, pipeline e desempenho comercial.",
-    ctaLabel: "Nova proposta",
-    emptyLabel: "Nenhuma oportunidade registrada ainda.",
+    title: "Cotações",
+    description: "Acompanhe cotações, propostas e oportunidades da agência.",
+    ctaLabel: "Nova cotação",
+    emptyLabel: "Nenhuma cotação registrada ainda.",
     listHref: "/portal/vendas",
   },
   documentos: {
     title: "Documentos",
-    description: "Centralize documentos, termos e contratos da operacao.",
+    description: "Centralize documentos operacionais e comerciais da agência.",
     ctaLabel: "Novo documento",
-    emptyLabel: "Nenhum documento disponivel ainda.",
+    emptyLabel: "Nenhum documento disponível ainda.",
     listHref: "/portal/documentos",
   },
   reunioes: {
-    title: "Reunioes",
-    description: "Organize reunioes, gravacoes e resumos do COS Meet.",
-    ctaLabel: "Nova reuniao",
-    emptyLabel: "Nenhuma reuniao registrada ainda.",
+    title: "Agenda",
+    description: "Organize reuniões, compromissos e acompanhamentos da agência.",
+    ctaLabel: "Novo compromisso",
+    emptyLabel: "Nenhum compromisso registrado ainda.",
     listHref: "/portal/reunioes",
   },
   relatorios: {
     title: "Relatorios",
-    description: "Visualize relatorios e indicadores do seu negocio.",
+    description: "Visualize relatórios e indicadores da sua agência.",
     ctaLabel: "Novo relatorio",
-    emptyLabel: "Nenhum relatorio disponivel ainda.",
+    emptyLabel: "Nenhum relatório disponível ainda.",
     listHref: "/portal/relatorios",
   },
   propostas: {
@@ -131,7 +131,7 @@ export default function PortalSectionPage({ params }: { params: Promise<{ slug: 
         <PortalHeader />
         <ClientsManager
           title="Clientes"
-          description="Gerencie clientes e relacionamentos reais do seu workspace."
+          description="Gerencie clientes e relacionamentos reais da sua agência."
           variant="portal"
         />
       </div>
@@ -156,8 +156,8 @@ export default function PortalSectionPage({ params }: { params: Promise<{ slug: 
       <div className="flex-1 flex flex-col h-full">
         <PortalHeader />
         <OperationsManager
-          title="Operacoes"
-          description="Organize processos, atendimentos e fluxos operacionais com dados reais."
+          title="Contratos"
+          description="Organize contratos, acompanhamentos e etapas da sua agência com dados reais."
           variant="portal"
         />
       </div>
@@ -185,8 +185,8 @@ export default function PortalSectionPage({ params }: { params: Promise<{ slug: 
       <div className="flex-1 flex flex-col h-full">
         <PortalHeader />
         <MeetingsManager
-          title="Reunioes"
-          description="Gerencie gravacoes, resumos e proximos passos reais do COS Meet."
+          title="Agenda"
+          description="Gerencie reuniões, resumos e próximos passos reais da TravelPro."
           variant="portal"
         />
       </div>
@@ -195,7 +195,7 @@ export default function PortalSectionPage({ params }: { params: Promise<{ slug: 
 
   const meta = SECTION_META[key] ?? {
     title: titleize(key),
-    description: "Gerencie esta area do portal com busca, filtros e acao principal.",
+    description: "Gerencie esta área da TravelPro com busca, filtros e ação principal.",
     ctaLabel: "Nova acao",
     emptyLabel: "Nenhum registro disponivel ainda.",
     listHref: `/portal/${slug.join("/")}`,

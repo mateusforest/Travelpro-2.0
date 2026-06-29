@@ -29,7 +29,7 @@ export function PortalModulePage({
             <PortalPageHeader title={title} description={description} />
             <button
               onClick={openQuickActions}
-              className="inline-flex items-center gap-2 rounded-xl bg-[#0a0a0a] px-4 py-2.5 text-sm text-white hover:bg-gray-800 transition-colors"
+              className="inline-flex items-center gap-2 rounded-xl bg-[#FE6708] px-4 py-2.5 text-sm text-white transition-colors hover:bg-[#FE8414]"
             >
               <Plus className="w-4 h-4" />
               {ctaLabel}

@@ -6,7 +6,6 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import {
-  Home,
   MessageSquare,
   ClipboardList,
   Briefcase,
@@ -33,25 +32,25 @@ import { PortalInteractionsProvider, usePortalInteractions } from "@/components/
 import { Toaster } from "@/components/ui/toaster"
 
 const mainNavItems = [
-  { icon: Home, label: "Início", href: "/portal" },
-  { icon: MessageSquare, label: "Conversas", href: "/portal/conversas" },
-  { icon: ClipboardList, label: "Cadastros", href: "/portal/cadastros" },
-  { icon: Briefcase, label: "Operações", href: "/portal/operacoes" },
-  { icon: TrendingUp, label: "Vendas", href: "/portal/vendas" },
+  { icon: ClipboardList, label: "Clientes", href: "/portal/cadastros" },
+  { icon: MessageSquare, label: "Viagens", href: "/portal" },
+  { icon: TrendingUp, label: "Cotações", href: "/portal/vendas" },
+  { icon: Briefcase, label: "Contratos", href: "/portal/operacoes" },
+  { icon: FileSignature, label: "Reservas", href: "/portal/conversas" },
   { icon: DollarSign, label: "Financeiro", href: "/portal/financeiro" },
-  { icon: UsersRound, label: "Equipe", href: "/portal/equipe" },
   { icon: FileText, label: "Documentos", href: "/portal/documentos" },
-  { icon: Video, label: "Reuniões", href: "/portal/reunioes" },
+  { icon: UsersRound, label: "Fornecedores", href: "/portal/equipe" },
+  { icon: Video, label: "Agenda", href: "/portal/reunioes" },
   { icon: BarChart3, label: "Relatórios", href: "/portal/relatorios" },
   { icon: Plug, label: "Integrações", href: "/portal/integracoes" },
   { icon: Settings, label: "Configurações", href: "/portal/configuracoes" },
 ]
 
 const favoriteItems = [
-  { icon: FileSignature, label: "Propostas", href: "/portal/vendas/propostas" },
-  { icon: FileText, label: "Contratos", href: "/portal/documentos/contratos" },
-  { icon: Headphones, label: "Atendimentos", href: "/portal/operacoes/atendimentos" },
-  { icon: DollarSign, label: "Balanço", href: "/portal/financeiro/balanco" },
+  { icon: ClipboardList, label: "Clientes", href: "/portal/cadastros" },
+  { icon: TrendingUp, label: "Cotações", href: "/portal/vendas" },
+  { icon: Headphones, label: "Agenda", href: "/portal/reunioes" },
+  { icon: DollarSign, label: "Financeiro", href: "/portal/financeiro" },
 ]
 
 export default function PortalLayout({ children }: { children: React.ReactNode }) {
@@ -176,7 +175,7 @@ function PortalShell({ children }: { children: React.ReactNode }) {
               <Smartphone className="w-4 h-4" />
               {!sidebarCollapsed && <Monitor className="w-4 h-4" />}
             </div>
-            {!sidebarCollapsed && <span className="text-sm">Instalar COS</span>}
+            {!sidebarCollapsed && <span className="text-sm">Instalar TravelPro</span>}
           </button>
 
           <div className={`flex items-center gap-3 mt-2 px-3 py-2.5 rounded-xl hover:bg-white/60 transition-all cursor-pointer ${sidebarCollapsed ? "justify-center" : ""}`}>

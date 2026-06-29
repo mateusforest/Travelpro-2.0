@@ -7,10 +7,10 @@ import { usePortalInteractions } from "@/components/portal/portal-interactions"
 import { toast } from "@/hooks/use-toast"
 
 const stats = [
-  { label: "Membros ativos", value: "0", description: "Nenhum usuário cadastrado ainda." },
-  { label: "Departamentos", value: "0", description: "Nenhum departamento criado ainda." },
-  { label: "Convites pendentes", value: "0", description: "Nenhum convite enviado ainda." },
-  { label: "Administradores", value: "0", description: "Nenhuma permissão atribuída ainda." },
+  { label: "Fornecedores ativos", value: "0", description: "Nenhum fornecedor cadastrado ainda." },
+  { label: "Categorias", value: "0", description: "Nenhuma categoria criada ainda." },
+  { label: "Contatos pendentes", value: "0", description: "Nenhum contato aguardando retorno." },
+  { label: "Parceiros prioritários", value: "0", description: "Nenhum parceiro classificado ainda." },
 ]
 
 export default function EquipePage() {
@@ -22,13 +22,13 @@ export default function EquipePage() {
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-7xl mx-auto px-6 py-8">
           <div className="flex items-start justify-between gap-4 mb-8">
-            <PortalPageHeader title="Equipe" description="Gerencie membros, permissões e convites do seu time." />
+            <PortalPageHeader title="Fornecedores" description="Gerencie parceiros, contatos e critérios de homologação da agência." />
             <button
-              onClick={() => toast({ title: "Convite preparado", description: "Convites serão enviados quando o backend estiver conectado." })}
-              className="flex items-center gap-2 px-4 py-2.5 bg-[#0a0a0a] text-white rounded-xl text-sm hover:bg-gray-800 transition-colors"
+              onClick={() => toast({ title: "Fornecedor preparado", description: "O cadastro real será liberado quando o backend estiver conectado." })}
+              className="flex items-center gap-2 rounded-xl bg-[#FE6708] px-4 py-2.5 text-sm text-white transition-colors hover:bg-[#FE8414]"
             >
               <Plus className="w-4 h-4" />
-              Convidar membro
+              Novo fornecedor
             </button>
           </div>
 
@@ -51,15 +51,15 @@ export default function EquipePage() {
             >
               <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-5">
                 <div>
-                  <h2 className="font-semibold">Membros</h2>
-                  <p className="text-sm text-muted-foreground">A lista será exibida aqui quando a equipe começar a ser cadastrada.</p>
+                  <h2 className="font-semibold">Base de fornecedores</h2>
+                  <p className="text-sm text-muted-foreground">A lista será exibida aqui quando os parceiros da agência começarem a ser cadastrados.</p>
                 </div>
                 <div className="flex items-center gap-2">
                   <button onClick={openFilters} className="text-sm text-muted-foreground hover:text-[#0a0a0a] transition-colors">
                     Filtros
                   </button>
                   <button
-                    onClick={() => toast({ title: "Convites vazios", description: "Nenhum convite pendente ainda." })}
+                    onClick={() => toast({ title: "Lista vazia", description: "Nenhum fornecedor pendente ainda." })}
                     className="text-sm text-muted-foreground hover:text-[#0a0a0a] transition-colors"
                   >
                     Ver todas
@@ -68,7 +68,7 @@ export default function EquipePage() {
               </div>
 
               <div className="rounded-2xl border border-dashed border-gray-200 px-6 py-16 text-center">
-                <p className="text-sm text-muted-foreground">Nenhum usuário cadastrado ainda.</p>
+                <p className="text-sm text-muted-foreground">Nenhum fornecedor cadastrado ainda.</p>
               </div>
             </motion.div>
 
@@ -80,17 +80,17 @@ export default function EquipePage() {
             >
               <div className="flex items-center gap-2 mb-5">
                 <Shield className="w-5 h-5 text-muted-foreground" />
-                <h2 className="font-semibold">Permissões</h2>
+                <h2 className="font-semibold">Homologação</h2>
               </div>
               <div className="rounded-2xl border border-dashed border-gray-200 px-5 py-10 text-center mb-4">
-                <p className="text-sm text-muted-foreground">Nenhuma política de acesso configurada ainda.</p>
+                <p className="text-sm text-muted-foreground">Nenhum critério de homologação configurado ainda.</p>
               </div>
               <button
-                onClick={() => toast({ title: "Convites indisponíveis", description: "Convites serão enviados quando o backend estiver conectado." })}
+                onClick={() => toast({ title: "Contatos indisponíveis", description: "Os contatos reais serão sincronizados quando o backend estiver conectado." })}
                 className="w-full flex items-center justify-center gap-2 py-2.5 text-sm text-muted-foreground hover:bg-gray-50 rounded-xl transition-colors"
               >
                 <Mail className="w-4 h-4" />
-                Ver convites pendentes
+                Ver contatos pendentes
               </button>
             </motion.div>
           </div>

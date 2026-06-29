@@ -54,16 +54,16 @@ const quickActionItems: Array<{
 }> = [
   { type: "cliente", label: "Cliente", icon: UserPlus, color: "#3b82f6", bg: "#dbeafe" },
   { type: "documento", label: "Documento", icon: FileText, color: "#6366f1", bg: "#e0e7ff" },
-  { type: "operacao", label: "Operacao", icon: Briefcase, color: "#8b5cf6", bg: "#ede9fe" },
-  { type: "reuniao", label: "Reuniao", icon: Video, color: "#ef4444", bg: "#fee2e2" },
+  { type: "operacao", label: "Reserva", icon: Briefcase, color: "#8b5cf6", bg: "#ede9fe" },
+  { type: "reuniao", label: "Agenda", icon: Video, color: "#ef4444", bg: "#fee2e2" },
   { type: "tarefa", label: "Tarefa", icon: CheckSquare, color: "#22c55e", bg: "#dcfce7" },
-  { type: "relatorio", label: "Relatorio", icon: BarChart3, color: "#f97316", bg: "#ffedd5" },
+  { type: "relatorio", label: "Relatório", icon: BarChart3, color: "#f97316", bg: "#ffedd5" },
 ]
 
 const quickActionConfigs: Record<QuickActionType, QuickActionConfig> = {
   cliente: {
     title: "Novo cliente",
-    description: "Prepare o cadastro do proximo cliente do portal.",
+    description: "Prepare o cadastro do próximo cliente da agência.",
     submit: "Salvar cliente",
     fields: [
       { name: "nome", label: "Nome", placeholder: "Nome do cliente" },
@@ -73,7 +73,7 @@ const quickActionConfigs: Record<QuickActionType, QuickActionConfig> = {
   },
   documento: {
     title: "Novo documento",
-    description: "Organize um novo documento para a operacao.",
+    description: "Organize um novo documento para a operação da agência.",
     submit: "Salvar documento",
     fields: [
       { name: "titulo", label: "Titulo", placeholder: "Titulo do documento" },
@@ -82,9 +82,9 @@ const quickActionConfigs: Record<QuickActionType, QuickActionConfig> = {
     ],
   },
   operacao: {
-    title: "Nova operacao",
-    description: "Estruture uma nova operacao com dados reais do workspace.",
-    submit: "Salvar operacao",
+    title: "Nova reserva",
+    description: "Estruture uma nova reserva com dados reais da agência.",
+    submit: "Salvar reserva",
     fields: [
       { name: "titulo", label: "Titulo", placeholder: "Nome da operacao" },
       { name: "responsavel", label: "Responsavel", placeholder: "Responsavel" },
@@ -92,9 +92,9 @@ const quickActionConfigs: Record<QuickActionType, QuickActionConfig> = {
     ],
   },
   reuniao: {
-    title: "Nova reuniao",
-    description: "Prepare uma nova reuniao do COS Meet.",
-    submit: "Salvar reuniao",
+    title: "Novo compromisso",
+    description: "Prepare um novo compromisso da agenda TravelPro.",
+    submit: "Salvar compromisso",
     fields: [
       { name: "titulo", label: "Titulo", placeholder: "Titulo da reuniao" },
       { name: "participantes", label: "Participantes", placeholder: "Participantes" },
@@ -103,7 +103,7 @@ const quickActionConfigs: Record<QuickActionType, QuickActionConfig> = {
   },
   tarefa: {
     title: "Nova tarefa",
-    description: "Crie uma tarefa operacional no portal.",
+    description: "Crie uma tarefa operacional na TravelPro.",
     submit: "Salvar tarefa",
     fields: [
       { name: "titulo", label: "Titulo", placeholder: "Titulo da tarefa" },
@@ -113,7 +113,7 @@ const quickActionConfigs: Record<QuickActionType, QuickActionConfig> = {
   },
   relatorio: {
     title: "Novo relatorio",
-    description: "Prepare a estrutura de um relatorio real no portal.",
+    description: "Prepare a estrutura de um relatório real da agência.",
     submit: "Salvar relatorio",
     fields: [
       { name: "titulo", label: "Titulo", placeholder: "Titulo do relatorio" },
@@ -224,7 +224,7 @@ export function PortalInteractionsProvider({ children }: { children: ReactNode }
         return
       }
 
-      toast({ title: "Operacao criada", description: "A operacao foi salva com sucesso." })
+      toast({ title: "Reserva criada", description: "A reserva foi salva com sucesso." })
       setIsSubmitting(false)
       setFormValues({})
       closeModal()
@@ -270,7 +270,7 @@ export function PortalInteractionsProvider({ children }: { children: ReactNode }
         return
       }
 
-      toast({ title: "Reuniao criada", description: "A reuniao foi salva com sucesso." })
+      toast({ title: "Compromisso criado", description: "O compromisso foi salvo com sucesso." })
       setIsSubmitting(false)
       setFormValues({})
       closeModal()
@@ -291,7 +291,7 @@ export function PortalInteractionsProvider({ children }: { children: ReactNode }
         return
       }
 
-      toast({ title: "Relatorio criado", description: "O relatorio foi salvo com sucesso." })
+      toast({ title: "Relatório criado", description: "O relatório foi salvo com sucesso." })
       setIsSubmitting(false)
       setFormValues({})
       closeModal()
@@ -301,7 +301,7 @@ export function PortalInteractionsProvider({ children }: { children: ReactNode }
     setIsSubmitting(false)
     toast({
       title: "Recurso em preparacao",
-      description: "Este fluxo ainda nao possui persistencia real no Portal.",
+      description: "Este fluxo ainda não possui persistência real no Portal.",
     })
     setFormValues({})
     closeModal()
@@ -329,8 +329,8 @@ export function PortalInteractionsProvider({ children }: { children: ReactNode }
     }
 
     toast({
-      title: mode === "record" ? "Reuniao gravada" : "Reuniao preparada",
-      description: "A reuniao foi salva com sucesso. A transcricao sera ativada quando a IA estiver conectada.",
+      title: mode === "record" ? "Compromisso gravado" : "Compromisso preparado",
+      description: "O compromisso foi salvo com sucesso. A transcrição será ativada quando a IA estiver conectada.",
     })
     setMeetingValues({ titulo: "", participantes: "", observacoes: "" })
     closeModal()
@@ -372,7 +372,7 @@ export function PortalInteractionsProvider({ children }: { children: ReactNode }
               className="fixed bottom-0 left-0 right-0 z-[80] max-h-[85vh] overflow-y-auto rounded-t-3xl bg-white p-5 pb-8 lg:inset-0 lg:m-auto lg:h-fit lg:max-h-[80vh] lg:max-w-md lg:rounded-3xl"
             >
               {modal === "quickActions" && (
-                <ModalShell title="Acoes rapidas" onClose={closeModal}>
+                <ModalShell title="Ações rápidas" onClose={closeModal}>
                   <div className="grid grid-cols-2 gap-3">
                     {quickActionItems.map((item) => (
                       <button key={item.type} onClick={() => value.openQuickActionForm(item.type)} className="rounded-2xl border border-gray-100 p-4 text-left transition-colors hover:bg-gray-50">
@@ -401,7 +401,7 @@ export function PortalInteractionsProvider({ children }: { children: ReactNode }
                         />
                       </Field>
                     ))}
-                    <button type="button" onClick={submitQuickAction} disabled={isSubmitting} className="w-full rounded-2xl bg-[#0a0a0a] px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-[#1a1a1a] disabled:cursor-not-allowed disabled:opacity-50">
+                    <button type="button" onClick={submitQuickAction} disabled={isSubmitting} className="w-full rounded-2xl bg-[#FE6708] px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-[#FE8414] disabled:cursor-not-allowed disabled:opacity-50">
                       {isSubmitting ? "Salvando..." : quickActionConfigs[selectedAction].submit}
                     </button>
                   </div>
@@ -442,7 +442,7 @@ export function PortalInteractionsProvider({ children }: { children: ReactNode }
                       <button type="button" onClick={clearFilters} className="flex-1 rounded-2xl bg-gray-100 px-4 py-3 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200">
                         Limpar filtros
                       </button>
-                      <button type="button" onClick={applyFilters} className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-[#0a0a0a] px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-[#1a1a1a]">
+                      <button type="button" onClick={applyFilters} className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-[#FE6708] px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-[#FE8414]">
                         <SlidersHorizontal className="h-4 w-4" />
                         Aplicar filtros
                       </button>
@@ -452,11 +452,11 @@ export function PortalInteractionsProvider({ children }: { children: ReactNode }
               )}
 
               {modal === "install" && (
-                <ModalShell title="Instalar COS" onClose={closeModal}>
+                <ModalShell title="Instalar TravelPro" onClose={closeModal}>
                   <div className="space-y-4">
-                    <InstallCard icon={Smartphone} title="iPhone" steps={["Abra o COS no Safari.", "Toque em compartilhar.", "Escolha Adicionar a Tela de Inicio."]} />
-                    <InstallCard icon={Smartphone} title="Android" steps={["Abra o COS no Chrome.", "Toque no menu do navegador.", "Escolha Instalar app ou Adicionar a tela inicial."]} />
-                    <InstallCard icon={Monitor} title="Desktop" steps={["Abra o COS no navegador compativel.", "Use o icone de instalacao na barra de endereco.", "Confirme para fixar o COS como app."]} />
+                    <InstallCard icon={Smartphone} title="iPhone" steps={["Abra o TravelPro no Safari.", "Toque em compartilhar.", "Escolha Adicionar à Tela de Início."]} />
+                    <InstallCard icon={Smartphone} title="Android" steps={["Abra o TravelPro no Chrome.", "Toque no menu do navegador.", "Escolha Instalar app ou Adicionar à tela inicial."]} />
+                    <InstallCard icon={Monitor} title="Desktop" steps={["Abra o TravelPro no navegador compatível.", "Use o ícone de instalação na barra de endereço.", "Confirme para fixar o TravelPro como app."]} />
                   </div>
                 </ModalShell>
               )}
@@ -477,7 +477,7 @@ export function PortalInteractionsProvider({ children }: { children: ReactNode }
                       <p className="text-sm text-gray-500">A transcricao sera ativada quando a IA estiver conectada.</p>
                     </div>
                     <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-                      <button type="button" onClick={() => submitMeetingAction("record")} disabled={isSubmitting} className="rounded-2xl bg-[#0a0a0a] px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-[#1a1a1a] disabled:cursor-not-allowed disabled:opacity-50">
+                      <button type="button" onClick={() => submitMeetingAction("record")} disabled={isSubmitting} className="rounded-2xl bg-[#FE6708] px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-[#FE8414] disabled:cursor-not-allowed disabled:opacity-50">
                         {isSubmitting ? "Salvando..." : "Iniciar gravacao"}
                       </button>
                       <button type="button" onClick={() => submitMeetingAction("upload")} disabled={isSubmitting} className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gray-100 px-4 py-3 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-50">
@@ -500,7 +500,7 @@ export function PortalInteractionsProvider({ children }: { children: ReactNode }
                       <button type="button" onClick={closeModal} className="flex-1 rounded-2xl bg-gray-100 px-4 py-3 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200">
                         Cancelar
                       </button>
-                      <button type="button" onClick={confirmDelete} className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-[#0a0a0a] px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-[#1a1a1a]">
+                      <button type="button" onClick={confirmDelete} className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-[#FE6708] px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-[#FE8414]">
                         <Trash2 className="h-4 w-4" />
                         Remover
                       </button>

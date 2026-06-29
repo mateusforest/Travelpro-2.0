@@ -10,7 +10,7 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: () => void 
   return (
     <button
       onClick={onChange}
-      className={`relative w-11 h-6 rounded-full transition-colors flex-shrink-0 ${checked ? "bg-[#0a0a0a]" : "bg-gray-200"}`}
+      className={`relative w-11 h-6 rounded-full transition-colors flex-shrink-0 ${checked ? "bg-[#FE6708]" : "bg-gray-200"}`}
       role="switch"
       aria-checked={checked}
     >
@@ -23,17 +23,17 @@ export default function ConfiguracoesPage() {
   const [notifyEmail, setNotifyEmail] = useState(true)
   const [notifyPush, setNotifyPush] = useState(false)
   const [notifyWhatsapp, setNotifyWhatsapp] = useState(false)
-  const [company, setCompany] = useState({
+  const [agency, setAgency] = useState({
     nome: "",
     cnpj: "",
     email: "",
     telefone: "",
   })
 
-  const handleSaveCompany = () => {
+  const handleSaveAgency = () => {
     toast({
       title: "Dados preparados",
-      description: "Os dados da empresa serão salvos quando o backend estiver conectado.",
+      description: "Os dados da agência serão salvos quando o backend estiver conectado.",
     })
   }
 
@@ -42,12 +42,12 @@ export default function ConfiguracoesPage() {
       <PortalHeader />
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-4xl mx-auto px-6 py-8">
-          <PortalPageHeader title="Configurações" description="Gerencie preferências, empresa e notificações do portal." />
+          <PortalPageHeader title="Configurações" description="Gerencie preferências, agência e notificações do portal." />
 
           <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white border border-gray-100 rounded-2xl p-6 mb-6">
             <div className="flex items-center gap-2 mb-5">
               <Building2 className="w-5 h-5 text-muted-foreground" />
-              <h2 className="font-semibold">Dados da empresa</h2>
+              <h2 className="font-semibold">Dados da agência</h2>
             </div>
 
             <div className="rounded-2xl border border-dashed border-gray-200 px-5 py-4 mb-5">
@@ -56,12 +56,12 @@ export default function ConfiguracoesPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm text-muted-foreground mb-1.5">Nome da empresa</label>
+                <label className="block text-sm text-muted-foreground mb-1.5">Nome da agência</label>
                 <input
                   type="text"
-                  value={company.nome}
-                  onChange={(e) => setCompany((prev) => ({ ...prev, nome: e.target.value }))}
-                  placeholder="Nome da empresa"
+                  value={agency.nome}
+                  onChange={(e) => setAgency((prev) => ({ ...prev, nome: e.target.value }))}
+                  placeholder="Nome da agência"
                   className="w-full px-3 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-200"
                 />
               </div>
@@ -69,8 +69,8 @@ export default function ConfiguracoesPage() {
                 <label className="block text-sm text-muted-foreground mb-1.5">CNPJ</label>
                 <input
                   type="text"
-                  value={company.cnpj}
-                  onChange={(e) => setCompany((prev) => ({ ...prev, cnpj: e.target.value }))}
+                  value={agency.cnpj}
+                  onChange={(e) => setAgency((prev) => ({ ...prev, cnpj: e.target.value }))}
                   placeholder="CNPJ"
                   className="w-full px-3 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-200"
                 />
@@ -79,9 +79,9 @@ export default function ConfiguracoesPage() {
                 <label className="block text-sm text-muted-foreground mb-1.5">E-mail de contato</label>
                 <input
                   type="email"
-                  value={company.email}
-                  onChange={(e) => setCompany((prev) => ({ ...prev, email: e.target.value }))}
-                  placeholder="contato@empresa.com"
+                  value={agency.email}
+                  onChange={(e) => setAgency((prev) => ({ ...prev, email: e.target.value }))}
+                  placeholder="contato@agencia.com"
                   className="w-full px-3 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-200"
                 />
               </div>
@@ -89,8 +89,8 @@ export default function ConfiguracoesPage() {
                 <label className="block text-sm text-muted-foreground mb-1.5">Telefone</label>
                 <input
                   type="tel"
-                  value={company.telefone}
-                  onChange={(e) => setCompany((prev) => ({ ...prev, telefone: e.target.value }))}
+                  value={agency.telefone}
+                  onChange={(e) => setAgency((prev) => ({ ...prev, telefone: e.target.value }))}
                   placeholder="+55 00 00000-0000"
                   className="w-full px-3 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-200"
                 />
@@ -98,7 +98,7 @@ export default function ConfiguracoesPage() {
             </div>
 
             <div className="flex justify-end mt-5">
-              <button onClick={handleSaveCompany} className="px-4 py-2.5 bg-[#0a0a0a] text-white rounded-xl text-sm hover:bg-gray-800 transition-colors">
+              <button onClick={handleSaveAgency} className="rounded-xl bg-[#FE6708] px-4 py-2.5 text-sm text-white transition-colors hover:bg-[#FE8414]">
                 Salvar alterações
               </button>
             </div>
