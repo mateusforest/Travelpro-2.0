@@ -307,7 +307,7 @@ function BottomNav() {
           if (index === 2) {
             return (
               <button key="fab" onClick={() => setIsOpen(!isOpen)} className="relative -mt-5">
-                <motion.div animate={{ rotate: isOpen ? 45 : 0 }} transition={{ duration: 0.2 }} className="w-14 h-14 rounded-full bg-[#0a0a0a] flex items-center justify-center shadow-lg">
+                <motion.div animate={{ rotate: isOpen ? 45 : 0 }} transition={{ duration: 0.2 }} className="tp-gradient-chip flex h-14 w-14 items-center justify-center rounded-full shadow-lg">
                   <Plus className="w-6 h-6 text-white" />
                 </motion.div>
               </button>
@@ -335,7 +335,7 @@ function GlobalHeader() {
       <div className="flex items-center justify-between px-4 py-2">
         <div className="flex items-center gap-2">
           <Image
-            src="/travelpro-logo-horizontal-cropped.jpeg"
+            src="/travelpro-logo-horizontal.png"
             alt="TravelPro"
             width={140}
             height={38}
@@ -426,7 +426,7 @@ function DesktopSidebar() {
     <aside className="hidden lg:flex lg:flex-col w-[280px] flex-shrink-0 border-r border-gray-200 bg-white h-screen">
       <div className="px-5 h-16 flex items-center justify-between flex-shrink-0 border-b border-gray-100">
         <Image
-          src="/travelpro-logo-horizontal-cropped.jpeg"
+            src="/travelpro-logo-horizontal.png"
           alt="TravelPro"
           width={140}
           height={38}
@@ -446,7 +446,7 @@ function DesktopSidebar() {
             setLevel("main")
             setIsOpen(true)
           }}
-          className="flex items-center justify-center gap-2 w-full py-2.5 bg-[#0a0a0a] text-white rounded-lg text-sm font-medium hover:bg-[#1a1a1a] transition-colors"
+          className="tp-gradient-btn flex w-full items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-medium transition-colors"
         >
           <Plus className="w-4 h-4" />
           Nova conversa
@@ -569,7 +569,7 @@ function DesktopContextPanel() {
               ))
             ) : (
               financeiro.map((f) => (
-                <div key={f.label} className={`flex items-center justify-between rounded-xl px-3 py-2.5 ${f.accent ? "bg-[#0a0a0a]" : "bg-gray-50"}`}>
+                <div key={f.label} className={`flex items-center justify-between rounded-xl px-3 py-2.5 ${f.accent ? "tp-gradient-chip" : "bg-gray-50"}`}>
                   <span className={`text-xs ${f.accent ? "text-gray-300" : "text-gray-500"}`}>{f.label}</span>
                   <span className={`text-sm font-semibold ${f.accent ? "text-white" : f.color ?? "text-[#0a0a0a]"}`}>{f.value ?? "R$ 0,00"}</span>
                 </div>

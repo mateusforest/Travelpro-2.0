@@ -54,8 +54,8 @@ export function Header() {
           {/* Logo - Mobile: larger and more prominent */}
           <Link href="/" className="flex items-center">
             <Image
-              src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/COS%20LOGO%20header-lB2hw9fMDONpyTpAYQaVVinJsAweku.png"
-              alt="COS"
+              src="/travelpro-logo-horizontal.png"
+              alt="TravelPro"
               width={100}
               height={32}
               className="h-6 w-auto md:h-8"
@@ -80,7 +80,7 @@ export function Header() {
           <div className="flex items-center gap-2 md:hidden">
             <Link
               href="/cadastro"
-              className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-3.5 py-1.5 text-xs font-medium text-white"
+              className="tp-gradient-btn inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium"
             >
               Começar
               <ArrowRight className="h-3 w-3" />
@@ -102,7 +102,7 @@ export function Header() {
           <div className="hidden md:block">
             <Link
               href="/cadastro"
-              className="inline-flex items-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-white hover:bg-foreground/90 transition-colors"
+              className="tp-gradient-btn inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition-colors"
             >
               Começar agora
               <ArrowRight className="h-4 w-4" />

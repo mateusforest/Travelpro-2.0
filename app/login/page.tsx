@@ -79,11 +79,11 @@ export default function LoginPage() {
       <AuthLayout>
       <div className="flex justify-center mb-8">
         <Image
-          src="/travelpro-logo-mark-cropped.jpeg"
+          src="/travelpro-logo-mark.png"
           alt="TravelPro"
           width={56}
           height={56}
-          className="h-14 w-14 rounded-2xl object-contain"
+          className="h-14 w-14 object-contain"
         />
       </div>
 
@@ -117,7 +117,7 @@ export default function LoginPage() {
               type="button"
               onClick={() => handleCreateWorkspace("operations")}
               disabled={isWorkspacePending}
-              className="w-full rounded-xl bg-[#0a0a0a] px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-[#1a1a1a] disabled:cursor-not-allowed disabled:opacity-50"
+              className="tp-gradient-btn w-full rounded-xl px-4 py-3 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isWorkspacePending ? "Criando..." : "Criar workspace TravelPro Operações"}
             </button>
@@ -175,7 +175,7 @@ export default function LoginPage() {
           type="submit"
           disabled={isPending}
           whileTap={{ scale: 0.98 }}
-          className="w-full py-3.5 px-4 bg-[#0a0a0a] text-white rounded-xl font-medium hover:bg-[#1a1a1a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          className="tp-gradient-btn flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3.5 font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isPending ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : "Entrar"}
         </motion.button>

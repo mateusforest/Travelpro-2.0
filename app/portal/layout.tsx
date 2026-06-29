@@ -99,8 +99,8 @@ function PortalShell({ children }: { children: React.ReactNode }) {
           <Link href="/portal" className="flex items-center gap-2">
             {sidebarCollapsed ? (
               <Image
-                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/COS%20LOGO%20%281%29-mBU7xqdIZoWP3indGVxJrDFLu8urZH.png"
-                alt="COS"
+                src="/travelpro-logo-mark.png"
+                alt="TravelPro"
                 width={28}
                 height={28}
                 priority
@@ -108,8 +108,8 @@ function PortalShell({ children }: { children: React.ReactNode }) {
               />
             ) : (
               <Image
-                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/COS%20LOGO%20header-lB2hw9fMDONpyTpAYQaVVinJsAweku.png"
-                alt="COS"
+                src="/travelpro-logo-horizontal.png"
+                alt="TravelPro"
                 width={88}
                 height={28}
                 priority
@@ -180,7 +180,7 @@ function PortalShell({ children }: { children: React.ReactNode }) {
           </button>
 
           <div className={`flex items-center gap-3 mt-2 px-3 py-2.5 rounded-xl hover:bg-white/60 transition-all cursor-pointer ${sidebarCollapsed ? "justify-center" : ""}`}>
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white text-sm font-medium">
+            <div className="tp-gradient-chip flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium">
               J
             </div>
             {!sidebarCollapsed && (

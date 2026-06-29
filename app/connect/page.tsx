@@ -9,8 +9,7 @@ import { useAuth } from "@/components/auth/auth-provider"
 import { useConnect } from "@/components/connect/connect-store"
 import { useSupport } from "@/components/support/support-context"
 
-const COS_LOGO =
-  "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/COS%20LOGO%20%281%29-mBU7xqdIZoWP3indGVxJrDFLu8urZH.png"
+const COS_LOGO = "/travelpro-logo-mark.png"
 
 const sourceTypeIcon: Record<string, typeof Database> = {
   ERP: Database,
@@ -49,8 +48,8 @@ export default function ConnectHomePage() {
     <div className="flex min-h-[calc(100vh-120px)] flex-col lg:h-full lg:min-h-full">
       <div className="flex flex-1 flex-col items-center justify-center px-5 py-8">
         <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.3 }} className="mb-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gray-100">
-            <Image src={COS_LOGO} alt="COS" width={28} height={28} className="h-7 w-7" />
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl">
+            <Image src={COS_LOGO} alt="TravelPro" width={28} height={28} className="h-7 w-7 object-contain" />
           </div>
         </motion.div>
 
@@ -79,7 +78,7 @@ export default function ConnectHomePage() {
               </button>
               <button
                 onClick={handleSend}
-                className="rounded-full bg-[#0a0a0a] p-2 text-white transition-colors hover:bg-[#1a1a1a]"
+                className="tp-gradient-chip rounded-full p-2 transition-colors"
                 aria-label="Enviar"
               >
                 <Send className="h-4 w-4" />
@@ -201,7 +200,7 @@ export default function ConnectHomePage() {
             <div className="space-y-2">
               <button
                 onClick={() => openModal("system")}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#0a0a0a] py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#1a1a1a]"
+                className="tp-gradient-btn flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-medium transition-colors"
               >
                 <Plug className="h-4 w-4" /> Conectar primeira fonte
               </button>

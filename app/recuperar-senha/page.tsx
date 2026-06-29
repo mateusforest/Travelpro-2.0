@@ -27,11 +27,11 @@ export default function RecuperarSenhaPage() {
       {/* Logo centralizado no card */}
       <div className="flex justify-center mb-8">
         <Image
-          src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/COS%20LOGO%20%281%29-mBU7xqdIZoWP3indGVxJrDFLu8urZH.png"
-          alt="COS"
+          src="/travelpro-logo-mark.png"
+          alt="TravelPro"
           width={56}
           height={56}
-          className="w-14 h-14"
+          className="h-14 w-14 object-contain"
         />
       </div>
 
@@ -57,7 +57,7 @@ export default function RecuperarSenhaPage() {
           
           <Link
             href="/login"
-            className="inline-flex items-center justify-center w-full py-3.5 px-4 bg-[#0a0a0a] text-white rounded-xl font-medium hover:bg-[#1a1a1a] transition-colors"
+            className="tp-gradient-btn inline-flex w-full items-center justify-center rounded-xl px-4 py-3.5 font-medium transition-colors"
           >
             Voltar para login
           </Link>
@@ -107,7 +107,7 @@ export default function RecuperarSenhaPage() {
               type="submit"
               disabled={isLoading}
               whileTap={{ scale: 0.98 }}
-              className="w-full py-3.5 px-4 bg-[#0a0a0a] text-white rounded-xl font-medium hover:bg-[#1a1a1a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="tp-gradient-btn flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3.5 font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isLoading ? (
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />

@@ -25,10 +25,8 @@ import { ProtectedRouteGuard } from "@/components/auth/auth-route-guard"
 import { MasterProvider, useMaster } from "@/components/master/master-store"
 import { MasterModals, MasterToast } from "@/components/master/master-modals"
 
-const COS_LOGO_HEADER =
-  "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/COS%20LOGO%20header-lB2hw9fMDONpyTpAYQaVVinJsAweku.png"
-const COS_LOGO_MARK =
-  "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/COS%20LOGO%20%281%29-mBU7xqdIZoWP3indGVxJrDFLu8urZH.png"
+const COS_LOGO_HEADER = "/travelpro-logo-horizontal.png"
+const COS_LOGO_MARK = "/travelpro-logo-mark.png"
 
 const navItems = [
   { icon: LayoutDashboard, label: "Visão Geral", href: "/master", exact: true },
@@ -77,9 +75,9 @@ function MasterShell({ children }: { children: React.ReactNode }) {
         <div className="flex items-center gap-2 p-4 h-16 flex-shrink-0">
           <Link href="/master" className="flex items-center gap-2" onClick={() => setMobileMenuOpen(false)}>
             {collapsed ? (
-              <Image src={COS_LOGO_MARK} alt="COS" width={28} height={28} priority style={{ height: "1.75rem", width: "auto" }} />
+              <Image src={COS_LOGO_MARK} alt="TravelPro" width={28} height={28} priority style={{ height: "1.75rem", width: "auto" }} />
             ) : (
-              <Image src={COS_LOGO_HEADER} alt="COS" width={88} height={28} priority className="w-auto" style={{ height: "1.6rem", width: "auto" }} />
+              <Image src={COS_LOGO_HEADER} alt="TravelPro" width={88} height={28} priority className="w-auto" style={{ height: "1.6rem", width: "auto" }} />
             )}
           </Link>
           {!collapsed && (

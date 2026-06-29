@@ -5,15 +5,15 @@ import { AuthProvider } from '@/components/auth/auth-provider'
 import { ThemeProvider } from '@/components/theme-provider'
 import './globals.css'
 
-const geist = Geist({ 
-  subsets: ["latin"],
+const geist = Geist({
+  subsets: ['latin'],
   variable: '--font-geist',
-});
+})
 
 export const metadata: Metadata = {
-  title: 'COS - Conversational Operating System',
-  description: 'Uma nova forma de operar negócios, criar softwares e conectar sistemas. Sua empresa conversa. O COS executa.',
-  generator: 'COS',
+  title: 'TravelPro',
+  description: 'TravelPro',
+  generator: 'TravelPro',
   manifest: '/manifest.json',
   icons: {
     icon: [
@@ -25,14 +25,14 @@ export const metadata: Metadata = {
     apple: '/apple-touch-icon.png',
   },
   openGraph: {
-    title: 'COS - Conversational Operating System',
-    description: 'Uma nova forma de operar negócios, criar softwares e conectar sistemas.',
+    title: 'TravelPro',
+    description: 'TravelPro',
     type: 'website',
   },
 }
 
 export const viewport: Viewport = {
-  themeColor: '#f5f5f3',
+  themeColor: '#FE6708',
   width: 'device-width',
   initialScale: 1,
 }
@@ -44,7 +44,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR" suppressHydrationWarning className={`${geist.variable} bg-background text-foreground`}>
-      <body className="font-sans antialiased bg-background text-foreground">
+      <body className="bg-background font-sans text-foreground antialiased">
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
           <AuthProvider>{children}</AuthProvider>
         </ThemeProvider>

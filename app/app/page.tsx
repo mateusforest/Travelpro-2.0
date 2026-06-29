@@ -567,8 +567,8 @@ export default function AppHomePage() {
           {chatMessages.length === 0 ? (
             <div className="flex min-h-full flex-col justify-center py-6">
               <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.3 }} className="mb-4 self-center">
-                <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-100">
-                  <Image src="/travelpro-logo-mark-cropped.jpeg" alt="TravelPro" width={44} height={44} className="h-11 w-11 object-contain" />
+                <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl">
+                  <Image src="/travelpro-logo-mark.png" alt="TravelPro" width={44} height={44} className="h-11 w-11 object-contain" />
                 </div>
               </motion.div>
 
@@ -686,7 +686,7 @@ export default function AppHomePage() {
                     <button type="button" onClick={cancelListening} className="flex-1 rounded-2xl bg-gray-100 px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200">
                       Cancelar
                     </button>
-                    <button type="button" onClick={finalizeListening} className="flex-1 rounded-2xl bg-[#0a0a0a] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#1a1a1a]">
+                    <button type="button" onClick={finalizeListening} className="tp-gradient-btn flex-1 rounded-2xl px-4 py-2.5 text-sm font-medium transition-colors">
                       Finalizar
                     </button>
                   </div>
@@ -717,7 +717,7 @@ export default function AppHomePage() {
               <button onClick={startListening} className={`p-2 transition-colors ${micState === "listening" ? "text-[#0a0a0a]" : "text-gray-400 hover:text-gray-600"}`} aria-label="Falar">
                 <Mic className="h-4 w-4" />
               </button>
-              <button onClick={() => void handleSend()} disabled={!message.trim() || isEngineRunning} className="rounded-full bg-[#0a0a0a] p-2 text-white transition-colors hover:bg-[#1a1a1a] disabled:cursor-not-allowed disabled:opacity-50" aria-label="Enviar">
+              <button onClick={() => void handleSend()} disabled={!message.trim() || isEngineRunning} className="tp-gradient-chip rounded-full p-2 transition-colors disabled:cursor-not-allowed disabled:opacity-50" aria-label="Enviar">
                 <Send className="h-4 w-4" />
               </button>
             </div>
@@ -749,7 +749,7 @@ export default function AppHomePage() {
                     <span className="text-sm text-red-700">Gastos</span>
                     <span className="text-sm font-semibold text-red-600">- {formatCurrency(stats?.gastos ?? 0)}</span>
                   </div>
-                  <div className="flex items-center justify-between rounded-xl bg-[#0a0a0a] px-4 py-3.5">
+                  <div className="tp-gradient-chip flex items-center justify-between rounded-xl px-4 py-3.5">
                     <span className="text-sm font-medium text-white">Saldo final</span>
                   <span className="text-base font-bold text-white">{formatCurrency(saldoFinal)}</span>
                 </div>
@@ -869,7 +869,7 @@ export default function AppHomePage() {
                         <button onClick={closeModal} className="flex-1 rounded-2xl bg-gray-100 py-3 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200">
                           Cancelar
                         </button>
-                        <button onClick={submitMeeting} disabled={isCreatingMeeting} className="flex-1 rounded-2xl bg-[#0a0a0a] py-3 text-sm font-medium text-white transition-colors hover:bg-[#1a1a1a] disabled:cursor-not-allowed disabled:opacity-50">
+                        <button onClick={submitMeeting} disabled={isCreatingMeeting} className="tp-gradient-btn flex-1 rounded-2xl py-3 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50">
                           {isCreatingMeeting ? "Salvando..." : "Iniciar gravacao"}
                         </button>
                       </div>
@@ -889,7 +889,7 @@ export default function AppHomePage() {
                         </p>
                       </div>
                       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                        <Link href="/app/conversas/reunioes" onClick={closeModal} className="rounded-2xl bg-[#0a0a0a] py-3 text-center text-sm font-medium text-white transition-colors hover:bg-[#1a1a1a]">
+                        <Link href="/app/conversas/reunioes" onClick={closeModal} className="tp-gradient-btn rounded-2xl py-3 text-center text-sm font-medium transition-colors">
                           Abrir atendimento
                         </Link>
                         <Link href="/app/conversas/reunioes" onClick={closeModal} className="rounded-2xl bg-gray-100 py-3 text-center text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200">
@@ -909,12 +909,12 @@ export default function AppHomePage() {
                       <GripVertical className="h-4 w-4 flex-shrink-0 text-gray-300" />
                       <shortcut.icon className="h-4 w-4 flex-shrink-0 text-gray-400" />
                       <span className="flex-1 text-sm font-medium text-[#0a0a0a]">{shortcut.label}</span>
-                      <button onClick={() => toggleShortcutDraft(shortcut.id)} className={`relative h-6 w-10 flex-shrink-0 rounded-full transition-colors ${shortcutDraft?.[shortcut.id] ?? shortcut.enabled ? "bg-[#0a0a0a]" : "bg-gray-200"}`} aria-label={`Alternar ${shortcut.label}`}>
+                      <button onClick={() => toggleShortcutDraft(shortcut.id)} className={`relative h-6 w-10 flex-shrink-0 rounded-full transition-colors ${shortcutDraft?.[shortcut.id] ?? shortcut.enabled ? "tp-gradient-chip" : "bg-gray-200"}`} aria-label={`Alternar ${shortcut.label}`}>
                         <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all ${shortcutDraft?.[shortcut.id] ?? shortcut.enabled ? "left-[18px]" : "left-0.5"}`} />
                       </button>
                     </div>
                   ))}
-                  <button onClick={saveShortcutPreferences} className="mt-2 w-full rounded-2xl bg-[#0a0a0a] py-3 text-sm font-medium text-white transition-colors hover:bg-[#1a1a1a]">
+                  <button onClick={saveShortcutPreferences} className="tp-gradient-btn mt-2 w-full rounded-2xl py-3 text-sm font-medium transition-colors">
                     Salvar
                   </button>
                 </div>

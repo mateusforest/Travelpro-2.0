@@ -28,8 +28,8 @@ export function AuthLayout({ children }: AuthLayoutProps) {
           {/* Logo */}
           <Link href="/" className="mb-12">
             <Image
-              src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/COS%20LOGO%20header-lB2hw9fMDONpyTpAYQaVVinJsAweku.png"
-              alt="COS"
+              src="/travelpro-logo-horizontal.png"
+              alt="TravelPro"
               width={120}
               height={40}
               className="h-10 w-auto"
@@ -103,8 +103,8 @@ export function AuthLayout({ children }: AuthLayoutProps) {
           <div className="lg:hidden flex justify-center mb-8">
             <Link href="/">
               <Image
-                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/COS%20LOGO%20header-lB2hw9fMDONpyTpAYQaVVinJsAweku.png"
-                alt="COS"
+                src="/travelpro-logo-horizontal.png"
+                alt="TravelPro"
                 width={100}
                 height={33}
                 className="h-8 w-auto"

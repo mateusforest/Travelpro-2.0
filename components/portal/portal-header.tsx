@@ -98,7 +98,7 @@ export function PortalHeader({ placeholder = "Pergunte ao COS..." }: { placehold
         </div>
 
         <div className="relative">
-          <button onClick={() => setOpenMenu(openMenu === "profile" ? null : "profile")} className="w-9 h-9 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white text-sm font-medium cursor-pointer" aria-label="Menu do perfil">
+          <button onClick={() => setOpenMenu(openMenu === "profile" ? null : "profile")} className="tp-gradient-chip flex h-9 w-9 items-center justify-center rounded-full text-sm font-medium cursor-pointer" aria-label="Menu do perfil">
             {initials}
           </button>
           <AnimatePresence>

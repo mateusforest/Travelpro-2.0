@@ -10,7 +10,7 @@
   --card-foreground: #0a0a0a;
   --popover: #ffffff;
   --popover-foreground: #0a0a0a;
-  --primary: #0a0a0a;
+  --primary: #FE6708;
   --primary-foreground: #ffffff;
   --secondary: #e5e5e5;
   --secondary-foreground: #0a0a0a;
@@ -22,7 +22,7 @@
   --destructive-foreground: oklch(0.577 0.245 27.325);
   --border: #e5e5e5;
   --input: #e5e5e5;
-  --ring: #a3a3a3;
+  --ring: #FE8414;
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -147,4 +147,18 @@
 
 .animate-marquee {
   animation: marquee 20s linear infinite;
+}
+
+.tp-gradient-btn {
+  background-image: linear-gradient(135deg, #FE6708 0%, #FE8414 100%);
+  color: #fff;
+}
+
+.tp-gradient-btn:hover {
+  filter: brightness(0.97);
+}
+
+.tp-gradient-chip {
+  background-image: linear-gradient(135deg, #FE6708 0%, #FE8414 100%);
+  color: #fff;
 }

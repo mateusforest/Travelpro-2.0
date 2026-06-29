@@ -30,8 +30,7 @@ import { ConnectModals } from "@/components/connect/connect-modals"
 import { ConnectHeaderActions } from "@/components/connect/connect-header-actions"
 import { SupportProvider, useSupport } from "@/components/support/support-context"
 
-const COS_LOGO_HEADER =
-  "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/COS%20LOGO%20header-lB2hw9fMDONpyTpAYQaVVinJsAweku.png"
+const COS_LOGO_HEADER = "/travelpro-logo-horizontal.png"
 
 const navItems = [
   { icon: Home, label: "Inicio", href: "/connect", exact: true },
@@ -195,7 +194,7 @@ function BottomNav() {
                 <motion.div
                   animate={{ rotate: isOpen ? 45 : 0 }}
                   transition={{ duration: 0.2 }}
-                  className="flex h-14 w-14 items-center justify-center rounded-full bg-[#0a0a0a] shadow-lg"
+                  className="tp-gradient-chip flex h-14 w-14 items-center justify-center rounded-full shadow-lg"
                 >
                   <Plus className="h-6 w-6 text-white" />
                 </motion.div>
@@ -225,7 +224,7 @@ function GlobalHeader() {
         <div className="flex items-center gap-2">
           <Image
             src={COS_LOGO_HEADER}
-            alt="COS"
+            alt="TravelPro"
             width={96}
             height={31}
             priority
@@ -252,7 +251,7 @@ function DesktopSidebar() {
         <div className="flex items-center gap-2">
           <Image
             src={COS_LOGO_HEADER}
-            alt="COS"
+            alt="TravelPro"
             width={96}
             height={31}
             priority
@@ -275,7 +274,7 @@ function DesktopSidebar() {
         </div>
         <button
           onClick={() => openModal("system")}
-          className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#0a0a0a] py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#1a1a1a]"
+          className="tp-gradient-btn flex w-full items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-medium transition-colors"
         >
           <Plug className="h-4 w-4" />
           Conectar fonte
