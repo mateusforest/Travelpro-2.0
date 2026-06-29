@@ -37,13 +37,13 @@ const filters = [
   { id: "todos", icon: Grid3X3, label: "Todos" },
   { id: "clients", icon: Users, label: "Clientes" },
   { id: "financeiro", icon: DollarSign, label: "Financeiro" },
-  { id: "support", icon: LifeBuoy, label: "Suporte" },
-  { id: "operacoes", icon: Briefcase, label: "Operacoes" },
-  { id: "vendas", icon: TrendingUp, label: "Vendas" },
-  { id: "equipe", icon: UsersRound, label: "Equipe" },
+  { id: "support", icon: LifeBuoy, label: "Atendimentos" },
+  { id: "operacoes", icon: Briefcase, label: "Viagens" },
+  { id: "vendas", icon: TrendingUp, label: "Cotações" },
+  { id: "equipe", icon: UsersRound, label: "Fornecedores" },
   { id: "documentos", icon: FolderOpen, label: "Documentos" },
-  { id: "reunioes", icon: Video, label: "Reunioes" },
-  { id: "sistema", icon: Settings, label: "Sistema" },
+  { id: "reunioes", icon: Video, label: "Agenda" },
+  { id: "sistema", icon: Settings, label: "Configurações" },
 ] as const
 
 const actionLabels: Record<string, string> = {
@@ -55,16 +55,16 @@ const actionLabels: Record<string, string> = {
   client_archived: "Cliente arquivado",
   support_ticket_created: "Chamado de suporte aberto",
   support_message_created: "Mensagem enviada no suporte",
-  master_support_reply: "Resposta enviada pela equipe COS",
-  operation_created: "Operação criada",
-  operation_updated: "Operação atualizada",
-  operation_archived: "Operação arquivada",
+  master_support_reply: "Resposta enviada pela equipe TravelPro",
+  operation_created: "Viagem criada",
+  operation_updated: "Viagem atualizada",
+  operation_archived: "Viagem arquivada",
   document_created: "Documento criado",
   document_updated: "Documento atualizado",
   document_archived: "Documento arquivado",
-  meeting_created: "Reunião criada",
-  meeting_updated: "Reunião atualizada",
-  meeting_archived: "Reunião arquivada",
+  meeting_created: "Atendimento criado",
+  meeting_updated: "Atendimento atualizado",
+  meeting_archived: "Atendimento arquivado",
   support_status_updated: "Status do suporte atualizado",
   support_priority_updated: "Prioridade do suporte atualizada",
   support_ticket_assigned: "Chamado de suporte atribuído",
@@ -105,11 +105,11 @@ function colorForArea(area: string) {
 function humanizeArea(area: string) {
   if (area === "clients") return "Clientes"
   if (area === "financial") return "Financeiro"
-  if (area === "support") return "Suporte"
-  if (area === "operations") return "Operações"
+  if (area === "support") return "Atendimentos"
+  if (area === "operations") return "Viagens"
   if (area === "documents") return "Documentos"
-  if (area === "meetings") return "Reuniões"
-  return "Sistema"
+  if (area === "meetings") return "Agenda"
+  return "Configurações"
 }
 
 export default function HistoricoPage() {

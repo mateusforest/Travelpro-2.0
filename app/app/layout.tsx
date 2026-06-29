@@ -75,15 +75,18 @@ type SessionItem = {
 }
 
 const sessions = [
-  { icon: Users, label: "Cadastros", time: "Em preparação", count: 0, color: "#ec4899", bg: "#fce7f3" },
-  { icon: Briefcase, label: "Operações", time: "Em preparação", count: 0, color: "#8b5cf6", bg: "#ede9fe" },
-  { icon: TrendingUp, label: "Vendas", time: "Em preparação", count: 0, color: "#3b82f6", bg: "#dbeafe" },
+  { icon: Users, label: "Clientes", time: "Em preparação", count: 0, color: "#ec4899", bg: "#fce7f3" },
+  { icon: Briefcase, label: "Viagens", time: "Em preparação", count: 0, color: "#8b5cf6", bg: "#ede9fe" },
+  { icon: TrendingUp, label: "Cotações", time: "Em preparação", count: 0, color: "#3b82f6", bg: "#dbeafe" },
+  { icon: FileText, label: "Contratos", time: "Em preparação", count: 0, color: "#ef4444", bg: "#fee2e2" },
+  { icon: Calendar, label: "Reservas", time: "Em preparação", count: 0, color: "#0ea5e9", bg: "#e0f2fe" },
   { icon: DollarSign, label: "Financeiro", time: "Em preparação", count: 0, color: "#22c55e", bg: "#dcfce7" },
-  { icon: UsersRound, label: "Equipe", time: "Em preparação", count: 0, color: "#0ea5e9", bg: "#e0f2fe" },
   { icon: FolderOpen, label: "Documentos", time: "Em preparação", count: 0, color: "#f97316", bg: "#ffedd5" },
-  { icon: Video, label: "Reuniões", time: "Em preparação", count: 0, color: "#ef4444", bg: "#fee2e2" },
-  { icon: LifeBuoy, label: "Suporte", time: "Em preparação", count: 0, color: "#6b7280", bg: "#f3f4f6" },
-  { icon: Settings, label: "Sistema", time: "Em preparação", count: 0, color: "#6b7280", bg: "#f3f4f6" },
+  { icon: UsersRound, label: "Fornecedores", time: "Em preparação", count: 0, color: "#0ea5e9", bg: "#e0f2fe" },
+  { icon: Video, label: "Agenda", time: "Em preparação", count: 0, color: "#ef4444", bg: "#fee2e2" },
+  { icon: BarChart3, label: "Relatórios", time: "Em preparação", count: 0, color: "#f97316", bg: "#ffedd5" },
+  { icon: Link2, label: "Integrações", time: "Em preparação", count: 0, color: "#6b7280", bg: "#f3f4f6" },
+  { icon: Settings, label: "Configurações", time: "Em preparação", count: 0, color: "#6b7280", bg: "#f3f4f6" },
 ]
 
 function ActionSheetMenu() {
@@ -99,13 +102,14 @@ function ActionSheetMenu() {
 
   const mainActions = [
     { icon: UserPlus, label: "Cliente", href: "/app/novo/cliente", color: "#3b82f6", bg: "#dbeafe" },
-    { icon: Briefcase, label: "Operação", href: "/app/novo/operacao", color: "#8b5cf6", bg: "#ede9fe" },
+    { icon: Briefcase, label: "Viagem", href: "/app/novo/operacao", color: "#8b5cf6", bg: "#ede9fe" },
+    { icon: TrendingUp, label: "Cotação", href: "/app/novo/cotacao", color: "#3b82f6", bg: "#dbeafe" },
     { icon: FileText, label: "Contrato", href: "/app/novo/contrato", color: "#ef4444", bg: "#fee2e2" },
+    { icon: Calendar, label: "Reserva", href: "/app/novo/reserva", color: "#0ea5e9", bg: "#e0f2fe" },
     { icon: DollarSign, label: "Financeiro", href: "/app/novo/financeiro", color: "#22c55e", bg: "#dcfce7" },
-    { icon: Calendar, label: "Reunião", href: "/app/novo/reuniao", color: "#0ea5e9", bg: "#e0f2fe" },
-    { icon: Users, label: "Equipe", action: "equipe" as const, color: "#f97316", bg: "#ffedd5" },
-    { icon: Paperclip, label: "Arquivo", href: "/app/novo/arquivo", color: "#6b7280", bg: "#f3f4f6" },
-    { icon: Camera, label: "Foto", action: "foto" as const, color: "#ec4899", bg: "#fce7f3" },
+    { icon: FileEdit, label: "Documento", href: "/app/novo/documento", color: "#f97316", bg: "#ffedd5" },
+    { icon: UsersRound, label: "Fornecedor", href: "/app/novo/fornecedor", color: "#0ea5e9", bg: "#e0f2fe" },
+    { icon: LifeBuoy, label: "Atendimento", href: "/app/conversas/suporte", color: "#6b7280", bg: "#f3f4f6" },
   ]
 
   const moreActions = [
@@ -115,7 +119,7 @@ function ActionSheetMenu() {
     { icon: ClipboardList, label: "Formulário", href: "/app/novo/formulario", color: "#8b5cf6", bg: "#ede9fe" },
     { icon: Megaphone, label: "Marketing", href: "/app/novo/marketing", color: "#ec4899", bg: "#fce7f3" },
     { icon: Link2, label: "Integração", href: "/app/novo/integracao", color: "#0ea5e9", bg: "#e0f2fe" },
-    { icon: LifeBuoy, label: "Suporte", onClick: () => { close(); openSupport() }, color: "#6b7280", bg: "#f3f4f6" },
+    { icon: LifeBuoy, label: "Atendimento", onClick: () => { close(); openSupport() }, color: "#6b7280", bg: "#f3f4f6" },
   ]
 
   const equipeGroups = [
@@ -140,7 +144,7 @@ function ActionSheetMenu() {
   const titles: Record<MenuLevel, string> = {
     main: "Criar novo",
     more: "Mais ações",
-    equipe: "Equipe",
+    equipe: "Fornecedores",
     foto: "Adicionar foto",
   }
 
@@ -176,42 +180,22 @@ function ActionSheetMenu() {
 
               {level === "main" && (
                 <div className="p-2">
-                  <div className="grid grid-cols-4 gap-1">
-                    {mainActions.map((action) =>
-                      action.action ? (
-                        <button
-                          key={action.label}
-                          onClick={() => setLevel(action.action)}
-                          className="flex flex-col items-center gap-1.5 p-3 rounded-xl hover:bg-gray-50 active:bg-gray-100 transition-colors"
-                        >
-                          <span className="w-11 h-11 rounded-full flex items-center justify-center" style={{ backgroundColor: action.bg }}>
-                            <action.icon className="w-5 h-5" style={{ color: action.color }} />
-                          </span>
-                          <span className="text-xs font-medium text-gray-700">{action.label}</span>
-                        </button>
-                      ) : (
-                        <Link
-                          key={action.label}
-                          href={action.href!}
-                          onClick={close}
-                          className="flex flex-col items-center gap-1.5 p-3 rounded-xl hover:bg-gray-50 active:bg-gray-100 transition-colors"
-                        >
-                          <span className="w-11 h-11 rounded-full flex items-center justify-center" style={{ backgroundColor: action.bg }}>
-                            <action.icon className="w-5 h-5" style={{ color: action.color }} />
-                          </span>
-                          <span className="text-xs font-medium text-gray-700">{action.label}</span>
-                        </Link>
-                      ),
-                    )}
+                  <div className="grid grid-cols-3 gap-1">
+                    {mainActions.map((action) => (
+                      <Link
+                        key={action.label}
+                        href={action.href}
+                        onClick={close}
+                        className="flex flex-col items-center gap-1.5 p-3 rounded-xl hover:bg-gray-50 active:bg-gray-100 transition-colors"
+                      >
+                        <span className="w-11 h-11 rounded-full flex items-center justify-center" style={{ backgroundColor: action.bg }}>
+                          <action.icon className="w-5 h-5" style={{ color: action.color }} />
+                        </span>
+                        <span className="text-xs font-medium text-gray-700">{action.label}</span>
+                      </Link>
+                    ))}
                   </div>
 
-                  <button
-                    onClick={() => setLevel("more")}
-                    className="flex items-center justify-center gap-2 w-full mt-1 py-3 rounded-xl hover:bg-gray-50 active:bg-gray-100 transition-colors border-t border-gray-100"
-                  >
-                    <span className="text-sm font-medium text-gray-600">Mais ações</span>
-                    <ChevronRight className="w-4 h-4 text-gray-400" />
-                  </button>
                 </div>
               )}
 
@@ -311,7 +295,7 @@ function BottomNav() {
     { icon: MessageSquare, label: "Conversas", href: "/app/conversas" },
     { icon: null, label: "", href: "" },
     { icon: Clock, label: "Histórico", href: "/app/historico" },
-    { icon: User, label: "Você", href: "/app/voce" },
+    { icon: User, label: "Perfil", href: "/app/voce" },
   ]
 
   const isActive = (href: string, exact?: boolean) => (exact ? pathname === href : pathname.startsWith(href))
@@ -372,9 +356,8 @@ function DesktopSidebar() {
   const sessionsData: SessionItem[] = [
     {
       icon: Users,
-      label: "Cadastros",
-      time:
-        summary?.clientsCount === 1 ? "1 cliente" : (summary?.clientsCount ?? 0) > 1 ? `${summary?.clientsCount ?? 0} clientes` : "Sem registros",
+      label: "Clientes",
+      time: summary?.clientsCount === 1 ? "1 cliente" : (summary?.clientsCount ?? 0) > 1 ? `${summary?.clientsCount ?? 0} clientes` : "Sem registros",
       count: summary?.clientsCount ?? 0,
       color: "#ec4899",
       bg: "#fce7f3",
@@ -382,76 +365,59 @@ function DesktopSidebar() {
     },
     {
       icon: Briefcase,
-      label: "Operações",
-      time:
-        summary?.operationsCount === 1 ? "1 operação" : (summary?.operationsCount ?? 0) > 1 ? `${summary?.operationsCount ?? 0} operações` : "Sem registros",
+      label: "Viagens",
+      time: summary?.operationsCount === 1 ? "1 viagem" : (summary?.operationsCount ?? 0) > 1 ? `${summary?.operationsCount ?? 0} viagens` : "Sem registros",
       count: summary?.operationsCount ?? 0,
       color: "#8b5cf6",
       bg: "#ede9fe",
       href: "/app/conversas/operacoes",
     },
-    { icon: TrendingUp, label: "Vendas", time: "Chat contextual", count: 0, color: "#3b82f6", bg: "#dbeafe", href: "/app/conversas/vendas" },
+    { icon: TrendingUp, label: "Cotações", time: "Chat contextual", count: 0, color: "#3b82f6", bg: "#dbeafe", href: "/app/conversas/vendas" },
+    { icon: FileText, label: "Contratos", time: "Documentos de viagem", count: 0, color: "#ef4444", bg: "#fee2e2", href: "/app/conversas/documentos/contratos" },
+    { icon: Calendar, label: "Reservas", time: "Chat contextual", count: 0, color: "#0ea5e9", bg: "#e0f2fe", href: "/app/conversas/operacoes/reservas" },
     {
       icon: DollarSign,
       label: "Financeiro",
-      time:
-        summary?.financial.entriesCount === 1
-          ? "1 lançamento"
-          : (summary?.financial.entriesCount ?? 0) > 1
-            ? `${summary?.financial.entriesCount ?? 0} lançamentos`
-            : "Sem registros",
+      time: summary?.financial.entriesCount === 1 ? "1 lançamento" : (summary?.financial.entriesCount ?? 0) > 1 ? `${summary?.financial.entriesCount ?? 0} lançamentos` : "Sem registros",
       count: summary?.financial.entriesCount ?? 0,
       color: "#22c55e",
       bg: "#dcfce7",
       href: "/app/conversas/financeiro",
     },
     {
-      icon: UsersRound,
-      label: "Equipe",
-      time: summary?.teamCount === 1 ? "1 membro" : (summary?.teamCount ?? 0) > 1 ? `${summary?.teamCount ?? 0} membros` : "Sem registros",
-      count: summary?.teamCount ?? 0,
-      color: "#0ea5e9",
-      bg: "#e0f2fe",
-      href: "/app/conversas/equipe",
-    },
-    {
       icon: FolderOpen,
       label: "Documentos",
-      time:
-        summary?.documentsCount === 1 ? "1 documento" : (summary?.documentsCount ?? 0) > 1 ? `${summary?.documentsCount ?? 0} documentos` : "Sem registros",
+      time: summary?.documentsCount === 1 ? "1 documento" : (summary?.documentsCount ?? 0) > 1 ? `${summary?.documentsCount ?? 0} documentos` : "Sem registros",
       count: summary?.documentsCount ?? 0,
       color: "#f97316",
       bg: "#ffedd5",
       href: "/app/conversas/documentos",
     },
+    { icon: UsersRound, label: "Fornecedores", time: "Parceiros e operadoras", count: 0, color: "#0ea5e9", bg: "#e0f2fe", href: "/app/conversas/cadastros/fornecedores" },
     {
       icon: Video,
-      label: "Reuniões",
-      time:
-        summary?.meetingsCount === 1 ? "1 reunião" : (summary?.meetingsCount ?? 0) > 1 ? `${summary?.meetingsCount ?? 0} reuniões` : "Sem registros",
+      label: "Agenda",
+      time: summary?.meetingsCount === 1 ? "1 atendimento" : (summary?.meetingsCount ?? 0) > 1 ? `${summary?.meetingsCount ?? 0} atendimentos` : "Sem registros",
       count: summary?.meetingsCount ?? 0,
       color: "#ef4444",
       bg: "#fee2e2",
       href: "/app/conversas/reunioes",
     },
-    {
-      icon: LifeBuoy,
-      label: "Suporte",
-      time:
-        summary?.supportCount === 1 ? "1 chamado" : (summary?.supportCount ?? 0) > 1 ? `${summary?.supportCount ?? 0} chamados` : "Sem registros",
-      count: summary?.supportCount ?? 0,
-      color: "#6b7280",
-      bg: "#f3f4f6",
-      href: "/app/conversas/suporte",
-    },
-    { icon: Settings, label: "Sistema", time: "Configurações e logs", count: 0, color: "#6b7280", bg: "#f3f4f6", href: "/app/conversas/sistema" },
+    { icon: BarChart3, label: "Relatórios", time: "Indicadores e análises", count: 0, color: "#f97316", bg: "#ffedd5", href: "/app/conversas/documentos/relatorios" },
+    { icon: Link2, label: "Integrações", time: "Conexões externas", count: 0, color: "#6b7280", bg: "#f3f4f6", href: "/app/conversas/sistema/integracoes" },
+    { icon: Settings, label: "Configurações", time: "Configurações e logs", count: 0, color: "#6b7280", bg: "#f3f4f6", href: "/app/conversas/sistema" },
   ]
 
   const navItems = [
     { icon: Home, label: "Início", href: "/app", exact: true },
     { icon: MessageSquare, label: "Conversas", href: "/app/conversas" },
     { icon: Clock, label: "Histórico", href: "/app/historico" },
-    { icon: User, label: "Você", href: "/app/voce" },
+    { icon: User, label: "Perfil", href: "/app/voce" },
+  ]
+
+  const favoriteItems = [
+    { icon: TrendingUp, label: "Roteiros", href: "/app/conversas/vendas/roteiros", color: "#3b82f6", bg: "#dbeafe" },
+    { icon: LifeBuoy, label: "Atendimentos", href: "/app/conversas/cadastros/atendimentos", color: "#6b7280", bg: "#f3f4f6" },
   ]
 
   const isActive = (href: string, exact?: boolean) => (exact ? pathname === href : pathname.startsWith(href))
@@ -505,6 +471,20 @@ function DesktopSidebar() {
                 {s.count}
               </span>
             )}
+          </Link>
+        ))}
+        <div className="px-2 pb-2 pt-4">
+          <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">Favoritos</span>
+        </div>
+        {favoriteItems.map((item) => (
+          <Link key={item.label} href={item.href} className="flex items-center gap-3 px-2.5 py-2 rounded-lg hover:bg-gray-50 transition-colors group">
+            <span className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: item.bg }}>
+              <item.icon className="w-4 h-4" style={{ color: item.color }} />
+            </span>
+            <span className="flex-1 min-w-0">
+              <span className="block text-sm font-medium text-[#0a0a0a] truncate">{item.label}</span>
+              <span className="block text-xs text-gray-400">Acesso rápido</span>
+            </span>
           </Link>
         ))}
       </div>

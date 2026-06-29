@@ -72,25 +72,25 @@ type ActiveConversation = {
 
 const suggestions = [
   { icon: Users, color: "#ec4899", bg: "#fce7f3", title: "Cadastrar primeiro cliente", desc: "Comece organizando sua base de clientes." },
-  { icon: Wallet, color: "#22c55e", bg: "#dcfce7", title: "Registrar primeiro lancamento", desc: "Seus ganhos e gastos aparecerao aqui depois do primeiro registro." },
-  { icon: FileText, color: "#3b82f6", bg: "#dbeafe", title: "Criar primeiro documento", desc: "Use o COS para centralizar propostas, contratos e arquivos." },
-  { icon: Video, color: "#ef4444", bg: "#fee2e2", title: "Gravar primeira reuniao", desc: "Os resumos gerados ficarao disponiveis nesta area." },
+  { icon: Briefcase, color: "#8b5cf6", bg: "#ede9fe", title: "Criar primeira viagem", desc: "Estruture viagens, reservas e atendimentos no workspace." },
+  { icon: FileText, color: "#3b82f6", bg: "#dbeafe", title: "Criar primeira cotação", desc: "Centralize roteiros, propostas e contratos." },
+  { icon: Video, color: "#ef4444", bg: "#fee2e2", title: "Agendar primeiro atendimento", desc: "Os registros ficarão disponíveis na agenda." },
 ]
 
 const nextSteps = [
-  { priority: "Alta", color: "#ef4444", title: "Cadastrar primeiro cliente", desc: "Sua operacao comeca quando os primeiros dados reais entrarem no COS." },
-  { priority: "Alta", color: "#ef4444", title: "Criar primeira operacao", desc: "Estruture pedidos, projetos ou atendimentos no seu workspace." },
-  { priority: "Media", color: "#f97316", title: "Registrar primeiro lancamento", desc: "Isso libera os indicadores financeiros reais." },
-  { priority: "Baixa", color: "#22c55e", title: "Convidar a equipe", desc: "Adicione membros quando quiser comecar a colaboracao." },
+  { priority: "Alta", color: "#ef4444", title: "Cadastrar primeiro cliente", desc: "Sua operação começa quando os primeiros dados reais entram no TravelPro." },
+  { priority: "Alta", color: "#ef4444", title: "Criar primeira viagem", desc: "Estruture reservas, datas e responsáveis no workspace." },
+  { priority: "Media", color: "#f97316", title: "Registrar primeiro lançamento", desc: "Isso libera os indicadores financeiros reais." },
+  { priority: "Baixa", color: "#22c55e", title: "Adicionar fornecedores", desc: "Organize parceiros, operadoras e contatos importantes." },
 ]
 
 const defaultShortcuts = [
   { id: "clientes", icon: Users, value: "0", label: "Clientes", enabled: true },
-  { id: "operacoes", icon: Briefcase, value: "0", label: "Operacoes", enabled: true },
-  { id: "balanco", icon: Wallet, value: "0,00", label: "Balanco", isBalance: true, enabled: true },
-  { id: "equipe", icon: UsersRound, value: "0", label: "Equipe", enabled: true },
-  { id: "vendas", icon: ArrowRight, value: "0", label: "Vendas", enabled: false },
-  { id: "reunioes", icon: Video, value: "0", label: "Reunioes", enabled: false },
+  { id: "operacoes", icon: Briefcase, value: "0", label: "Viagens", enabled: true },
+  { id: "balanco", icon: Wallet, value: "0,00", label: "Financeiro", isBalance: true, enabled: true },
+  { id: "equipe", icon: UsersRound, value: "0", label: "Fornecedores", enabled: true },
+  { id: "vendas", icon: ArrowRight, value: "0", label: "Cotações", enabled: false },
+  { id: "reunioes", icon: Video, value: "0", label: "Agenda", enabled: false },
 ]
 
 const defaultMeetingForm: MeetingFormState = {
@@ -230,14 +230,14 @@ export default function AppHomePage() {
     { icon: ArrowRight, label: "Proximo passo", onClick: () => setModal("passo") },
     {
       icon: Video,
-      label: "Gravar reuniao",
+      label: "Atendimento",
       onClick: () => {
         setMeetingForm(defaultMeetingForm)
         setMeetingFeedback(null)
         setModal("meet")
       },
     },
-    { icon: LifeBuoy, label: "Suporte", onClick: () => openSupport() },
+    { icon: LifeBuoy, label: "Atendimento", onClick: () => openSupport() },
   ]
 
   const shortcuts = useMemo(
@@ -515,12 +515,12 @@ export default function AppHomePage() {
       return
     }
 
-    setMeetingFeedback({ tone: "success", text: "Reuniao criada com sucesso." })
+    setMeetingFeedback({ tone: "success", text: "Atendimento criado com sucesso." })
     await refreshSummary({ silent: true, force: true })
 
     toast({
-      title: "Reuniao criada com sucesso.",
-      description: "A reuniao ja pode ser vista em Reunioes.",
+      title: "Atendimento criado com sucesso.",
+      description: "A reunião já pode ser vista na Agenda.",
     })
   }
 
@@ -768,7 +768,7 @@ export default function AppHomePage() {
                 <h2 className="text-lg font-semibold text-[#0a0a0a]">
                   {modal === "sugerir" && "Sugestoes do COS"}
                   {modal === "passo" && "Proximos passos"}
-                  {modal === "meet" && "COS Meet"}
+                  {modal === "meet" && "Atendimento"}
                   {modal === "editar" && "Editar atalhos"}
                 </h2>
                 <button onClick={closeModal} className="rounded-full p-1.5 transition-colors hover:bg-gray-100" aria-label="Fechar">
@@ -823,7 +823,7 @@ export default function AppHomePage() {
                       <Video className="h-6 w-6 text-red-500" />
                     </span>
                     <div>
-                      <p className="text-sm font-medium text-[#0a0a0a]">Criar reuniao</p>
+                      <p className="text-sm font-medium text-[#0a0a0a]">Criar atendimento</p>
                       <p className="text-sm text-gray-500">Transcricao e gravacao automatica serao ativadas quando a IA estiver conectada.</p>
                     </div>
                   </div>
@@ -885,15 +885,15 @@ export default function AppHomePage() {
                           <span className="text-sm font-medium text-[#0a0a0a]">Proximo passo</span>
                         </div>
                         <p className="text-xs leading-relaxed text-gray-600">
-                          A reuniao ja foi criada no backend real e aparecera em Reunioes e no Historico do workspace.
+                          O atendimento ja foi criado no backend real e aparecera na Agenda e no Historico do workspace.
                         </p>
                       </div>
                       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                         <Link href="/app/conversas/reunioes" onClick={closeModal} className="rounded-2xl bg-[#0a0a0a] py-3 text-center text-sm font-medium text-white transition-colors hover:bg-[#1a1a1a]">
-                          Abrir reuniao
+                          Abrir atendimento
                         </Link>
                         <Link href="/app/conversas/reunioes" onClick={closeModal} className="rounded-2xl bg-gray-100 py-3 text-center text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200">
-                          Ver em Reunioes
+                          Ver na Agenda
                         </Link>
                       </div>
                     </div>

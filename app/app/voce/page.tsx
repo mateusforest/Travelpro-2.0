@@ -112,8 +112,8 @@ export default function VocePage() {
     })
 
   const companyItems = [
-    { icon: Building2, label: "Minha empresa", sublabel: workspace?.name || "Nenhuma empresa cadastrada ainda", onClick: openCompany },
-    { icon: Users, label: "Equipe", sublabel: "Membros e permissoes do workspace", onClick: openTeam },
+    { icon: Building2, label: "Minha operação", sublabel: workspace?.name || "Nenhuma empresa cadastrada ainda", onClick: openCompany },
+    { icon: Users, label: "Fornecedores", sublabel: "Parceiros e permissões do workspace", onClick: openTeam },
     { icon: CreditCard, label: "Assinatura e plano", sublabel: "Nenhuma assinatura ativa ainda", onClick: openSubscription },
   ]
 
@@ -274,8 +274,8 @@ export default function VocePage() {
   return (
     <div className="px-4 py-6 pb-32">
       <motion.div initial={{ y: -10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="mb-4">
-        <h1 className="mb-0.5 text-2xl font-bold text-[#0a0a0a]">Voce</h1>
-        <p className="text-sm text-gray-500">Gerencie seu perfil, empresa e preferencias.</p>
+        <h1 className="mb-0.5 text-2xl font-bold text-[#0a0a0a]">Perfil</h1>
+        <p className="text-sm text-gray-500">Gerencie seu perfil, operação e preferências.</p>
       </motion.div>
 
       <motion.div
@@ -324,7 +324,7 @@ export default function VocePage() {
         </div>
         <h3 className="mb-1 text-base font-semibold text-[#0a0a0a]">Portal Administrativo</h3>
         <p className="mb-3 text-sm text-gray-500">
-          Acompanhe indicadores, gerencie sua equipe, clientes, financeiro e muito mais.
+          Acompanhe indicadores, clientes, viagens, financeiro e muito mais.
         </p>
         <Link
           href="/portal"
@@ -342,7 +342,7 @@ export default function VocePage() {
       </Section>
 
       <Section title="Faturamento" delay={0.25}>
-        <MenuItem icon={Receipt} label="Faturamento do COS" sublabel="Historico, cobrancas e notas fiscais" onClick={() => setSheet("faturamento")} />
+        <MenuItem icon={Receipt} label="Faturamento TravelPro" sublabel="Historico, cobrancas e notas fiscais" onClick={() => setSheet("faturamento")} />
         <MenuItem icon={Package} label="Pacotes extras" sublabel="Creditos IA, armazenamento e usuarios" onClick={() => setSheet("pacotes")} />
       </Section>
 
@@ -406,7 +406,7 @@ export default function VocePage() {
                 <>
                   <SheetHeader title="Perfil" onClose={closeSheet} />
                   <div className="space-y-4">
-                    {!profile?.full_name && !profile?.phone && <InfoCard text="Complete seu perfil para deixar seus dados prontos para o uso real do COS." />}
+                    {!profile?.full_name && !profile?.phone && <InfoCard text="Complete seu perfil para deixar seus dados prontos para o uso real do TravelPro." />}
                     <Field label="Nome completo">
                       <input
                         type="text"
@@ -518,7 +518,7 @@ export default function VocePage() {
 
               {sheet === "faturamento" && (
                 <>
-                  <SheetHeader title="Faturamento do COS" onClose={closeSheet} />
+                  <SheetHeader title="Faturamento TravelPro" onClose={closeSheet} />
                   <div className="mb-4 rounded-xl bg-gray-50 p-4">
                     <div className="mb-1 flex items-center justify-between">
                       <span className="text-sm text-gray-500">Status da assinatura</span>

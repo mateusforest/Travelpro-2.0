@@ -13,11 +13,11 @@ import {
   Briefcase,
   TrendingUp,
   DollarSign,
-  UsersRound,
   FolderOpen,
   Video,
   Settings,
-  LifeBuoy,
+  FileText,
+  UsersRound,
 } from "lucide-react"
 import { useOperationsDashboard } from "@/components/app/operations-dashboard-store"
 import { useAppInteractions } from "@/components/app/app-interactions"
@@ -26,6 +26,7 @@ import { areaConfigs, slug } from "@/lib/area-configs"
 type Conversation = {
   icon: typeof Users
   label: string
+  href: string
   lastMessage: string
   time: string
   count: number
@@ -35,15 +36,18 @@ type Conversation = {
 }
 
 const baseConversations: Conversation[] = [
-  { icon: Users, label: "Cadastros", lastMessage: "Sem registros", time: "-", count: 0, color: "#ec4899", bgColor: "#fce7f3", subsections: areaConfigs.cadastros.subsections },
-  { icon: Briefcase, label: "Operações", lastMessage: "Sem registros", time: "-", count: 0, color: "#8b5cf6", bgColor: "#ede9fe", subsections: areaConfigs.operacoes.subsections },
-  { icon: TrendingUp, label: "Vendas", lastMessage: "Conversa contextual pronta", time: "-", count: 0, color: "#3b82f6", bgColor: "#dbeafe", subsections: areaConfigs.vendas.subsections },
-  { icon: DollarSign, label: "Financeiro", lastMessage: "Sem registros", time: "-", count: 0, color: "#22c55e", bgColor: "#dcfce7", subsections: areaConfigs.financeiro.subsections },
-  { icon: UsersRound, label: "Equipe", lastMessage: "Sem registros", time: "-", count: 0, color: "#0ea5e9", bgColor: "#e0f2fe", subsections: areaConfigs.equipe.subsections },
-  { icon: FolderOpen, label: "Documentos", lastMessage: "Sem registros", time: "-", count: 0, color: "#f97316", bgColor: "#ffedd5", subsections: areaConfigs.documentos.subsections },
-  { icon: Video, label: "Reuniões", lastMessage: "Sem registros", time: "-", count: 0, color: "#ef4444", bgColor: "#fee2e2", subsections: areaConfigs.reunioes.subsections },
-  { icon: Settings, label: "Sistema", lastMessage: "Configurações e logs", time: "-", count: 0, color: "#6b7280", bgColor: "#f3f4f6", subsections: areaConfigs.sistema.subsections },
-  { icon: LifeBuoy, label: "Suporte", lastMessage: "Sem registros", time: "-", count: 0, color: "#6b7280", bgColor: "#f3f4f6", subsections: areaConfigs.suporte.subsections },
+  { icon: Users, label: "Clientes", href: "/app/conversas/cadastros", lastMessage: "Sem registros", time: "-", count: 0, color: "#ec4899", bgColor: "#fce7f3", subsections: areaConfigs.cadastros.subsections },
+  { icon: Briefcase, label: "Viagens", href: "/app/conversas/operacoes", lastMessage: "Sem registros", time: "-", count: 0, color: "#8b5cf6", bgColor: "#ede9fe", subsections: areaConfigs.operacoes.subsections },
+  { icon: TrendingUp, label: "Cotações", href: "/app/conversas/vendas", lastMessage: "Conversa contextual pronta", time: "-", count: 0, color: "#3b82f6", bgColor: "#dbeafe", subsections: areaConfigs.vendas.subsections },
+  { icon: FileText, label: "Contratos", href: "/app/conversas/documentos/contratos", lastMessage: "Documentos de viagem", time: "-", count: 0, color: "#ef4444", bgColor: "#fee2e2", subsections: [] },
+  { icon: Video, label: "Reservas", href: "/app/conversas/operacoes/reservas", lastMessage: "Chat contextual pronto", time: "-", count: 0, color: "#0ea5e9", bgColor: "#e0f2fe", subsections: [] },
+  { icon: DollarSign, label: "Financeiro", href: "/app/conversas/financeiro", lastMessage: "Sem registros", time: "-", count: 0, color: "#22c55e", bgColor: "#dcfce7", subsections: areaConfigs.financeiro.subsections },
+  { icon: FolderOpen, label: "Documentos", href: "/app/conversas/documentos", lastMessage: "Sem registros", time: "-", count: 0, color: "#f97316", bgColor: "#ffedd5", subsections: areaConfigs.documentos.subsections },
+  { icon: UsersRound, label: "Fornecedores", href: "/app/conversas/cadastros/fornecedores", lastMessage: "Parceiros e operadoras", time: "-", count: 0, color: "#0ea5e9", bgColor: "#e0f2fe", subsections: [] },
+  { icon: Video, label: "Agenda", href: "/app/conversas/reunioes", lastMessage: "Sem registros", time: "-", count: 0, color: "#ef4444", bgColor: "#fee2e2", subsections: areaConfigs.reunioes.subsections },
+  { icon: FolderOpen, label: "Relatórios", href: "/app/conversas/documentos/relatorios", lastMessage: "Indicadores e análises", time: "-", count: 0, color: "#f97316", bgColor: "#ffedd5", subsections: [] },
+  { icon: Settings, label: "Integrações", href: "/app/conversas/sistema/integracoes", lastMessage: "Conexões externas", time: "-", count: 0, color: "#6b7280", bgColor: "#f3f4f6", subsections: [] },
+  { icon: Settings, label: "Configurações", href: "/app/conversas/sistema", lastMessage: "Configurações e logs", time: "-", count: 0, color: "#6b7280", bgColor: "#f3f4f6", subsections: areaConfigs.sistema.subsections },
 ]
 
 export default function ConversasPage() {
@@ -56,14 +60,14 @@ export default function ConversasPage() {
   const conversations = useMemo(
     () =>
       baseConversations.map((conversation) => {
-        if (conversation.label === "Cadastros") {
+        if (conversation.label === "Clientes") {
           const count = summary?.clientsCount ?? 0
           return { ...conversation, count, lastMessage: count === 1 ? "1 cliente" : count > 1 ? `${count} clientes` : "Sem registros" }
         }
 
-        if (conversation.label === "Operações") {
+        if (conversation.label === "Viagens") {
           const count = summary?.operationsCount ?? 0
-          return { ...conversation, count, lastMessage: count === 1 ? "1 operação" : count > 1 ? `${count} operações` : "Sem registros" }
+          return { ...conversation, count, lastMessage: count === 1 ? "1 viagem" : count > 1 ? `${count} viagens` : "Sem registros" }
         }
 
         if (conversation.label === "Financeiro") {
@@ -71,24 +75,14 @@ export default function ConversasPage() {
           return { ...conversation, count, lastMessage: count === 1 ? "1 lançamento" : count > 1 ? `${count} lançamentos` : "Sem registros" }
         }
 
-        if (conversation.label === "Equipe") {
-          const count = summary?.teamCount ?? 0
-          return { ...conversation, count, lastMessage: count === 1 ? "1 membro" : count > 1 ? `${count} membros` : "Sem registros" }
-        }
-
         if (conversation.label === "Documentos") {
           const count = summary?.documentsCount ?? 0
           return { ...conversation, count, lastMessage: count === 1 ? "1 documento" : count > 1 ? `${count} documentos` : "Sem registros" }
         }
 
-        if (conversation.label === "Reuniões") {
+        if (conversation.label === "Agenda") {
           const count = summary?.meetingsCount ?? 0
-          return { ...conversation, count, lastMessage: count === 1 ? "1 reunião" : count > 1 ? `${count} reuniões` : "Sem registros" }
-        }
-
-        if (conversation.label === "Suporte") {
-          const count = summary?.supportCount ?? 0
-          return { ...conversation, count, lastMessage: count === 1 ? "1 chamado" : count > 1 ? `${count} chamados` : "Sem registros" }
+          return { ...conversation, count, lastMessage: count === 1 ? "1 atendimento" : count > 1 ? `${count} atendimentos` : "Sem registros" }
         }
 
         return conversation
@@ -133,7 +127,7 @@ export default function ConversasPage() {
       <div className="space-y-1">
         {filtered.map((conversation, index) => {
           const isOpen = expanded === conversation.label
-          const conversationHref = `/app/conversas/${slug(conversation.label)}`
+          const conversationHref = conversation.href
 
           return (
             <motion.div
@@ -190,7 +184,7 @@ export default function ConversasPage() {
                       {conversation.subsections.map((subsection) => (
                         <Link
                           key={subsection}
-                          href={`/app/conversas/${slug(conversation.label)}/${slug(subsection)}`}
+                          href={`${conversation.href}/${slug(subsection)}`}
                           className="flex items-center justify-between py-2.5 px-3 rounded-lg hover:bg-gray-50 active:bg-gray-100 transition-colors"
                         >
                           <span className="text-sm text-gray-700">{subsection}</span>

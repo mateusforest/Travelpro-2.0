@@ -45,15 +45,15 @@ function resolveChatCopy(area: string, subLabel: string) {
     return {
       subtitle: `Conversa operacional sobre ${subLabel.toLowerCase()}.`,
       emptyLabel: `Ainda nao ha mensagens nesta conversa. Use o campo abaixo para falar com o COS sobre ${subLabel.toLowerCase()}.`,
-      quickActions: ["Criar operacao", "Buscar operacao", "Ver operacoes no Portal"],
+      quickActions: ["Criar viagem", "Buscar viagem", "Ver viagens no Portal"],
     }
   }
 
   if (area === "vendas") {
     return {
-      subtitle: `Conversa comercial sobre ${subLabel.toLowerCase()}.`,
+      subtitle: `Conversa de cotações sobre ${subLabel.toLowerCase()}.`,
       emptyLabel: `Ainda nao ha mensagens nesta conversa. Use o campo abaixo para falar com o COS sobre ${subLabel.toLowerCase()}.`,
-      quickActions: ["Criar proposta", "Buscar negociacao", "Ver vendas no Portal"],
+      quickActions: ["Criar cotação", "Buscar cotação", "Ver cotações no Portal"],
     }
   }
 
@@ -61,15 +61,15 @@ function resolveChatCopy(area: string, subLabel: string) {
     return {
       subtitle: `Conversa financeira sobre ${subLabel.toLowerCase()}.`,
       emptyLabel: `Ainda nao ha mensagens nesta conversa. Use o campo abaixo para falar com o COS sobre ${subLabel.toLowerCase()}.`,
-      quickActions: ["Registrar ganho", "Registrar gasto", "Ver financeiro no Portal"],
+      quickActions: ["Registrar recebimento", "Registrar pagamento", "Ver financeiro no Portal"],
     }
   }
 
   if (area === "equipe") {
     return {
-      subtitle: `Conversa contextual da equipe ${subLabel.toLowerCase()}.`,
+      subtitle: `Conversa contextual de fornecedores ${subLabel.toLowerCase()}.`,
       emptyLabel: `Ainda nao ha mensagens nesta conversa. Use o campo abaixo para falar com o COS sobre a equipe ${subLabel.toLowerCase()}.`,
-      quickActions: ["Adicionar membro", "Atribuir tarefa", "Ver equipe no Portal"],
+      quickActions: ["Adicionar fornecedor", "Buscar fornecedor", "Ver fornecedores no Portal"],
     }
   }
 
@@ -154,17 +154,17 @@ export default function SubAreaPage({ params }: { params: Promise<{ area: string
             return
           }
 
-          if (label === "Criar operacao") {
+          if (label === "Criar viagem") {
             router.push("/app/novo/operacao")
             return
           }
 
-          if (label === "Criar proposta") {
+          if (label === "Criar cotação") {
             router.push("/portal/propostas")
             return
           }
 
-          if (label === "Registrar ganho" || label === "Registrar gasto") {
+          if (label === "Registrar recebimento" || label === "Registrar pagamento") {
             router.push("/app/novo/financeiro")
             return
           }

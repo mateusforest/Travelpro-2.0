@@ -83,7 +83,7 @@ export default function AreaPage({ params }: { params: Promise<{ area: string }>
         title={config.label}
         subtitle={
           area === "sistema"
-            ? "Logs, alertas e configuracoes do workspace."
+            ? "Configurações, integrações e logs do workspace."
             : `Conversa contextual de ${config.label.toLowerCase()} do seu workspace.`
         }
         icon={Icon}
@@ -94,7 +94,7 @@ export default function AreaPage({ params }: { params: Promise<{ area: string }>
         quickActions={config.quickActions.map((label) => ({
           label,
           onClick:
-            label === "Iniciar suporte"
+            label === "Iniciar atendimento"
               ? () => openSupport()
               : label === "Acessar Portal"
                 ? () => router.push("/portal")
