@@ -11,12 +11,16 @@ export function PortalModulePage({
   ctaLabel,
   emptyLabel,
   listHref,
+  ctaHref,
+  ctaDisabled,
 }: {
   title: string
   description: string
   ctaLabel: string
   emptyLabel: string
   listHref: string
+  ctaHref?: string
+  ctaDisabled?: boolean
 }) {
   const { openFilters, openQuickActions } = usePortalInteractions()
 
@@ -27,13 +31,28 @@ export function PortalModulePage({
         <div className="max-w-7xl mx-auto px-6 py-8">
           <div className="flex items-start justify-between gap-4 mb-8">
             <PortalPageHeader title={title} description={description} />
-            <button
-              onClick={openQuickActions}
-              className="inline-flex items-center gap-2 rounded-xl bg-[#FE6708] px-4 py-2.5 text-sm text-white transition-colors hover:bg-[#FE8414]"
-            >
-              <Plus className="w-4 h-4" />
-              {ctaLabel}
-            </button>
+            {ctaHref ? (
+              <Link
+                href={ctaHref}
+                className="inline-flex items-center gap-2 rounded-xl bg-[#FE6708] px-4 py-2.5 text-sm text-white transition-colors hover:bg-[#FE8414]"
+              >
+                <Plus className="w-4 h-4" />
+                {ctaLabel}
+              </Link>
+            ) : (
+              <button
+                onClick={openQuickActions}
+                disabled={ctaDisabled}
+                className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm transition-colors ${
+                  ctaDisabled
+                    ? "cursor-not-allowed bg-gray-100 text-muted-foreground"
+                    : "bg-[#FE6708] text-white hover:bg-[#FE8414]"
+                }`}
+              >
+                <Plus className="w-4 h-4" />
+                {ctaLabel}
+              </button>
+            )}
           </div>
 
           <div className="bg-white border border-gray-100 rounded-2xl p-5">

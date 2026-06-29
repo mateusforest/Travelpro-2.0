@@ -6,16 +6,23 @@ import { PortalModulePage } from "@/components/portal/portal-module-page"
 import { ClientsManager } from "@/components/operations/clients-manager"
 import { DocumentsManager } from "@/components/operations/documents-manager"
 import { FinancialManager } from "@/components/operations/financial-manager"
-import { MeetingsManager } from "@/components/operations/meetings-manager"
-import { OperationsManager } from "@/components/operations/operations-manager"
 
-const SECTION_META: Record<string, { title: string; description: string; ctaLabel: string; emptyLabel: string; listHref: string }> = {
+const SECTION_META: Record<string, { title: string; description: string; ctaLabel: string; emptyLabel: string; listHref: string; ctaDisabled?: boolean }> = {
+  viagens: {
+    title: "Viagens",
+    description: "O módulo de viagens ainda está indisponível no Portal TravelPro.",
+    ctaLabel: "Nova viagem",
+    emptyLabel: "As viagens serão exibidas aqui quando este módulo estiver disponível.",
+    listHref: "/portal/viagens",
+    ctaDisabled: true,
+  },
   conversas: {
     title: "Reservas",
     description: "Acompanhe reservas, confirmações e próximos passos da operação.",
     ctaLabel: "Nova reserva",
     emptyLabel: "Nenhuma reserva registrada ainda.",
     listHref: "/portal/conversas",
+    ctaDisabled: true,
   },
   cadastros: {
     title: "Clientes",
@@ -30,6 +37,7 @@ const SECTION_META: Record<string, { title: string; description: string; ctaLabe
     ctaLabel: "Novo contrato",
     emptyLabel: "Nenhum contrato cadastrado ainda.",
     listHref: "/portal/operacoes",
+    ctaDisabled: true,
   },
   vendas: {
     title: "Cotações",
@@ -37,6 +45,7 @@ const SECTION_META: Record<string, { title: string; description: string; ctaLabe
     ctaLabel: "Nova cotação",
     emptyLabel: "Nenhuma cotação registrada ainda.",
     listHref: "/portal/vendas",
+    ctaDisabled: true,
   },
   documentos: {
     title: "Documentos",
@@ -51,6 +60,7 @@ const SECTION_META: Record<string, { title: string; description: string; ctaLabe
     ctaLabel: "Novo compromisso",
     emptyLabel: "Nenhum compromisso registrado ainda.",
     listHref: "/portal/reunioes",
+    ctaDisabled: true,
   },
   relatorios: {
     title: "Relatorios",
@@ -151,19 +161,6 @@ export default function PortalSectionPage({ params }: { params: Promise<{ slug: 
     )
   }
 
-  if (key === "operacoes") {
-    return (
-      <div className="flex-1 flex flex-col h-full">
-        <PortalHeader />
-        <OperationsManager
-          title="Contratos"
-          description="Organize contratos, acompanhamentos e etapas da sua agência com dados reais."
-          variant="portal"
-        />
-      </div>
-    )
-  }
-
   if (key === "documentos" || key === "contratos" || key === "propostas" || key === "relatorios") {
     const meta = metaForDocumentKey(key)
 
@@ -180,25 +177,13 @@ export default function PortalSectionPage({ params }: { params: Promise<{ slug: 
     )
   }
 
-  if (key === "reunioes") {
-    return (
-      <div className="flex-1 flex flex-col h-full">
-        <PortalHeader />
-        <MeetingsManager
-          title="Agenda"
-          description="Gerencie reuniões, resumos e próximos passos reais da TravelPro."
-          variant="portal"
-        />
-      </div>
-    )
-  }
-
   const meta = SECTION_META[key] ?? {
     title: titleize(key),
     description: "Gerencie esta área da TravelPro com busca, filtros e ação principal.",
     ctaLabel: "Nova acao",
     emptyLabel: "Nenhum registro disponivel ainda.",
     listHref: `/portal/${slug.join("/")}`,
+    ctaDisabled: true,
   }
 
   return (
@@ -208,6 +193,7 @@ export default function PortalSectionPage({ params }: { params: Promise<{ slug: 
       ctaLabel={meta.ctaLabel}
       emptyLabel={meta.emptyLabel}
       listHref={meta.listHref}
+      ctaDisabled={meta.ctaDisabled}
     />
   )
 }

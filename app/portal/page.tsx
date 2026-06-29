@@ -11,7 +11,6 @@ import {
   FileText,
   CreditCard,
   MoreHorizontal,
-  Calendar,
   FileSignature,
   TrendingUp,
   Users,
@@ -19,9 +18,6 @@ import {
   Plus,
   Video,
   Send,
-  Play,
-  Trash2,
-  Check,
 } from "lucide-react"
 import Link from "next/link"
 import { PortalHeader } from "@/components/portal/portal-header"
@@ -80,11 +76,10 @@ const defaultStats = [
     sublabelColor: "text-muted-foreground",
   },
   {
-    label: "Agenda de hoje",
+    label: "Clientes",
     value: "0",
-    sublabel: "nenhum compromisso agendado",
-    icon: Calendar,
-    meetings: [] as { time: string; title: string }[],
+    sublabel: "nenhum cliente cadastrado",
+    icon: Users,
   },
   {
     label: "Notificações",
@@ -134,16 +129,11 @@ const initialInsights: Insight[] = [
   { id: "resumo", type: "Resumo", title: "Nenhuma agenda registrada", description: "Os próximos compromissos aparecerão aqui.", action: "Entendi" },
 ]
 
-const RECORD_WAVEFORM = Array.from({ length: 40 }, (_, i) => Math.round((Math.sin(i * 1.7) * 0.5 + 0.5) * 90 + 10))
-const AUDIO_WAVEFORM = Array.from({ length: 50 }, (_, i) => Math.round((Math.sin(i * 0.9) * 0.5 + 0.5) * 60 + 20))
-
 export default function PortalHomePage() {
   const router = useRouter()
-  const { openQuickActions, openMeeting, openDeleteConfirm } = usePortalInteractions()
+  const { openQuickActions } = usePortalInteractions()
   const [chatInput, setChatInput] = useState("")
   const [insights, setInsights] = useState(initialInsights)
-  const [audioTranscript, setAudioTranscript] = useState("")
-  const [audioPlaying, setAudioPlaying] = useState(false)
   const [micState, setMicState] = useState<MicState>("idle")
   const [micPreview, setMicPreview] = useState("")
   const [isRedirectingToApp, setIsRedirectingToApp] = useState(false)
@@ -263,7 +253,6 @@ export default function PortalHomePage() {
       if (finalText) {
         setMicState("processing")
         setChatInput((prev) => [prev.trim(), finalText].filter(Boolean).join(" "))
-        setAudioTranscript(finalText)
         setMicPreview("")
         toast({ title: "Transcrição concluída", description: "Transcrição adicionada ao campo." })
       }
@@ -338,22 +327,22 @@ export default function PortalHomePage() {
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="flex flex-wrap gap-3 mb-8">
-            <button onClick={openQuickActions} className="flex items-center gap-2 rounded-full border border-[#FED2B4] bg-white px-4 py-2.5 text-sm transition-all hover:border-[#FE8414] hover:bg-[#FFF4EC]">
+            <Link href="/portal/cadastros" className="flex items-center gap-2 rounded-full border border-[#FED2B4] bg-white px-4 py-2.5 text-sm transition-all hover:border-[#FE8414] hover:bg-[#FFF4EC]">
               <CheckSquare className="w-4 h-4 text-muted-foreground" />
               <span>Novo cliente</span>
-            </button>
-            <button onClick={openQuickActions} className="flex items-center gap-2 rounded-full border border-[#FED2B4] bg-white px-4 py-2.5 text-sm transition-all hover:border-[#FE8414] hover:bg-[#FFF4EC]">
+            </Link>
+            <Link href="/portal/viagens" className="flex items-center gap-2 rounded-full border border-[#FED2B4] bg-white px-4 py-2.5 text-sm transition-all hover:border-[#FE8414] hover:bg-[#FFF4EC]">
               <UserPlus className="w-4 h-4 text-muted-foreground" />
               <span>Nova viagem</span>
-            </button>
-            <button onClick={openQuickActions} className="flex items-center gap-2 rounded-full border border-[#FED2B4] bg-white px-4 py-2.5 text-sm transition-all hover:border-[#FE8414] hover:bg-[#FFF4EC]">
+            </Link>
+            <Link href="/portal/vendas" className="flex items-center gap-2 rounded-full border border-[#FED2B4] bg-white px-4 py-2.5 text-sm transition-all hover:border-[#FE8414] hover:bg-[#FFF4EC]">
               <FileText className="w-4 h-4 text-muted-foreground" />
               <span>Nova cotação</span>
-            </button>
-            <button onClick={openQuickActions} className="flex items-center gap-2 rounded-full border border-[#FED2B4] bg-white px-4 py-2.5 text-sm transition-all hover:border-[#FE8414] hover:bg-[#FFF4EC]">
+            </Link>
+            <Link href="/portal/conversas" className="flex items-center gap-2 rounded-full border border-[#FED2B4] bg-white px-4 py-2.5 text-sm transition-all hover:border-[#FE8414] hover:bg-[#FFF4EC]">
               <CreditCard className="w-4 h-4 text-muted-foreground" />
               <span>Nova reserva</span>
-            </button>
+            </Link>
             <button onClick={openQuickActions} className="flex items-center gap-2 rounded-full border border-[#FED2B4] bg-white px-4 py-2.5 text-sm transition-all hover:border-[#FE8414] hover:bg-[#FFF4EC]">
               <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
               <span>Mais ações</span>
@@ -383,8 +372,8 @@ export default function PortalHomePage() {
                     ))}
                   </div>
                 )}
-                {Array.isArray(stat.meetings) && stat.meetings.length === 0 && stat.label === "Agenda de hoje" && (
-                  <div className="mt-3 text-sm text-muted-foreground">Nenhum compromisso registrado.</div>
+                {!stat.chart && stat.label === "Clientes" && (
+                  <div className="mt-3 text-sm text-muted-foreground">Nenhum cliente ativo disponível.</div>
                 )}
                 {Array.isArray(stat.notifications) && stat.notifications.length === 0 && stat.label === "Notificações" && (
                   <div className="mt-3 text-sm text-muted-foreground">Nenhum alerta disponível.</div>
@@ -398,11 +387,11 @@ export default function PortalHomePage() {
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="bg-white border border-gray-100 rounded-2xl p-5">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="font-semibold">Viagens recentes</h2>
-                  <Link href="/portal" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Ver todas</Link>
+                  <Link href="/portal/viagens" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Ver todas</Link>
                 </div>
                 <div className="space-y-1">
                   {conversations.map((conv) => (
-                    <Link key={conv.title + conv.description} href="/portal" className="flex items-start gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors">
+                    <Link key={conv.title + conv.description} href="/portal/viagens" className="flex items-start gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors">
                       <div className={`w-10 h-10 rounded-xl ${conv.iconBg} flex items-center justify-center flex-shrink-0`}>
                         <conv.icon className={`w-5 h-5 ${conv.iconColor}`} />
                       </div>
@@ -450,59 +439,28 @@ export default function PortalHomePage() {
             </div>
 
             <div className="space-y-6">
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3 }} className="bg-white border border-gray-100 rounded-2xl p-5">
-                <h2 className="font-semibold mb-1">Agenda da agência</h2>
-                <p className="text-sm text-muted-foreground mb-4">Abra o TravelPro para gravar, enviar áudio ou preparar o próximo compromisso.</p>
-                <div className="flex items-center gap-4">
-                  <button onClick={openMeeting} className="flex items-center gap-2 rounded-xl bg-[#FE6708] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#FE8414]">
-                    <Video className="w-4 h-4" />
-                    Iniciar agenda
-                  </button>
-                  <div className="flex-1 min-w-0 h-10 bg-gray-50 rounded-xl flex items-center justify-center overflow-hidden">
-                    <div className="flex items-center gap-0.5 h-6">
-                      {RECORD_WAVEFORM.map((h, i) => (
-                        <div key={i} className="w-0.5 bg-gray-300 rounded-full" style={{ height: `${h}%` }} />
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.35 }} className="bg-white border border-gray-100 rounded-2xl p-5">
-                <h2 className="font-semibold mb-1">Gravar áudio</h2>
-                <p className="text-sm text-muted-foreground mb-4">Use voz para preencher o campo do TravelPro sem depender de backend.</p>
-                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl mb-4">
-                  <button onClick={() => setAudioPlaying(!audioPlaying)} className="w-10 h-10 rounded-full bg-foreground text-white flex items-center justify-center flex-shrink-0">
-                    <Play className="w-4 h-4 ml-0.5" />
-                  </button>
-                  <div className="flex-1 min-w-0 overflow-hidden">
-                    <div className="flex items-center gap-1 h-8">
-                      {AUDIO_WAVEFORM.map((h, i) => (
-                        <div key={i} className="w-0.5 bg-gray-300 rounded-full" style={{ height: `${h}%` }} />
-                      ))}
-                    </div>
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h2 className="font-semibold mb-1">Próximas ações</h2>
+                    <p className="text-sm text-muted-foreground">Acompanhe o que precisa avançar na operação da agência.</p>
                   </div>
-                  <span className="text-sm text-muted-foreground">0:45</span>
-                  <button onClick={openDeleteConfirm} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                    <Trash2 className="w-4 h-4 text-muted-foreground" />
-                  </button>
-                  <button onClick={startListening} className="w-10 h-10 rounded-full bg-foreground text-white flex items-center justify-center">
-                    <Mic className="w-4 h-4" />
-                  </button>
+                  <Link href="/portal/operacoes" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Ver todas</Link>
                 </div>
-                <div className="p-4 bg-gray-50 rounded-xl">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-xs text-muted-foreground">Transcrição</span>
-                    <span className="text-xs text-muted-foreground">pt-BR</span>
+                <div className="space-y-3">
+                  <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 px-4 py-4">
+                    <p className="text-sm font-medium text-[#0a0a0a]">Nenhuma pendência crítica no momento.</p>
+                    <p className="text-sm text-muted-foreground mt-1">As próximas ações operacionais aparecerão aqui quando houver dados disponíveis.</p>
                   </div>
-                  <p className="text-sm mb-3">
-                    {audioTranscript || "Nenhuma transcrição disponível ainda. Grave ou dite um áudio quando quiser começar."}
-                  </p>
-                  <div className="flex items-center gap-2 text-sm text-emerald-600">
-                    <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center">
-                      <Check className="w-3 h-3" />
-                    </div>
-                    <span>O texto transcrito será inserido no campo do TravelPro para revisão antes do envio.</span>
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <Link href="/portal/conversas" className="rounded-xl border border-gray-100 px-4 py-3 hover:bg-gray-50 transition-colors">
+                      <p className="text-sm font-medium text-[#0a0a0a]">Revisar reservas</p>
+                      <p className="text-sm text-muted-foreground mt-1">Nenhuma reserva pendente.</p>
+                    </Link>
+                    <Link href="/portal/vendas" className="rounded-xl border border-gray-100 px-4 py-3 hover:bg-gray-50 transition-colors">
+                      <p className="text-sm font-medium text-[#0a0a0a]">Acompanhar cotações</p>
+                      <p className="text-sm text-muted-foreground mt-1">Nenhuma cotação pendente.</p>
+                    </Link>
                   </div>
                 </div>
               </motion.div>
@@ -561,10 +519,10 @@ export default function PortalHomePage() {
               >
                 <Mic className="w-5 h-5" />
               </button>
-              <button onClick={openMeeting} className="flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-xl text-sm text-muted-foreground hover:bg-gray-200 transition-colors">
+              <Link href="/portal/reunioes" className="flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-xl text-sm text-muted-foreground hover:bg-gray-200 transition-colors">
                 <Video className="w-4 h-4" />
                 <span>Agenda</span>
-              </button>
+              </Link>
             </div>
             <div className="flex-1 relative">
               <input
@@ -622,5 +580,4 @@ export default function PortalHomePage() {
     </div>
   )
 }
-
 

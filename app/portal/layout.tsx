@@ -33,7 +33,7 @@ import { Toaster } from "@/components/ui/toaster"
 
 const mainNavItems = [
   { icon: ClipboardList, label: "Clientes", href: "/portal/cadastros" },
-  { icon: MessageSquare, label: "Viagens", href: "/portal" },
+  { icon: MessageSquare, label: "Viagens", href: "/portal/viagens" },
   { icon: TrendingUp, label: "Cotações", href: "/portal/vendas" },
   { icon: Briefcase, label: "Contratos", href: "/portal/operacoes" },
   { icon: FileSignature, label: "Reservas", href: "/portal/conversas" },
