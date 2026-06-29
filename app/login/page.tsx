@@ -79,16 +79,16 @@ export default function LoginPage() {
       <AuthLayout>
       <div className="flex justify-center mb-8">
         <Image
-          src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/COS%20LOGO%20%281%29-mBU7xqdIZoWP3indGVxJrDFLu8urZH.png"
-          alt="COS"
+          src="/travelpro-logo-mark-cropped.jpeg"
+          alt="TravelPro"
           width={56}
           height={56}
-          className="w-14 h-14"
+          className="h-14 w-14 rounded-2xl object-contain"
         />
       </div>
 
       <div className="text-center mb-8">
-        <h1 className="text-2xl font-semibold text-[#0a0a0a] tracking-tight">Entrar no COS</h1>
+        <h1 className="text-2xl font-semibold text-[#0a0a0a] tracking-tight">Entrar no TravelPro</h1>
         <p className="text-[#737373] mt-2">Continue sua operação.</p>
       </div>
 
@@ -110,7 +110,7 @@ export default function LoginPage() {
         >
           <p className="text-sm font-medium text-[#0a0a0a]">Criar workspace agora</p>
           <p className="mt-1 text-sm text-[#737373]">
-            Sua conta foi autenticada, mas ainda não possui workspace. Escolha como deseja operar.
+            Sua conta foi autenticada, mas ainda não possui workspace. Crie seu ambiente operacional.
           </p>
           <div className="mt-4 grid gap-2">
             <button
@@ -119,15 +119,7 @@ export default function LoginPage() {
               disabled={isWorkspacePending}
               className="w-full rounded-xl bg-[#0a0a0a] px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-[#1a1a1a] disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {isWorkspacePending ? "Criando..." : "Criar workspace COS Operações"}
-            </button>
-            <button
-              type="button"
-              onClick={() => handleCreateWorkspace("connect")}
-              disabled={isWorkspacePending}
-              className="w-full rounded-xl border border-[#e5e5e5] bg-white px-4 py-3 text-sm font-medium text-[#0a0a0a] transition-colors hover:bg-[#fafafa] disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {isWorkspacePending ? "Criando..." : "Criar workspace COS Connect"}
+              {isWorkspacePending ? "Criando..." : "Criar workspace TravelPro Operações"}
             </button>
           </div>
         </motion.div>

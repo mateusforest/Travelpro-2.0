@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
-import { Layers, Plug, ArrowLeft, Check, ChevronRight } from "lucide-react"
+import { Layers, ArrowLeft, Check, ChevronRight } from "lucide-react"
 import { AuthLayout } from "@/components/cos/auth-layout"
 import { signupAction } from "@/actions/auth"
 import type { WorkspaceType } from "@/lib/auth"
@@ -25,22 +25,12 @@ const products: {
   {
     id: "operations",
     icon: Layers,
-    name: "COS Operações",
+    name: "TravelPro Operações",
     description:
-      "Sistema operacional empresarial completo para centralizar sua operação, equipe, clientes, financeiro, documentos e processos.",
+      "Sistema operacional para centralizar sua operação, equipe, clientes, financeiro, documentos e processos.",
     details:
-      "O COS é o seu sistema. Tudo acontece dentro dele: cadastros, vendas, financeiro, reuniões, documentos e relatórios, com portal administrativo completo.",
-    cta: "Escolher Operações",
-  },
-  {
-    id: "connect",
-    icon: Plug,
-    name: "COS Connect",
-    description:
-      "Conecte o COS ao sistema, ERP, CRM, planilha ou portal que sua empresa já utiliza e opere tudo por conversa.",
-    details:
-      "O COS conversa com o sistema que a empresa já possui. Sem substituir nada: ele se conecta ao seu ERP, CRM, planilhas, e-mail ou WhatsApp e organiza tudo por chat.",
-    cta: "Escolher Connect",
+      "O TravelPro organiza cadastros, vendas, financeiro, reuniões, documentos e relatórios em um workspace operacional.",
+    cta: "Começar com Operações",
   },
 ]
 
@@ -106,11 +96,11 @@ export default function CadastroPage() {
       <AuthLayout>
       <div className="flex justify-center mb-8">
         <Image
-          src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/COS%20LOGO%20%281%29-mBU7xqdIZoWP3indGVxJrDFLu8urZH.png"
-          alt="COS"
+          src="/travelpro-logo-mark-cropped.jpeg"
+          alt="TravelPro"
           width={56}
           height={56}
-          className="w-14 h-14"
+          className="h-14 w-14 rounded-2xl object-contain"
         />
       </div>
 
@@ -124,8 +114,8 @@ export default function CadastroPage() {
             transition={{ duration: 0.25 }}
           >
             <div className="text-center mb-8">
-              <h1 className="text-2xl font-semibold text-[#0a0a0a] tracking-tight">Escolha seu produto</h1>
-              <p className="text-[#737373] mt-2">Como você quer operar com o COS?</p>
+              <h1 className="text-2xl font-semibold text-[#0a0a0a] tracking-tight">TravelPro Operações</h1>
+              <p className="text-[#737373] mt-2">Crie seu workspace operacional.</p>
             </div>
 
             <div className="space-y-3">
@@ -203,7 +193,7 @@ export default function CadastroPage() {
               className="flex items-center gap-1.5 text-sm text-[#737373] hover:text-[#0a0a0a] transition-colors mb-5"
             >
               <ArrowLeft className="w-4 h-4" />
-              Trocar produto
+              Voltar
             </button>
 
             {chosenProduct && (
@@ -221,7 +211,7 @@ export default function CadastroPage() {
 
             <div className="text-center mb-8">
               <h1 className="text-2xl font-semibold text-[#0a0a0a] tracking-tight">Criar conta</h1>
-              <p className="text-[#737373] mt-2">Comece a operar com COS.</p>
+              <p className="text-[#737373] mt-2">Comece a operar com TravelPro.</p>
             </div>
 
             {error && (

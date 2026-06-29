@@ -19,7 +19,7 @@ const modalConfig: Record<
     toast: "Cliente registrado. Sincronização disponível após o backend.",
     fields: [
       { name: "empresa", label: "Empresa", placeholder: "Nome da empresa" },
-      { name: "tipo", label: "Produto", type: "select", options: ["Operações", "Connect"] },
+      { name: "tipo", label: "Produto", type: "select", options: ["Operações"] },
       { name: "plano", label: "Plano", type: "select", options: ["Starter", "Pro", "Business", "Enterprise"] },
       { name: "email", label: "E-mail de contato", type: "email", placeholder: "contato@empresa.com" },
     ],
@@ -31,7 +31,7 @@ const modalConfig: Record<
     toast: "Workspace criado. Provisionamento disponível após o backend.",
     fields: [
       { name: "nome", label: "Nome do workspace", placeholder: "Nome do workspace" },
-      { name: "tipo", label: "Tipo", type: "select", options: ["Operações", "Connect"] },
+      { name: "tipo", label: "Tipo", type: "select", options: ["Operações"] },
       { name: "plano", label: "Plano", type: "select", options: ["Starter", "Pro", "Business", "Enterprise"] },
     ],
   },
@@ -206,4 +206,3 @@ export function MasterToast() {
     </AnimatePresence>
   )
 }
-
