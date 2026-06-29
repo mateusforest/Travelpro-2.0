@@ -282,3 +282,37 @@ export async function ensureWorkspaceForUser({
     productType,
   })
 }
+
+export async function ensureAppAccessForUser({
+  user,
+  access,
+  productType = "operations",
+}: {
+  user: User
+  access?: UserAccess
+  productType?: WorkspaceType
+}) {
+  const resolvedAccess = access ?? (await getUserAccessForUser(user))
+
+  if (resolvedAccess.profile?.global_role === "master") {
+    return { access: resolvedAccess }
+  }
+
+  if (resolvedAccess.workspace?.id && resolvedAccess.membershipRole) {
+    return { access: resolvedAccess }
+  }
+
+  const ensured = await ensureWorkspaceForUser({
+    user,
+    access: resolvedAccess,
+    productType,
+  })
+
+  if (ensured.error) {
+    return { error: ensured.error }
+  }
+
+  return {
+    access: await getUserAccessForUser(user),
+  }
+}

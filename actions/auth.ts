@@ -3,7 +3,7 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server"
 import {
   bootstrapWorkspaceForUser,
-  ensureWorkspaceForUser,
+  ensureAppAccessForUser,
   getUserAccessForUser,
   resolvePostAuthPath,
   type WorkspaceType,
@@ -32,7 +32,20 @@ export async function loginAction({
     return { error: "Não foi possível iniciar a sessão." }
   }
 
-  const access = await getUserAccessForUser(data.user)
+  const accessResult = await ensureAppAccessForUser({
+    user: data.user,
+    access: await getUserAccessForUser(data.user),
+    productType: "operations",
+  })
+
+  if (accessResult.error || !accessResult.access) {
+    return {
+      error: accessResult.error ?? "Conta autenticada, mas o acesso inicial nao pode ser preparado.",
+      needsWorkspaceSetup: true,
+    }
+  }
+
+  const access = accessResult.access
   const redirectTo = resolvePostAuthPath(access, nextPath)
 
   if (!redirectTo) {
@@ -114,19 +127,18 @@ export async function ensureWorkspaceForCurrentUserAction({
     }
   }
 
-  const ensured = await ensureWorkspaceForUser({
+  const accessResult = await ensureAppAccessForUser({
     user: data.user,
     access,
     productType,
   })
 
-  if (ensured.error) {
-    console.error("[ensure-workspace]", ensured.error)
-    return { error: ensured.error }
+  if (accessResult.error || !accessResult.access) {
+    console.error("[ensure-workspace]", accessResult.error)
+    return { error: accessResult.error ?? "Nao foi possivel preparar o workspace." }
   }
 
-  const refreshedAccess = await getUserAccessForUser(data.user)
-  const redirectTo = resolvePostAuthPath(refreshedAccess)
+  const redirectTo = resolvePostAuthPath(accessResult.access)
 
   if (!redirectTo) {
     return { error: "Workspace criado, mas o redirecionamento não pôde ser resolvido." }

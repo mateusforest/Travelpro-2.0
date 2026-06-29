@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { createSupabaseServerClient } from "@/lib/supabase/server"
-import { getUserAccessForUser } from "@/lib/auth"
+import { ensureAppAccessForUser, getUserAccessForUser } from "@/lib/auth"
 
 export async function GET() {
   const supabase = await createSupabaseServerClient()
@@ -15,7 +15,13 @@ export async function GET() {
     })
   }
 
-  const access = await getUserAccessForUser(data.user)
+  const accessResult = await ensureAppAccessForUser({
+    user: data.user,
+    access: await getUserAccessForUser(data.user),
+    productType: "operations",
+  })
+
+  const access = accessResult.access ?? (await getUserAccessForUser(data.user))
 
   return NextResponse.json({
     user: {
