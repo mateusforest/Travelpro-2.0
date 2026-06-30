@@ -48,6 +48,7 @@ import { ProtectedRouteGuard } from "@/components/auth/auth-route-guard"
 import { SupportProvider, useSupport } from "@/components/support/support-context"
 import { Toaster } from "@/components/ui/toaster"
 import { appSessionHrefs } from "@/lib/area-configs"
+import { expansionItems } from "@/lib/expansion-configs"
 
 type MenuLevel = "main" | "more" | "equipe" | "foto"
 
@@ -417,11 +418,6 @@ function DesktopSidebar() {
     { icon: User, label: "Perfil", href: "/app/voce" },
   ]
 
-  const favoriteItems = [
-    { icon: TrendingUp, label: "Roteiros", href: appSessionHrefs.roteiros, color: "#3b82f6", bg: "#dbeafe" },
-    { icon: LifeBuoy, label: "Atendimentos", href: appSessionHrefs.atendimentos, color: "#6b7280", bg: "#f3f4f6" },
-  ]
-
   const isActive = (href: string, exact?: boolean) => (exact ? pathname === href : pathname.startsWith(href))
 
   return (
@@ -476,16 +472,24 @@ function DesktopSidebar() {
           </Link>
         ))}
         <div className="px-2 pb-2 pt-4">
-          <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">Favoritos</span>
+          <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">Expansões</span>
         </div>
-        {favoriteItems.map((item) => (
+        {expansionItems.map((item) => (
           <Link key={item.label} href={item.href} className="flex items-center gap-3 px-2.5 py-2 rounded-lg hover:bg-gray-50 transition-colors group">
             <span className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: item.bg }}>
-              <item.icon className="w-4 h-4" style={{ color: item.color }} />
+              {item.imageSrc ? (
+                <div className="relative h-5 w-5 overflow-hidden rounded-md">
+                  <Image src={item.imageSrc} alt={item.label} fill className="object-contain" sizes="20px" />
+                </div>
+              ) : item.icon === "headphones" ? (
+                <Headphones className="w-4 h-4" style={{ color: item.color }} />
+              ) : (
+                <Shield className="w-4 h-4" style={{ color: item.color }} />
+              )}
             </span>
             <span className="flex-1 min-w-0">
               <span className="block text-sm font-medium text-[#0a0a0a] truncate">{item.label}</span>
-              <span className="block text-xs text-gray-400">Acesso rápido</span>
+              <span className="block text-xs text-gray-400">{item.description}</span>
             </span>
           </Link>
         ))}
