@@ -6,52 +6,32 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import {
-  MessageSquare,
-  ClipboardList,
-  Briefcase,
-  TrendingUp,
-  DollarSign,
-  UsersRound,
-  FileText,
-  Video,
-  BarChart3,
-  Plug,
-  Settings,
   ChevronLeft,
   ChevronRight,
   Smartphone,
   Monitor,
   MoreVertical,
-  FileSignature,
-  Headphones,
   Star,
 } from "lucide-react"
 import { ProtectedRouteGuard } from "@/components/auth/auth-route-guard"
 import { PortalUIProvider, usePortalUI } from "@/components/portal/portal-ui-context"
 import { PortalInteractionsProvider, usePortalInteractions } from "@/components/portal/portal-interactions"
 import { Toaster } from "@/components/ui/toaster"
+import { travelProAreas } from "@/lib/travelpro-areas"
 
-const mainNavItems = [
-  { icon: ClipboardList, label: "Clientes", href: "/portal/cadastros" },
-  { icon: MessageSquare, label: "Viagens", href: "/portal/viagens" },
-  { icon: TrendingUp, label: "Cotações", href: "/portal/vendas" },
-  { icon: Briefcase, label: "Contratos", href: "/portal/operacoes" },
-  { icon: FileSignature, label: "Reservas", href: "/portal/conversas" },
-  { icon: DollarSign, label: "Financeiro", href: "/portal/financeiro" },
-  { icon: FileText, label: "Documentos", href: "/portal/documentos" },
-  { icon: UsersRound, label: "Fornecedores", href: "/portal/equipe" },
-  { icon: Video, label: "Agenda", href: "/portal/reunioes" },
-  { icon: BarChart3, label: "Relatórios", href: "/portal/relatorios" },
-  { icon: Plug, label: "Integrações", href: "/portal/integracoes" },
-  { icon: Settings, label: "Configurações", href: "/portal/configuracoes" },
-]
+const mainNavItems = travelProAreas.map((area) => ({
+  icon: area.icon,
+  label: area.label,
+  href: area.route.portal,
+}))
 
-const favoriteItems = [
-  { icon: ClipboardList, label: "Clientes", href: "/portal/cadastros" },
-  { icon: TrendingUp, label: "Cotações", href: "/portal/vendas" },
-  { icon: Headphones, label: "Agenda", href: "/portal/reunioes" },
-  { icon: DollarSign, label: "Financeiro", href: "/portal/financeiro" },
-]
+const favoriteItems = travelProAreas
+  .filter((area) => area.portal.favorite)
+  .map((area) => ({
+    icon: area.icon,
+    label: area.label,
+    href: area.route.portal,
+  }))
 
 export default function PortalLayout({ children }: { children: React.ReactNode }) {
   return (

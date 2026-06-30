@@ -47,8 +47,8 @@ import { useAuth } from "@/components/auth/auth-provider"
 import { ProtectedRouteGuard } from "@/components/auth/auth-route-guard"
 import { SupportProvider, useSupport } from "@/components/support/support-context"
 import { Toaster } from "@/components/ui/toaster"
-import { appSessionHrefs } from "@/lib/area-configs"
 import { expansionItems } from "@/lib/expansion-configs"
+import { travelProAreas } from "@/lib/travelpro-areas"
 
 type MenuLevel = "main" | "more" | "equipe" | "foto"
 
@@ -76,20 +76,14 @@ type SessionItem = {
   href: string
 }
 
-const sessions = [
-  { icon: Users, label: "Clientes", time: "Em preparação", count: 0, color: "#ec4899", bg: "#fce7f3" },
-  { icon: Briefcase, label: "Viagens", time: "Em preparação", count: 0, color: "#8b5cf6", bg: "#ede9fe" },
-  { icon: TrendingUp, label: "Cotações", time: "Em preparação", count: 0, color: "#3b82f6", bg: "#dbeafe" },
-  { icon: FileText, label: "Contratos", time: "Em preparação", count: 0, color: "#ef4444", bg: "#fee2e2" },
-  { icon: Calendar, label: "Reservas", time: "Em preparação", count: 0, color: "#0ea5e9", bg: "#e0f2fe" },
-  { icon: DollarSign, label: "Financeiro", time: "Em preparação", count: 0, color: "#22c55e", bg: "#dcfce7" },
-  { icon: FolderOpen, label: "Documentos", time: "Em preparação", count: 0, color: "#f97316", bg: "#ffedd5" },
-  { icon: UsersRound, label: "Fornecedores", time: "Em preparação", count: 0, color: "#0ea5e9", bg: "#e0f2fe" },
-  { icon: Video, label: "Agenda", time: "Em preparação", count: 0, color: "#ef4444", bg: "#fee2e2" },
-  { icon: BarChart3, label: "Relatórios", time: "Em preparação", count: 0, color: "#f97316", bg: "#ffedd5" },
-  { icon: Link2, label: "Integrações", time: "Em preparação", count: 0, color: "#6b7280", bg: "#f3f4f6" },
-  { icon: Settings, label: "Configurações", time: "Em preparação", count: 0, color: "#6b7280", bg: "#f3f4f6" },
-]
+const sessions = travelProAreas.map((area) => ({
+  icon: area.icon as typeof Users,
+  label: area.label,
+  time: "Em preparacao",
+  count: 0,
+  color: area.color,
+  bg: area.bg,
+}))
 
 function ActionSheetMenu() {
   const { isOpen, setIsOpen, level, setLevel } = useFAB()
@@ -355,61 +349,84 @@ function DesktopSidebar() {
   const pathname = usePathname()
   const { setIsOpen, setLevel } = useFAB()
   const { summary } = useOperationsDashboard()
-  const sessionsData: SessionItem[] = [
-    {
-      icon: Users,
-      label: "Clientes",
-      time: summary?.clientsCount === 1 ? "1 cliente" : (summary?.clientsCount ?? 0) > 1 ? `${summary?.clientsCount ?? 0} clientes` : "Sem registros",
-      count: summary?.clientsCount ?? 0,
-      color: "#ec4899",
-      bg: "#fce7f3",
-      href: appSessionHrefs.clientes,
-    },
-    {
-      icon: Briefcase,
-      label: "Viagens",
-      time: summary?.operationsCount === 1 ? "1 viagem" : (summary?.operationsCount ?? 0) > 1 ? `${summary?.operationsCount ?? 0} viagens` : "Sem registros",
-      count: summary?.operationsCount ?? 0,
-      color: "#8b5cf6",
-      bg: "#ede9fe",
-      href: appSessionHrefs.viagens,
-    },
-    { icon: TrendingUp, label: "Cotações", time: "Chat contextual", count: 0, color: "#3b82f6", bg: "#dbeafe", href: appSessionHrefs.cotacoes },
-    { icon: TrendingUp, label: "Roteiros", time: "Sem registros", count: 0, color: "#3b82f6", bg: "#dbeafe", href: appSessionHrefs.roteiros },
-    { icon: FileText, label: "Contratos", time: "Documentos de viagem", count: 0, color: "#ef4444", bg: "#fee2e2", href: appSessionHrefs.contratos },
-    { icon: Calendar, label: "Reservas", time: "Chat contextual", count: 0, color: "#0ea5e9", bg: "#e0f2fe", href: appSessionHrefs.reservas },
-    {
-      icon: DollarSign,
-      label: "Financeiro",
-      time: summary?.financial.entriesCount === 1 ? "1 lançamento" : (summary?.financial.entriesCount ?? 0) > 1 ? `${summary?.financial.entriesCount ?? 0} lançamentos` : "Sem registros",
-      count: summary?.financial.entriesCount ?? 0,
-      color: "#22c55e",
-      bg: "#dcfce7",
-      href: appSessionHrefs.financeiro,
-    },
-    {
-      icon: FolderOpen,
-      label: "Documentos",
-      time: summary?.documentsCount === 1 ? "1 documento" : (summary?.documentsCount ?? 0) > 1 ? `${summary?.documentsCount ?? 0} documentos` : "Sem registros",
-      count: summary?.documentsCount ?? 0,
-      color: "#f97316",
-      bg: "#ffedd5",
-      href: appSessionHrefs.documentos,
-    },
-    { icon: UsersRound, label: "Fornecedores", time: "Parceiros e operadoras", count: 0, color: "#0ea5e9", bg: "#e0f2fe", href: appSessionHrefs.fornecedores },
-    {
-      icon: Video,
-      label: "Agenda",
-      time: summary?.meetingsCount === 1 ? "1 atendimento" : (summary?.meetingsCount ?? 0) > 1 ? `${summary?.meetingsCount ?? 0} atendimentos` : "Sem registros",
-      count: summary?.meetingsCount ?? 0,
-      color: "#ef4444",
-      bg: "#fee2e2",
-      href: appSessionHrefs.agenda,
-    },
-    { icon: BarChart3, label: "Relatórios", time: "Indicadores e análises", count: 0, color: "#f97316", bg: "#ffedd5", href: appSessionHrefs.relatorios },
-    { icon: Link2, label: "Integrações", time: "Conexões externas", count: 0, color: "#6b7280", bg: "#f3f4f6", href: appSessionHrefs.integracoes },
-    { icon: Settings, label: "Configurações", time: "Configurações e logs", count: 0, color: "#6b7280", bg: "#f3f4f6", href: appSessionHrefs.configuracoes },
-  ]
+  const sessionsData: SessionItem[] = travelProAreas.map((area) => {
+    if (area.key === "clientes") {
+      const count = summary?.clientsCount ?? 0
+      return {
+        icon: area.icon as typeof Users,
+        label: area.label,
+        time: count === 1 ? "1 cliente" : count > 1 ? `${count} clientes` : "Sem registros",
+        count,
+        color: area.color,
+        bg: area.bg,
+        href: area.route.app,
+      }
+    }
+
+    if (area.key === "viagens") {
+      const count = summary?.operationsCount ?? 0
+      return {
+        icon: area.icon as typeof Users,
+        label: area.label,
+        time: count === 1 ? "1 viagem" : count > 1 ? `${count} viagens` : "Sem registros",
+        count,
+        color: area.color,
+        bg: area.bg,
+        href: area.route.app,
+      }
+    }
+
+    if (area.key === "financeiro") {
+      const count = summary?.financial.entriesCount ?? 0
+      return {
+        icon: area.icon as typeof Users,
+        label: area.label,
+        time: count === 1 ? "1 lancamento" : count > 1 ? `${count} lancamentos` : "Sem registros",
+        count,
+        color: area.color,
+        bg: area.bg,
+        href: area.route.app,
+      }
+    }
+
+    if (area.key === "documentos") {
+      const count = summary?.documentsCount ?? 0
+      return {
+        icon: area.icon as typeof Users,
+        label: area.label,
+        time: count === 1 ? "1 documento" : count > 1 ? `${count} documentos` : "Sem registros",
+        count,
+        color: area.color,
+        bg: area.bg,
+        href: area.route.app,
+      }
+    }
+
+    if (area.key === "agenda") {
+      const count = summary?.meetingsCount ?? 0
+      return {
+        icon: area.icon as typeof Users,
+        label: area.label,
+        time: count === 1 ? "1 atendimento" : count > 1 ? `${count} atendimentos` : "Sem registros",
+        count,
+        color: area.color,
+        bg: area.bg,
+        href: area.route.app,
+      }
+    }
+
+    const statusLabel = area.status === "active" ? "Sem registros" : "Chat contextual"
+
+    return {
+      icon: area.icon as typeof Users,
+      label: area.label,
+      time: statusLabel,
+      count: 0,
+      color: area.color,
+      bg: area.bg,
+      href: area.route.app,
+    }
+  })
 
   const navItems = [
     { icon: Home, label: "Início", href: "/app", exact: true },

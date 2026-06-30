@@ -6,89 +6,18 @@ import { PortalModulePage } from "@/components/portal/portal-module-page"
 import { ClientsManager } from "@/components/operations/clients-manager"
 import { DocumentsManager } from "@/components/operations/documents-manager"
 import { FinancialManager } from "@/components/operations/financial-manager"
+import { travelProPortalAreasBySlug } from "@/lib/travelpro-areas"
 
-const SECTION_META: Record<string, { title: string; description: string; ctaLabel: string; emptyLabel: string; listHref: string; ctaDisabled?: boolean }> = {
-  viagens: {
-    title: "Viagens",
-    description: "O módulo de viagens ainda está indisponível no Portal TravelPro.",
-    ctaLabel: "Nova viagem",
-    emptyLabel: "As viagens serão exibidas aqui quando este módulo estiver disponível.",
-    listHref: "/portal/viagens",
-    ctaDisabled: true,
-  },
-  conversas: {
-    title: "Reservas",
-    description: "Acompanhe reservas, confirmações e próximos passos da operação.",
-    ctaLabel: "Nova reserva",
-    emptyLabel: "Nenhuma reserva registrada ainda.",
-    listHref: "/portal/conversas",
-    ctaDisabled: true,
-  },
-  cadastros: {
-    title: "Clientes",
-    description: "Gerencie clientes, contatos e relacionamentos da agência.",
-    ctaLabel: "Novo cliente",
-    emptyLabel: "Nenhum cliente disponível ainda.",
-    listHref: "/portal/cadastros",
-  },
-  operacoes: {
-    title: "Contratos",
-    description: "Organize contratos, etapas de assinatura e documentos vinculados.",
-    ctaLabel: "Novo contrato",
-    emptyLabel: "Nenhum contrato cadastrado ainda.",
-    listHref: "/portal/operacoes",
-    ctaDisabled: true,
-  },
-  vendas: {
-    title: "Cotações",
-    description: "Acompanhe cotações, propostas e oportunidades da agência.",
-    ctaLabel: "Nova cotação",
-    emptyLabel: "Nenhuma cotação registrada ainda.",
-    listHref: "/portal/vendas",
-    ctaDisabled: true,
-  },
-  documentos: {
-    title: "Documentos",
-    description: "Centralize documentos operacionais e comerciais da agência.",
-    ctaLabel: "Novo documento",
-    emptyLabel: "Nenhum documento disponível ainda.",
-    listHref: "/portal/documentos",
-  },
-  reunioes: {
-    title: "Agenda",
-    description: "Organize reuniões, compromissos e acompanhamentos da agência.",
-    ctaLabel: "Novo compromisso",
-    emptyLabel: "Nenhum compromisso registrado ainda.",
-    listHref: "/portal/reunioes",
-    ctaDisabled: true,
-  },
-  relatorios: {
-    title: "Relatorios",
-    description: "Visualize relatórios e indicadores da sua agência.",
-    ctaLabel: "Novo relatorio",
-    emptyLabel: "Nenhum relatório disponível ainda.",
-    listHref: "/portal/relatorios",
-  },
+const EXTRA_SECTION_META: Record<
+  string,
+  { title: string; description: string; ctaLabel: string; emptyLabel: string; listHref: string; ctaDisabled?: boolean }
+> = {
   propostas: {
     title: "Propostas",
     description: "Gerencie propostas comerciais do portal.",
     ctaLabel: "Nova proposta",
     emptyLabel: "Nenhuma proposta cadastrada ainda.",
     listHref: "/portal/propostas",
-  },
-  contratos: {
-    title: "Contratos",
-    description: "Gerencie contratos e documentos formais.",
-    ctaLabel: "Novo contrato",
-    emptyLabel: "Nenhum contrato disponivel ainda.",
-    listHref: "/portal/contratos",
-  },
-  atendimentos: {
-    title: "Atendimentos",
-    description: "Acompanhe atendimentos e demandas operacionais.",
-    ctaLabel: "Novo atendimento",
-    emptyLabel: "Nenhum atendimento registrado ainda.",
-    listHref: "/portal/atendimentos",
   },
   balanco: {
     title: "Balanco",
@@ -99,61 +28,57 @@ const SECTION_META: Record<string, { title: string; description: string; ctaLabe
   },
 }
 
-function titleize(slug: string) {
-  return slug.charAt(0).toUpperCase() + slug.slice(1).replace(/-/g, " ")
-}
-
-function metaForDocumentKey(key: string) {
-  if (key === "contratos") {
-    return {
-      title: "Contratos",
-      description: "Gerencie contratos reais do seu workspace.",
-    }
-  }
-
-  if (key === "propostas") {
-    return {
-      title: "Propostas",
-      description: "Centralize propostas reais e acompanhe seus rascunhos e envios.",
-    }
-  }
-
-  if (key === "relatorios") {
-    return {
-      title: "Relatorios",
-      description: "Acompanhe relatorios reais salvos no seu workspace.",
-    }
-  }
-
-  return {
+const DOCUMENT_MANAGER_META: Record<string, { title: string; description: string; filterType: string }> = {
+  contratos: {
+    title: "Contratos",
+    description: "Gerencie contratos reais do seu workspace.",
+    filterType: "contratos",
+  },
+  documentos: {
     title: "Documentos",
     description: "Centralize documentos reais do seu workspace.",
-  }
+    filterType: "documentos",
+  },
+  propostas: {
+    title: "Propostas",
+    description: "Centralize propostas reais e acompanhe seus rascunhos e envios.",
+    filterType: "propostas",
+  },
+  relatorios: {
+    title: "Relatorios",
+    description: "Acompanhe relatorios reais salvos no seu workspace.",
+    filterType: "relatorios",
+  },
+}
+
+function titleize(slug: string) {
+  return slug.charAt(0).toUpperCase() + slug.slice(1).replace(/-/g, " ")
 }
 
 export default function PortalSectionPage({ params }: { params: Promise<{ slug: string[] }> }) {
   const { slug } = use(params)
   const key = slug[slug.length - 1]
+  const area = travelProPortalAreasBySlug[key]
 
-  if (key === "cadastros") {
+  if (area?.portal.manager === "clients") {
     return (
-      <div className="flex-1 flex flex-col h-full">
+      <div className="flex h-full flex-1 flex-col">
         <PortalHeader />
         <ClientsManager
-          title="Clientes"
-          description="Gerencie clientes e relacionamentos reais da sua agência."
+          title={area.label}
+          description="Gerencie clientes e relacionamentos reais da sua agencia."
           variant="portal"
         />
       </div>
     )
   }
 
-  if (key === "balanco") {
+  if (key === "balanco" || area?.portal.manager === "financial") {
     return (
-      <div className="flex-1 flex flex-col h-full">
+      <div className="flex h-full flex-1 flex-col">
         <PortalHeader />
         <FinancialManager
-          title="Balanco"
+          title={key === "balanco" ? "Balanco" : area?.label ?? "Financeiro"}
           description="Visualize o balanco consolidado do seu workspace com dados reais."
           variant="portal"
         />
@@ -161,25 +86,43 @@ export default function PortalSectionPage({ params }: { params: Promise<{ slug: 
     )
   }
 
-  if (key === "documentos" || key === "contratos" || key === "propostas" || key === "relatorios") {
-    const meta = metaForDocumentKey(key)
+  if (area?.portal.manager === "documents") {
+    const documentMeta = DOCUMENT_MANAGER_META[key] ?? {
+      title: area.label,
+      description: area.portal.description,
+      filterType: area.portal.documentFilterType ?? "documentos",
+    }
 
     return (
-      <div className="flex-1 flex flex-col h-full">
+      <div className="flex h-full flex-1 flex-col">
         <PortalHeader />
         <DocumentsManager
-          title={meta.title}
-          description={meta.description}
+          title={documentMeta.title}
+          description={documentMeta.description}
           variant="portal"
-          filterType={key}
+          filterType={documentMeta.filterType}
         />
       </div>
     )
   }
 
-  const meta = SECTION_META[key] ?? {
+  if (area) {
+    return (
+      <PortalModulePage
+        title={area.label}
+        description={area.portal.description}
+        ctaLabel={area.portal.ctaLabel}
+        emptyLabel={area.portal.emptyLabel}
+        listHref={area.route.portal}
+        ctaHref={area.portal.ctaDisabled ? undefined : area.destination.portal}
+        ctaDisabled={area.portal.ctaDisabled}
+      />
+    )
+  }
+
+  const meta = EXTRA_SECTION_META[key] ?? {
     title: titleize(key),
-    description: "Gerencie esta área da TravelPro com busca, filtros e ação principal.",
+    description: "Gerencie esta area da TravelPro com busca, filtros e acao principal.",
     ctaLabel: "Nova acao",
     emptyLabel: "Nenhum registro disponivel ainda.",
     listHref: `/portal/${slug.join("/")}`,
