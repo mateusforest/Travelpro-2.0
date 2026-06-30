@@ -374,6 +374,7 @@ function DesktopSidebar() {
       href: appSessionHrefs.viagens,
     },
     { icon: TrendingUp, label: "Cotações", time: "Chat contextual", count: 0, color: "#3b82f6", bg: "#dbeafe", href: appSessionHrefs.cotacoes },
+    { icon: TrendingUp, label: "Roteiros", time: "Sem registros", count: 0, color: "#3b82f6", bg: "#dbeafe", href: appSessionHrefs.roteiros },
     { icon: FileText, label: "Contratos", time: "Documentos de viagem", count: 0, color: "#ef4444", bg: "#fee2e2", href: appSessionHrefs.contratos },
     { icon: Calendar, label: "Reservas", time: "Chat contextual", count: 0, color: "#0ea5e9", bg: "#e0f2fe", href: appSessionHrefs.reservas },
     {
