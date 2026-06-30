@@ -47,6 +47,7 @@ import { useAuth } from "@/components/auth/auth-provider"
 import { ProtectedRouteGuard } from "@/components/auth/auth-route-guard"
 import { SupportProvider, useSupport } from "@/components/support/support-context"
 import { Toaster } from "@/components/ui/toaster"
+import { appSessionHrefs } from "@/lib/area-configs"
 
 type MenuLevel = "main" | "more" | "equipe" | "foto"
 
@@ -102,14 +103,14 @@ function ActionSheetMenu() {
 
   const mainActions = [
     { icon: UserPlus, label: "Cliente", href: "/app/novo/cliente", color: "#3b82f6", bg: "#dbeafe" },
-    { icon: Briefcase, label: "Viagem", href: "/app/novo/operacao", color: "#8b5cf6", bg: "#ede9fe" },
+    { icon: Briefcase, label: "Viagem", href: "/app/novo/viagem", color: "#8b5cf6", bg: "#ede9fe" },
     { icon: TrendingUp, label: "Cotação", href: "/app/novo/cotacao", color: "#3b82f6", bg: "#dbeafe" },
     { icon: FileText, label: "Contrato", href: "/app/novo/contrato", color: "#ef4444", bg: "#fee2e2" },
     { icon: Calendar, label: "Reserva", href: "/app/novo/reserva", color: "#0ea5e9", bg: "#e0f2fe" },
     { icon: DollarSign, label: "Financeiro", href: "/app/novo/financeiro", color: "#22c55e", bg: "#dcfce7" },
     { icon: FileEdit, label: "Documento", href: "/app/novo/documento", color: "#f97316", bg: "#ffedd5" },
     { icon: UsersRound, label: "Fornecedor", href: "/app/novo/fornecedor", color: "#0ea5e9", bg: "#e0f2fe" },
-    { icon: LifeBuoy, label: "Atendimento", href: "/app/conversas/suporte", color: "#6b7280", bg: "#f3f4f6" },
+    { icon: LifeBuoy, label: "Atendimento", href: "/app/novo/atendimento", color: "#6b7280", bg: "#f3f4f6" },
   ]
 
   const moreActions = [
@@ -361,7 +362,7 @@ function DesktopSidebar() {
       count: summary?.clientsCount ?? 0,
       color: "#ec4899",
       bg: "#fce7f3",
-      href: "/app/conversas/cadastros",
+      href: appSessionHrefs.clientes,
     },
     {
       icon: Briefcase,
@@ -370,11 +371,11 @@ function DesktopSidebar() {
       count: summary?.operationsCount ?? 0,
       color: "#8b5cf6",
       bg: "#ede9fe",
-      href: "/app/conversas/operacoes",
+      href: appSessionHrefs.viagens,
     },
-    { icon: TrendingUp, label: "Cotações", time: "Chat contextual", count: 0, color: "#3b82f6", bg: "#dbeafe", href: "/app/conversas/vendas" },
-    { icon: FileText, label: "Contratos", time: "Documentos de viagem", count: 0, color: "#ef4444", bg: "#fee2e2", href: "/app/conversas/documentos/contratos" },
-    { icon: Calendar, label: "Reservas", time: "Chat contextual", count: 0, color: "#0ea5e9", bg: "#e0f2fe", href: "/app/conversas/operacoes/reservas" },
+    { icon: TrendingUp, label: "Cotações", time: "Chat contextual", count: 0, color: "#3b82f6", bg: "#dbeafe", href: appSessionHrefs.cotacoes },
+    { icon: FileText, label: "Contratos", time: "Documentos de viagem", count: 0, color: "#ef4444", bg: "#fee2e2", href: appSessionHrefs.contratos },
+    { icon: Calendar, label: "Reservas", time: "Chat contextual", count: 0, color: "#0ea5e9", bg: "#e0f2fe", href: appSessionHrefs.reservas },
     {
       icon: DollarSign,
       label: "Financeiro",
@@ -382,7 +383,7 @@ function DesktopSidebar() {
       count: summary?.financial.entriesCount ?? 0,
       color: "#22c55e",
       bg: "#dcfce7",
-      href: "/app/conversas/financeiro",
+      href: appSessionHrefs.financeiro,
     },
     {
       icon: FolderOpen,
@@ -391,9 +392,9 @@ function DesktopSidebar() {
       count: summary?.documentsCount ?? 0,
       color: "#f97316",
       bg: "#ffedd5",
-      href: "/app/conversas/documentos",
+      href: appSessionHrefs.documentos,
     },
-    { icon: UsersRound, label: "Fornecedores", time: "Parceiros e operadoras", count: 0, color: "#0ea5e9", bg: "#e0f2fe", href: "/app/conversas/cadastros/fornecedores" },
+    { icon: UsersRound, label: "Fornecedores", time: "Parceiros e operadoras", count: 0, color: "#0ea5e9", bg: "#e0f2fe", href: appSessionHrefs.fornecedores },
     {
       icon: Video,
       label: "Agenda",
@@ -401,11 +402,11 @@ function DesktopSidebar() {
       count: summary?.meetingsCount ?? 0,
       color: "#ef4444",
       bg: "#fee2e2",
-      href: "/app/conversas/reunioes",
+      href: appSessionHrefs.agenda,
     },
-    { icon: BarChart3, label: "Relatórios", time: "Indicadores e análises", count: 0, color: "#f97316", bg: "#ffedd5", href: "/app/conversas/documentos/relatorios" },
-    { icon: Link2, label: "Integrações", time: "Conexões externas", count: 0, color: "#6b7280", bg: "#f3f4f6", href: "/app/conversas/sistema/integracoes" },
-    { icon: Settings, label: "Configurações", time: "Configurações e logs", count: 0, color: "#6b7280", bg: "#f3f4f6", href: "/app/conversas/sistema" },
+    { icon: BarChart3, label: "Relatórios", time: "Indicadores e análises", count: 0, color: "#f97316", bg: "#ffedd5", href: appSessionHrefs.relatorios },
+    { icon: Link2, label: "Integrações", time: "Conexões externas", count: 0, color: "#6b7280", bg: "#f3f4f6", href: appSessionHrefs.integracoes },
+    { icon: Settings, label: "Configurações", time: "Configurações e logs", count: 0, color: "#6b7280", bg: "#f3f4f6", href: appSessionHrefs.configuracoes },
   ]
 
   const navItems = [
@@ -416,8 +417,8 @@ function DesktopSidebar() {
   ]
 
   const favoriteItems = [
-    { icon: TrendingUp, label: "Roteiros", href: "/app/conversas/vendas/roteiros", color: "#3b82f6", bg: "#dbeafe" },
-    { icon: LifeBuoy, label: "Atendimentos", href: "/app/conversas/cadastros/atendimentos", color: "#6b7280", bg: "#f3f4f6" },
+    { icon: TrendingUp, label: "Roteiros", href: appSessionHrefs.roteiros, color: "#3b82f6", bg: "#dbeafe" },
+    { icon: LifeBuoy, label: "Atendimentos", href: appSessionHrefs.atendimentos, color: "#6b7280", bg: "#f3f4f6" },
   ]
 
   const isActive = (href: string, exact?: boolean) => (exact ? pathname === href : pathname.startsWith(href))

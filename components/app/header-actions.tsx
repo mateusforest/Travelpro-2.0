@@ -8,16 +8,17 @@ import { motion, AnimatePresence } from "framer-motion"
 import { logoutAction } from "@/actions/auth"
 import { useAuth } from "@/components/auth/auth-provider"
 import { UserAvatar } from "@/components/shared/user-avatar"
+import { appSessionHrefs } from "@/lib/area-configs"
 import { createSupabaseBrowserClient } from "@/lib/supabase/client"
 
 const notifications: { id: number; title: string; desc: string; time: string; dot: string; unread: boolean }[] = []
 
 const searchSuggestions = [
-  { label: "Clientes", href: "/app/conversas/cadastros" },
-  { label: "Operações em andamento", href: "/app/conversas/operacoes" },
-  { label: "Balanço financeiro", href: "/app/conversas/financeiro" },
-  { label: "Reuniões da semana", href: "/app/conversas/reunioes" },
-  { label: "Documentos recentes", href: "/app/conversas/documentos" },
+  { label: "Clientes", href: appSessionHrefs.clientes },
+  { label: "Viagens em andamento", href: appSessionHrefs.viagens },
+  { label: "Balanço financeiro", href: appSessionHrefs.financeiro },
+  { label: "Agenda da semana", href: appSessionHrefs.agenda },
+  { label: "Documentos recentes", href: appSessionHrefs.documentos },
 ]
 
 const avatarMenu = [

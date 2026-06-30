@@ -155,12 +155,12 @@ export default function SubAreaPage({ params }: { params: Promise<{ area: string
           }
 
           if (label === "Criar viagem") {
-            router.push("/app/novo/operacao")
+            router.push("/app/novo/viagem")
             return
           }
 
           if (label === "Criar cotação") {
-            router.push("/portal/propostas")
+            router.push("/app/novo/cotacao")
             return
           }
 

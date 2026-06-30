@@ -9,15 +9,17 @@ import {
   runOperationsEngineAction,
 } from "@/actions/operations-engine"
 import { AreaChat, type ChatMessage } from "@/components/app/area-chat"
+import { SessionEmptyPage } from "@/components/app/session-empty-page"
 import { SupportWorkspaceCenter } from "@/components/support/support-workspace-center"
 import { useSupport } from "@/components/support/support-context"
-import { areaConfigs, slug } from "@/lib/area-configs"
+import { areaConfigs, sessionPageConfigs, slug } from "@/lib/area-configs"
 
 export default function AreaPage({ params }: { params: Promise<{ area: string }> }) {
   const { area } = use(params)
   const router = useRouter()
   const { openSupport } = useSupport()
   const config = areaConfigs[area]
+  const sessionPage = sessionPageConfigs[area]
   const isChatArea = Boolean(config) && config.subsections.length === 0 && area !== "suporte"
   const [messages, setMessages] = useState<ChatMessage[]>(config?.messages ?? [])
   const [isLoadingMessages, setIsLoadingMessages] = useState(isChatArea)
@@ -52,6 +54,10 @@ export default function AreaPage({ params }: { params: Promise<{ area: string }>
       isMounted = false
     }
   }, [area, config, isChatArea])
+
+  if (sessionPage) {
+    return <SessionEmptyPage config={sessionPage} />
+  }
 
   if (!config) {
     return (

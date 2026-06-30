@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { AnimatePresence, motion } from "framer-motion"
 import {
   ArrowRight,
@@ -29,6 +30,7 @@ import { useAuth } from "@/components/auth/auth-provider"
 import type { ChatMessage } from "@/components/app/area-chat"
 import { useSupport } from "@/components/support/support-context"
 import { toast } from "@/hooks/use-toast"
+import { appSessionHrefs } from "@/lib/area-configs"
 
 type ModalType = "sugerir" | "passo" | "meet" | "editar" | null
 type MicState = "idle" | "listening" | "processing" | "unsupported" | "error"
@@ -126,6 +128,7 @@ function parseConversationArea(value?: string | null): ActiveConversation {
 }
 
 export default function AppHomePage() {
+  const router = useRouter()
   const { user, profile, workspace } = useAuth()
   const { summary, isLoading: isStatsLoading, refreshSummary } = useOperationsDashboard()
   const { openSupport } = useSupport()
@@ -262,6 +265,20 @@ export default function AppHomePage() {
   )
   const saldoFinal = stats?.balanco ?? 0
   const enabledShortcuts = shortcuts.filter((shortcut) => shortcut.enabled)
+  const shortcutHrefs: Record<string, string> = {
+    clientes: appSessionHrefs.clientes,
+    operacoes: appSessionHrefs.viagens,
+    balanco: appSessionHrefs.financeiro,
+    equipe: appSessionHrefs.fornecedores,
+    vendas: appSessionHrefs.cotacoes,
+    reunioes: appSessionHrefs.agenda,
+  }
+  const suggestionHrefs: Record<string, string> = {
+    "Cadastrar primeiro cliente": appSessionHrefs.clientes,
+    "Criar primeira viagem": appSessionHrefs.viagens,
+    "Criar primeira cotaÃ§Ã£o": appSessionHrefs.cotacoes,
+    "Agendar primeiro atendimento": appSessionHrefs.atendimentos,
+  }
   const displayName = profile?.full_name || user?.email?.split("@")[0] || "sua equipe"
 
   function formatCurrency(value: number) {
@@ -611,7 +628,21 @@ export default function AppHomePage() {
                   ) : (
                     <div className={`grid gap-2 ${enabledShortcuts.length <= 4 ? "grid-cols-4" : "grid-cols-3"}`}>
                       {enabledShortcuts.map((shortcut) => (
-                        <button key={shortcut.id} onClick={() => shortcut.isBalance && setBalanceOpen(true)} className="flex flex-col items-center text-center">
+                        <button
+                          key={shortcut.id}
+                          onClick={() => {
+                            if (shortcut.isBalance) {
+                              setBalanceOpen(true)
+                              return
+                            }
+
+                            const href = shortcutHrefs[shortcut.id]
+                            if (href) {
+                              router.push(href)
+                            }
+                          }}
+                          className="flex flex-col items-center text-center"
+                        >
                           <shortcut.icon className="mb-1 h-4 w-4 text-gray-400" />
                           <span className={`max-w-full truncate font-semibold text-[#0a0a0a] ${shortcut.isBalance ? "text-sm tabular-nums" : "text-base"}`}>{shortcut.value}</span>
                           <span className="text-[10px] leading-tight text-gray-500">{shortcut.label}</span>
@@ -780,7 +811,17 @@ export default function AppHomePage() {
                 <div className="space-y-2.5">
                   <p className="mb-1 text-sm text-gray-500">Com base na sua operacao, o COS recomenda:</p>
                   {suggestions.map((suggestion) => (
-                    <button key={suggestion.title} className="flex w-full items-start gap-3 rounded-2xl border border-gray-100 p-3 text-left transition-colors hover:bg-gray-50">
+                    <button
+                      key={suggestion.title}
+                      onClick={() => {
+                        const href = suggestionHrefs[suggestion.title]
+                        if (href) {
+                          closeModal()
+                          router.push(href)
+                        }
+                      }}
+                      className="flex w-full items-start gap-3 rounded-2xl border border-gray-100 p-3 text-left transition-colors hover:bg-gray-50"
+                    >
                       <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl" style={{ backgroundColor: suggestion.bg }}>
                         <suggestion.icon className="h-5 w-5" style={{ color: suggestion.color }} />
                       </span>
@@ -889,10 +930,10 @@ export default function AppHomePage() {
                         </p>
                       </div>
                       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                        <Link href="/app/conversas/reunioes" onClick={closeModal} className="tp-gradient-btn rounded-2xl py-3 text-center text-sm font-medium transition-colors">
+                        <Link href={appSessionHrefs.atendimentos} onClick={closeModal} className="tp-gradient-btn rounded-2xl py-3 text-center text-sm font-medium transition-colors">
                           Abrir atendimento
                         </Link>
-                        <Link href="/app/conversas/reunioes" onClick={closeModal} className="rounded-2xl bg-gray-100 py-3 text-center text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200">
+                        <Link href={appSessionHrefs.agenda} onClick={closeModal} className="rounded-2xl bg-gray-100 py-3 text-center text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200">
                           Ver na Agenda
                         </Link>
                       </div>
