@@ -5,9 +5,11 @@ import { PortalHeader } from "@/components/portal/portal-header"
 import { PortalModulePage } from "@/components/portal/portal-module-page"
 import { ClientsManager } from "@/components/operations/clients-manager"
 import { BookingsManager } from "@/components/operations/bookings-manager"
+import { ContractsManager } from "@/components/operations/contracts-manager"
 import { DocumentsManager } from "@/components/operations/documents-manager"
 import { FinancialManager } from "@/components/operations/financial-manager"
 import { QuotesManager } from "@/components/operations/quotes-manager"
+import { SuppliersManager } from "@/components/operations/suppliers-manager"
 import { TripsManager } from "@/components/operations/trips-manager"
 import { travelProPortalAreasBySlug } from "@/lib/travelpro-areas"
 
@@ -32,15 +34,10 @@ const EXTRA_SECTION_META: Record<
 }
 
 const DOCUMENT_MANAGER_META: Record<string, { title: string; description: string; filterType: string }> = {
-  contratos: {
-    title: "Contratos",
-    description: "Gerencie contratos reais do seu workspace.",
-    filterType: "contratos",
-  },
   documentos: {
     title: "Documentos",
     description: "Centralize documentos reais do seu workspace.",
-    filterType: "documentos",
+    filterType: "arquivos",
   },
   propostas: {
     title: "Propostas",
@@ -109,6 +106,32 @@ export default function PortalSectionPage({ params }: { params: Promise<{ slug: 
         <BookingsManager
           title={area.label}
           description="Gerencie reservas reais da sua agencia e acompanhe clientes, viagens e fornecedores."
+          variant="portal"
+        />
+      </div>
+    )
+  }
+
+  if (area?.portal.manager === "contracts") {
+    return (
+      <div className="flex h-full flex-1 flex-col">
+        <PortalHeader />
+        <ContractsManager
+          title={area.label}
+          description="Gerencie contratos reais da sua agencia e vincule clientes, viagens e cotacoes."
+          variant="portal"
+        />
+      </div>
+    )
+  }
+
+  if (area?.portal.manager === "suppliers") {
+    return (
+      <div className="flex h-full flex-1 flex-col">
+        <PortalHeader />
+        <SuppliersManager
+          title={area.label}
+          description="Gerencie fornecedores reais da sua agencia com os principais dados de contato."
           variant="portal"
         />
       </div>

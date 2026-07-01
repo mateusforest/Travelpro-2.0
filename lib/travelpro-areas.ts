@@ -60,7 +60,7 @@ export type TravelProArea = {
     ctaDisabled?: boolean
     favorite?: boolean
     aliases?: string[]
-    manager?: "clients" | "financial" | "documents" | "trips" | "quotes" | "bookings"
+    manager?: "clients" | "financial" | "documents" | "trips" | "quotes" | "bookings" | "contracts" | "suppliers"
     documentFilterType?: string
   }
 }
@@ -151,10 +151,8 @@ export const travelProAreas: TravelProArea[] = [
       description: "Organize contratos, etapas de assinatura e documentos vinculados.",
       emptyLabel: "Nenhum contrato cadastrado ainda.",
       ctaLabel: "Novo contrato",
-      ctaDisabled: true,
       aliases: ["operacoes", "contratos"],
-      manager: "documents",
-      documentFilterType: "contratos",
+      manager: "contracts",
     },
   },
   {
@@ -222,7 +220,7 @@ export const travelProAreas: TravelProArea[] = [
       ctaLabel: "Novo documento",
       aliases: ["documentos", "propostas", "relatorios"],
       manager: "documents",
-      documentFilterType: "documentos",
+      documentFilterType: "arquivos",
     },
   },
   {
@@ -243,8 +241,8 @@ export const travelProAreas: TravelProArea[] = [
       description: "Organize fornecedores, parceiros e contatos da operacao.",
       emptyLabel: "Nenhum fornecedor registrado ainda.",
       ctaLabel: "Novo fornecedor",
-      ctaDisabled: true,
       aliases: ["equipe"],
+      manager: "suppliers",
     },
   },
   {

@@ -1,32 +1,23 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { FileText, Loader2, Paperclip, Pencil, Plus, Search, Trash2 } from "lucide-react"
+import { CalendarDays, FileText, Loader2, Pencil, Plus, Search } from "lucide-react"
 import { getClientsAction, type ClientStatus } from "@/actions/clients"
-import { getContractsAction, type ContractStatus } from "@/actions/contracts"
-import {
-  createDocumentAction,
-  deleteDocumentAction,
-  getDocumentsAction,
-  updateDocumentAction,
-  type DocumentStatus,
-  type DocumentType,
-} from "@/actions/documents"
+import { createContractAction, getContractsAction, updateContractAction, type ContractStatus } from "@/actions/contracts"
 import { getQuotesAction, type QuoteStatus } from "@/actions/quotes"
 import { getTripsAction, type TripStatus } from "@/actions/trips"
 import { useAuth } from "@/components/auth/auth-provider"
 
-type DocumentRecord = {
+type ContractRecord = {
   id: string
   clientId: string | null
   tripId: string | null
   quoteId: string | null
-  contractId: string | null
   title: string
-  type: DocumentType
+  status: ContractStatus
+  signedAt: string | null
   fileUrl: string
-  content: string
-  status: DocumentStatus
+  notes: string
   createdAt: string | null
 }
 
@@ -48,34 +39,26 @@ type QuoteOption = {
   status: QuoteStatus
 }
 
-type ContractOption = {
-  id: string
-  title: string
-  status: ContractStatus
-}
-
-type DocumentFormState = {
+type ContractFormState = {
   clientId: string
   tripId: string
   quoteId: string
-  contractId: string
   title: string
-  type: DocumentType
+  status: ContractStatus
+  signedAt: string
   fileUrl: string
-  content: string
-  status: DocumentStatus
+  notes: string
 }
 
-const defaultForm: DocumentFormState = {
+const defaultForm: ContractFormState = {
   clientId: "",
   tripId: "",
   quoteId: "",
-  contractId: "",
   title: "",
-  type: "outro",
-  fileUrl: "",
-  content: "",
   status: "draft",
+  signedAt: "",
+  fileUrl: "",
+  notes: "",
 }
 
 function formatDateLabel(value: string | null) {
@@ -89,141 +72,117 @@ function formatDateLabel(value: string | null) {
   }).format(date)
 }
 
-function statusLabel(status: DocumentStatus) {
+function contractStatusLabel(status: ContractStatus) {
   if (status === "sent") return "Enviado"
   if (status === "signed") return "Assinado"
+  if (status === "cancelled") return "Cancelado"
   if (status === "archived") return "Arquivado"
   return "Rascunho"
 }
 
-function typeLabel(type: DocumentType) {
-  if (type === "relatorio") return "Relatorio"
-  return type.charAt(0).toUpperCase() + type.slice(1)
+function contractStatusTone(status: ContractStatus) {
+  if (status === "signed") return "bg-emerald-50 text-emerald-600"
+  if (status === "cancelled" || status === "archived") return "bg-gray-100 text-gray-600"
+  if (status === "sent") return "bg-blue-50 text-blue-600"
+  return "bg-amber-50 text-amber-700"
 }
 
-function normalizeFilterType(filterType?: string | null): DocumentType | null {
-  if (!filterType) return null
-  const normalized = filterType.trim().toLowerCase()
-  if (normalized === "contrato" || normalized === "contratos") return "contrato"
-  if (normalized === "arquivo" || normalized === "arquivos" || normalized === "documento" || normalized === "documentos") return "arquivo"
-  if (normalized === "relatorio" || normalized === "relatorios") return "relatorio"
-  if (normalized === "proposta" || normalized === "propostas") return "proposta"
-  return null
-}
-
-export function DocumentsManager({
+export function ContractsManager({
   title,
   description,
   variant,
-  filterType,
 }: {
   title: string
   description: string
   variant: "app" | "portal"
-  filterType?: string
 }) {
   const { canManageWorkspace } = useAuth()
-  const [documents, setDocuments] = useState<DocumentRecord[]>([])
+  const [contracts, setContracts] = useState<ContractRecord[]>([])
   const [clients, setClients] = useState<ClientOption[]>([])
   const [trips, setTrips] = useState<TripOption[]>([])
   const [quotes, setQuotes] = useState<QuoteOption[]>([])
-  const [contracts, setContracts] = useState<ContractOption[]>([])
   const [search, setSearch] = useState("")
-  const [filter, setFilter] = useState<"all" | DocumentStatus>("all")
+  const [filter, setFilter] = useState<"all" | ContractStatus>("all")
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [feedback, setFeedback] = useState<string | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
-  const [editingDocumentId, setEditingDocumentId] = useState<string | null>(null)
-  const [form, setForm] = useState<DocumentFormState>({
-    ...defaultForm,
-    type: normalizeFilterType(filterType) ?? "outro",
-  })
+  const [editingContractId, setEditingContractId] = useState<string | null>(null)
+  const [form, setForm] = useState<ContractFormState>(defaultForm)
 
-  const currentTypeFilter = normalizeFilterType(filterType)
   const clientsMap = useMemo(() => new Map(clients.map((client) => [client.id, client.name])), [clients])
   const tripsMap = useMemo(() => new Map(trips.map((trip) => [trip.id, trip.title])), [trips])
   const quotesMap = useMemo(() => new Map(quotes.map((quote) => [quote.id, quote.title])), [quotes])
-  const contractsMap = useMemo(() => new Map(contracts.map((contract) => [contract.id, contract.title])), [contracts])
 
-  const loadDocuments = async () => {
+  const loadContracts = async () => {
     setIsLoading(true)
     setError(null)
 
-    const [result, clientsResult, tripsResult, quotesResult, contractsResult] = await Promise.all([
-      getDocumentsAction(),
+    const [contractsResult, clientsResult, tripsResult, quotesResult] = await Promise.all([
+      getContractsAction(),
       getClientsAction(),
       getTripsAction(),
       getQuotesAction(),
-      getContractsAction(),
     ])
 
-    if (result.error) {
-      setError(result.error)
-      setDocuments([])
+    if (contractsResult.error) {
+      setError(contractsResult.error)
+      setContracts([])
       setIsLoading(false)
       return
     }
 
-    setDocuments((result.documents ?? []) as DocumentRecord[])
+    setContracts((contractsResult.contracts ?? []) as ContractRecord[])
     setClients(((clientsResult.clients ?? []) as ClientOption[]).filter((client) => client.status === "active"))
     setTrips(((tripsResult.trips ?? []) as TripOption[]).filter((trip) => trip.status !== "archived"))
     setQuotes(((quotesResult.quotes ?? []) as QuoteOption[]).filter((quote) => quote.status !== "archived"))
-    setContracts(((contractsResult.contracts ?? []) as ContractOption[]).filter((contract) => contract.status !== "archived"))
     setIsLoading(false)
   }
 
   useEffect(() => {
-    void loadDocuments()
+    void loadContracts()
   }, [])
 
-  const filteredDocuments = useMemo(() => {
-    return documents.filter((document) => {
-      const matchesStatus = filter === "all" ? true : document.status === filter
-      const matchesType = currentTypeFilter ? document.type === currentTypeFilter : true
+  const filteredContracts = useMemo(() => {
+    return contracts.filter((contract) => {
+      const matchesFilter = filter === "all" ? true : contract.status === filter
       const term = search.trim().toLowerCase()
       const matchesSearch =
         !term ||
         [
-          document.title,
-          document.type,
-          document.content,
-          document.clientId ? clientsMap.get(document.clientId) ?? "" : "",
-          document.tripId ? tripsMap.get(document.tripId) ?? "" : "",
-          document.quoteId ? quotesMap.get(document.quoteId) ?? "" : "",
-          document.contractId ? contractsMap.get(document.contractId) ?? "" : "",
+          contract.title,
+          contract.notes,
+          contract.clientId ? clientsMap.get(contract.clientId) ?? "" : "",
+          contract.tripId ? tripsMap.get(contract.tripId) ?? "" : "",
+          contract.quoteId ? quotesMap.get(contract.quoteId) ?? "" : "",
         ]
           .join(" ")
           .toLowerCase()
           .includes(term)
-      return matchesStatus && matchesType && matchesSearch
+      return matchesFilter && matchesSearch
     })
-  }, [clientsMap, contractsMap, currentTypeFilter, documents, filter, quotesMap, search, tripsMap])
+  }, [clientsMap, contracts, filter, quotesMap, search, tripsMap])
 
   const startCreate = () => {
-    setEditingDocumentId(null)
-    setForm({
-      ...defaultForm,
-      type: currentTypeFilter ?? "outro",
-    })
+    setEditingContractId(null)
+    setForm(defaultForm)
     setError(null)
     setFeedback(null)
     setModalOpen(true)
   }
 
-  const startEdit = (document: DocumentRecord) => {
-    setEditingDocumentId(document.id)
+  const startEdit = (contract: ContractRecord) => {
+    setEditingContractId(contract.id)
     setForm({
-      clientId: document.clientId ?? "",
-      tripId: document.tripId ?? "",
-      quoteId: document.quoteId ?? "",
-      contractId: document.contractId ?? "",
-      title: document.title,
-      type: document.type,
-      fileUrl: document.fileUrl,
-      content: document.content,
-      status: document.status,
+      clientId: contract.clientId ?? "",
+      tripId: contract.tripId ?? "",
+      quoteId: contract.quoteId ?? "",
+      title: contract.title,
+      status: contract.status,
+      signedAt: contract.signedAt ? contract.signedAt.slice(0, 10) : "",
+      fileUrl: contract.fileUrl,
+      notes: contract.notes,
     })
     setError(null)
     setFeedback(null)
@@ -239,17 +198,16 @@ export function DocumentsManager({
       clientId: form.clientId || undefined,
       tripId: form.tripId || undefined,
       quoteId: form.quoteId || undefined,
-      contractId: form.contractId || undefined,
       title: form.title,
-      type: form.type,
-      fileUrl: form.fileUrl,
-      content: form.content,
       status: form.status,
+      signedAt: form.signedAt,
+      fileUrl: form.fileUrl,
+      notes: form.notes,
     }
 
-    const result = editingDocumentId
-      ? await updateDocumentAction({ documentId: editingDocumentId, ...payload })
-      : await createDocumentAction(payload)
+    const result = editingContractId
+      ? await updateContractAction({ contractId: editingContractId, ...payload })
+      : await createContractAction(payload)
 
     setIsSaving(false)
 
@@ -258,24 +216,9 @@ export function DocumentsManager({
       return
     }
 
-    setFeedback(editingDocumentId ? "Documento atualizado com sucesso." : "Documento criado com sucesso.")
+    setFeedback(editingContractId ? "Contrato atualizado com sucesso." : "Contrato criado com sucesso.")
     setModalOpen(false)
-    await loadDocuments()
-  }
-
-  const archiveDocument = async (documentId: string) => {
-    setError(null)
-    setFeedback(null)
-
-    const result = await deleteDocumentAction({ documentId })
-
-    if (result.error) {
-      setError(result.error)
-      return
-    }
-
-    setFeedback("Documento arquivado com sucesso.")
-    await loadDocuments()
+    await loadContracts()
   }
 
   return (
@@ -292,7 +235,7 @@ export function DocumentsManager({
             className="inline-flex items-center gap-2 rounded-xl bg-[#0a0a0a] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#1a1a1a] disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Plus className="h-4 w-4" />
-            Novo documento
+            Novo contrato
           </button>
         </div>
 
@@ -307,7 +250,7 @@ export function DocumentsManager({
                 type="text"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder="Buscar por titulo, tipo, cliente, viagem ou conteudo..."
+                placeholder="Buscar por titulo, cliente, viagem ou cotacao..."
                 className="w-full rounded-xl bg-gray-50 px-10 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-200"
               />
             </div>
@@ -317,7 +260,6 @@ export function DocumentsManager({
                 { label: "Rascunhos", value: "draft" as const },
                 { label: "Enviados", value: "sent" as const },
                 { label: "Assinados", value: "signed" as const },
-                { label: "Arquivados", value: "archived" as const },
               ].map((option) => (
                 <button
                   key={option.value}
@@ -335,68 +277,48 @@ export function DocumentsManager({
           {isLoading ? (
             <div className="flex items-center justify-center py-16 text-sm text-gray-500">
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Carregando documentos...
+              Carregando contratos...
             </div>
-          ) : filteredDocuments.length === 0 ? (
+          ) : filteredContracts.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-gray-200 px-6 py-16 text-center">
-              <p className="text-sm text-gray-500">Nenhum documento criado ainda.</p>
+              <p className="text-sm text-gray-500">Nenhum contrato cadastrado ainda.</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[1180px]">
+              <table className="w-full min-w-[980px]">
                 <thead>
                   <tr className="border-b border-gray-100 text-left text-xs font-medium text-gray-500">
                     <th className="px-4 py-3">Titulo</th>
                     <th className="px-4 py-3">Cliente</th>
                     <th className="px-4 py-3">Viagem</th>
-                    <th className="px-4 py-3">Contrato</th>
-                    <th className="px-4 py-3">Tipo</th>
-                    <th className="px-4 py-3">Conteudo</th>
+                    <th className="px-4 py-3">Cotacao</th>
+                    <th className="px-4 py-3">Assinado em</th>
                     <th className="px-4 py-3">Status</th>
-                    <th className="px-4 py-3">Criado em</th>
                     <th className="px-4 py-3 text-right">Acoes</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredDocuments.map((document) => (
-                    <tr key={document.id} className="border-b border-gray-50 last:border-0">
-                      <td className="px-4 py-3.5 text-sm font-medium text-[#0a0a0a]">{document.title}</td>
-                      <td className="px-4 py-3.5 text-sm text-gray-500">{document.clientId ? clientsMap.get(document.clientId) ?? "-" : "-"}</td>
-                      <td className="px-4 py-3.5 text-sm text-gray-500">{document.tripId ? tripsMap.get(document.tripId) ?? "-" : "-"}</td>
-                      <td className="px-4 py-3.5 text-sm text-gray-500">{document.contractId ? contractsMap.get(document.contractId) ?? "-" : "-"}</td>
-                      <td className="px-4 py-3.5 text-sm text-gray-500">{typeLabel(document.type)}</td>
-                      <td className="px-4 py-3.5 text-sm text-gray-500">{document.content || "-"}</td>
+                  {filteredContracts.map((contract) => (
+                    <tr key={contract.id} className="border-b border-gray-50 last:border-0">
+                      <td className="px-4 py-3.5 text-sm font-medium text-[#0a0a0a]">{contract.title}</td>
+                      <td className="px-4 py-3.5 text-sm text-gray-500">{contract.clientId ? clientsMap.get(contract.clientId) ?? "-" : "-"}</td>
+                      <td className="px-4 py-3.5 text-sm text-gray-500">{contract.tripId ? tripsMap.get(contract.tripId) ?? "-" : "-"}</td>
+                      <td className="px-4 py-3.5 text-sm text-gray-500">{contract.quoteId ? quotesMap.get(contract.quoteId) ?? "-" : "-"}</td>
+                      <td className="px-4 py-3.5 text-sm text-gray-500">{formatDateLabel(contract.signedAt)}</td>
                       <td className="px-4 py-3.5">
-                        <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${
-                          document.status === "signed"
-                            ? "bg-emerald-50 text-emerald-600"
-                            : document.status === "sent"
-                              ? "bg-blue-50 text-blue-600"
-                              : document.status === "archived"
-                                ? "bg-gray-100 text-gray-600"
-                                : "bg-amber-50 text-amber-700"
-                        }`}>
-                          {statusLabel(document.status)}
+                        <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${contractStatusTone(contract.status)}`}>
+                          {contractStatusLabel(contract.status)}
                         </span>
                       </td>
-                      <td className="px-4 py-3.5 text-sm text-gray-500">{formatDateLabel(document.createdAt)}</td>
                       <td className="px-4 py-3.5">
                         <div className="flex items-center justify-end gap-2">
                           <button
-                            onClick={() => startEdit(document)}
+                            onClick={() => startEdit(contract)}
                             disabled={!canManageWorkspace}
                             className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-2 text-xs text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
                           >
                             <Pencil className="h-3.5 w-3.5" />
                             Editar
-                          </button>
-                          <button
-                            onClick={() => archiveDocument(document.id)}
-                            disabled={!canManageWorkspace || document.status === "archived"}
-                            className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-2 text-xs text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                            Arquivar
                           </button>
                         </div>
                       </td>
@@ -414,25 +336,19 @@ export function DocumentsManager({
           <div className="fixed inset-0 z-[70] bg-black/40 backdrop-blur-sm" onClick={() => setModalOpen(false)} />
           <div className="fixed inset-x-0 bottom-0 z-[80] max-h-[85vh] overflow-y-auto rounded-t-3xl bg-white p-5 pb-8 lg:inset-0 lg:m-auto lg:h-fit lg:max-h-[80vh] lg:max-w-2xl lg:rounded-3xl">
             <div className="mb-4 flex items-center gap-3">
-              <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-50">
-                <FileText className="h-5 w-5 text-blue-500" />
+              <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-red-50">
+                <FileText className="h-5 w-5 text-red-500" />
               </span>
               <div>
-                <h2 className="text-lg font-semibold text-[#0a0a0a]">{editingDocumentId ? "Editar documento" : "Novo documento"}</h2>
-                <p className="text-sm text-gray-500">Salve metadados reais e vincule o documento aos registros da operacao.</p>
+                <h2 className="text-lg font-semibold text-[#0a0a0a]">{editingContractId ? "Editar contrato" : "Novo contrato"}</h2>
+                <p className="text-sm text-gray-500">Registre contratos reais e vincule aos registros operacionais quando necessario.</p>
               </div>
             </div>
-
-            {!canManageWorkspace && editingDocumentId && (
-              <div className="mb-4 rounded-2xl border border-amber-100 bg-amber-50 p-4 text-sm text-amber-700">
-                Apenas owner, admin ou master podem editar e arquivar documentos.
-              </div>
-            )}
 
             {error && <div className="mb-4 rounded-2xl border border-red-100 bg-red-50 p-4 text-sm text-red-700">{error}</div>}
 
             <div className="space-y-3">
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
                 <FormField label="Cliente">
                   <select value={form.clientId} onChange={(event) => setForm((prev) => ({ ...prev, clientId: event.target.value }))} className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:border-gray-300 focus:outline-none">
                     <option value="">Sem cliente vinculado</option>
@@ -453,9 +369,6 @@ export function DocumentsManager({
                     ))}
                   </select>
                 </FormField>
-              </div>
-
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                 <FormField label="Cotacao">
                   <select value={form.quoteId} onChange={(event) => setForm((prev) => ({ ...prev, quoteId: event.target.value }))} className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:border-gray-300 focus:outline-none">
                     <option value="">Sem cotacao vinculada</option>
@@ -466,56 +379,36 @@ export function DocumentsManager({
                     ))}
                   </select>
                 </FormField>
-                <FormField label="Contrato">
-                  <select value={form.contractId} onChange={(event) => setForm((prev) => ({ ...prev, contractId: event.target.value }))} className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:border-gray-300 focus:outline-none">
-                    <option value="">Sem contrato vinculado</option>
-                    {contracts.map((contract) => (
-                      <option key={contract.id} value={contract.id}>
-                        {contract.title}
-                      </option>
-                    ))}
-                  </select>
-                </FormField>
               </div>
 
               <FormField label="Titulo">
-                <input value={form.title} onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))} placeholder="Titulo do documento" className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:border-gray-300 focus:outline-none" />
+                <input value={form.title} onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))} placeholder="Titulo do contrato" className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:border-gray-300 focus:outline-none" />
               </FormField>
 
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                <FormField label="Tipo">
-                  <select value={form.type} onChange={(event) => setForm((prev) => ({ ...prev, type: event.target.value as DocumentType }))} className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:border-gray-300 focus:outline-none">
-                    <option value="contrato">Contrato</option>
-                    <option value="arquivo">Arquivo</option>
-                    <option value="relatorio">Relatorio</option>
-                    <option value="proposta">Proposta</option>
-                    <option value="outro">Outro</option>
-                  </select>
-                </FormField>
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
                 <FormField label="Status">
-                  <select value={form.status} onChange={(event) => setForm((prev) => ({ ...prev, status: event.target.value as DocumentStatus }))} className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:border-gray-300 focus:outline-none">
+                  <select value={form.status} onChange={(event) => setForm((prev) => ({ ...prev, status: event.target.value as ContractStatus }))} className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:border-gray-300 focus:outline-none">
                     <option value="draft">Rascunho</option>
                     <option value="sent">Enviado</option>
                     <option value="signed">Assinado</option>
+                    <option value="cancelled">Cancelado</option>
                     <option value="archived">Arquivado</option>
                   </select>
                 </FormField>
+                <FormField label="Assinado em">
+                  <div className="relative">
+                    <CalendarDays className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                    <input type="date" value={form.signedAt} onChange={(event) => setForm((prev) => ({ ...prev, signedAt: event.target.value }))} className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-10 py-3 text-sm focus:border-gray-300 focus:outline-none" />
+                  </div>
+                </FormField>
+                <FormField label="Referencia do arquivo">
+                  <input value={form.fileUrl} onChange={(event) => setForm((prev) => ({ ...prev, fileUrl: event.target.value }))} placeholder="URL ou referencia" className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:border-gray-300 focus:outline-none" />
+                </FormField>
               </div>
 
-              <FormField label="Referencia do arquivo">
-                <div className="relative">
-                  <Paperclip className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                  <input value={form.fileUrl} onChange={(event) => setForm((prev) => ({ ...prev, fileUrl: event.target.value }))} placeholder="URL ou referencia do arquivo" className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-10 py-3 text-sm focus:border-gray-300 focus:outline-none" />
-                </div>
+              <FormField label="Observacoes">
+                <textarea value={form.notes} onChange={(event) => setForm((prev) => ({ ...prev, notes: event.target.value }))} placeholder="Observacoes do contrato" rows={4} className="w-full resize-none rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:border-gray-300 focus:outline-none" />
               </FormField>
-
-              <FormField label="Conteudo">
-                <textarea value={form.content} onChange={(event) => setForm((prev) => ({ ...prev, content: event.target.value }))} placeholder="Escreva o conteudo ou resumo do documento" rows={5} className="w-full resize-none rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:border-gray-300 focus:outline-none" />
-              </FormField>
-            </div>
-
-            <div className="mt-3 rounded-2xl border border-gray-100 bg-gray-50 p-4 text-sm text-gray-500">
-              O upload real continua fora deste escopo. Nesta etapa salvamos apenas metadados e referencias do documento.
             </div>
 
             <div className="mt-5 flex gap-2">
@@ -524,10 +417,10 @@ export function DocumentsManager({
               </button>
               <button
                 onClick={submit}
-                disabled={isSaving || (Boolean(editingDocumentId) && !canManageWorkspace)}
+                disabled={isSaving || !canManageWorkspace}
                 className="flex-1 rounded-2xl bg-[#0a0a0a] px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-[#1a1a1a] disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {isSaving ? "Salvando..." : editingDocumentId ? "Salvar alteracoes" : "Salvar documento"}
+                {isSaving ? "Salvando..." : editingContractId ? "Salvar alteracoes" : "Salvar contrato"}
               </button>
             </div>
           </div>
