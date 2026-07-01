@@ -8,16 +8,18 @@ import { motion, AnimatePresence } from "framer-motion"
 import {
   ChevronLeft,
   ChevronRight,
+  Headphones,
   Smartphone,
   Monitor,
   MoreVertical,
-  Star,
+  Shield,
 } from "lucide-react"
 import { ProtectedRouteGuard } from "@/components/auth/auth-route-guard"
 import { useAuth } from "@/components/auth/auth-provider"
 import { PortalUIProvider, usePortalUI } from "@/components/portal/portal-ui-context"
 import { PortalInteractionsProvider, usePortalInteractions } from "@/components/portal/portal-interactions"
 import { Toaster } from "@/components/ui/toaster"
+import { expansionItems } from "@/lib/expansion-configs"
 import { travelProAreas } from "@/lib/travelpro-areas"
 
 const mainNavItems = travelProAreas.map((area) => ({
@@ -25,14 +27,6 @@ const mainNavItems = travelProAreas.map((area) => ({
   label: area.label,
   href: area.route.portal,
 }))
-
-const favoriteItems = travelProAreas
-  .filter((area) => area.portal.favorite)
-  .map((area) => ({
-    icon: area.icon,
-    label: area.label,
-    href: area.route.portal,
-  }))
 
 export default function PortalLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -128,19 +122,29 @@ function PortalShell({ children }: { children: React.ReactNode }) {
           {!sidebarCollapsed && (
             <div className="mt-8">
               <div className="flex items-center gap-2 px-3 mb-2">
-                <Star className="w-3.5 h-3.5 text-muted-foreground" />
-                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Favoritos</span>
+                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Expansões</span>
               </div>
               <ul className="space-y-1">
-                {favoriteItems.map((item) => (
-                  <li key={item.href}>
+                {expansionItems.map((item) => (
+                  <li key={item.slug}>
                     <Link
                       href={item.href}
                       onClick={() => setMobileMenuOpen(false)}
                       className="flex items-center gap-3 px-3 py-2 rounded-xl text-muted-foreground hover:bg-white/60 hover:text-foreground transition-all"
                     >
-                      <item.icon className="w-4 h-4 flex-shrink-0" />
-                      <span className="text-sm">{item.label}</span>
+                      <span className="flex h-4 w-4 flex-shrink-0 items-center justify-center">
+                        {item.imageSrc ? (
+                          <span className="relative h-4 w-4 overflow-hidden rounded-sm">
+                            <Image src={item.imageSrc} alt={item.label} fill className="object-contain" sizes="16px" />
+                          </span>
+                        ) : item.icon === "headphones" ? (
+                          <Headphones className="h-4 w-4" style={{ color: item.color }} />
+                        ) : (
+                          <Shield className="h-4 w-4" style={{ color: item.color }} />
+                        )}
+                      </span>
+                      <span className="flex-1 text-sm">{item.label}</span>
+                      <span className="text-xs text-muted-foreground">{item.description}</span>
                     </Link>
                   </li>
                 ))}
