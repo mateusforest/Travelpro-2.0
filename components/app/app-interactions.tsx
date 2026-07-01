@@ -238,8 +238,8 @@ export function AppInteractionsProvider({ children }: { children: ReactNode }) {
 
     await refresh()
     toast({
-      title: "Empresa atualizada",
-      description: "Os dados da empresa foram salvos com sucesso.",
+      title: "Agência atualizada",
+      description: "Os dados da agência foram salvos com sucesso.",
     })
     closeModal()
   }
@@ -360,17 +360,17 @@ export function AppInteractionsProvider({ children }: { children: ReactNode }) {
               )}
 
               {modal === "company" && (
-                <ModalShell icon={Building2} title="Minha empresa" onClose={closeModal}>
+                <ModalShell icon={Building2} title="Minha agência" onClose={closeModal}>
                   <div className="space-y-4">
                     {!workspace?.name && !company.segment && !company.cnpj && <EmptyHint text="Sem dados cadastrados ainda." />}
                     {!canManageWorkspace && (
-                      <EmptyHint text="Você pode visualizar os dados da empresa, mas apenas owner, admin ou master podem editar." />
+                      <EmptyHint text="Você pode visualizar os dados da agência, mas apenas owner, admin ou master podem editar." />
                     )}
                     <InputField
-                      label="Nome da empresa"
+                      label="Nome da agência"
                       value={company.companyName}
                       onChange={(companyName) => setCompany((prev) => ({ ...prev, companyName }))}
-                      placeholder="Nome da empresa"
+                      placeholder="Nome da agência"
                       disabled={!canManageWorkspace}
                     />
                     <InputField

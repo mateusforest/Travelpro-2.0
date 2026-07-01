@@ -14,6 +14,7 @@ import {
   Star,
 } from "lucide-react"
 import { ProtectedRouteGuard } from "@/components/auth/auth-route-guard"
+import { useAuth } from "@/components/auth/auth-provider"
 import { PortalUIProvider, usePortalUI } from "@/components/portal/portal-ui-context"
 import { PortalInteractionsProvider, usePortalInteractions } from "@/components/portal/portal-interactions"
 import { Toaster } from "@/components/ui/toaster"
@@ -50,7 +51,11 @@ function PortalShell({ children }: { children: React.ReactNode }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const { mobileMenuOpen, setMobileMenuOpen } = usePortalUI()
   const { openInstall } = usePortalInteractions()
+  const { user, profile } = useAuth()
   const pathname = usePathname()
+  const displayName = profile?.full_name || profile?.email || user?.email || "Sua conta"
+  const displayRole = profile?.global_role === "master" ? "Master" : "Administrador"
+  const initials = displayName.trim().charAt(0).toUpperCase() || "S"
 
   return (
     <div className="flex h-screen bg-white">
@@ -160,12 +165,12 @@ function PortalShell({ children }: { children: React.ReactNode }) {
 
           <div className={`flex items-center gap-3 mt-2 px-3 py-2.5 rounded-xl hover:bg-white/60 transition-all cursor-pointer ${sidebarCollapsed ? "justify-center" : ""}`}>
             <div className="tp-gradient-chip flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium">
-              J
+              {initials}
             </div>
             {!sidebarCollapsed && (
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">Sua conta</p>
-                <p className="text-xs text-muted-foreground truncate">Administrador</p>
+                <p className="text-sm font-medium truncate">{displayName}</p>
+                <p className="text-xs text-muted-foreground truncate">{displayRole}</p>
               </div>
             )}
             {!sidebarCollapsed && <MoreVertical className="w-4 h-4 text-muted-foreground" />}

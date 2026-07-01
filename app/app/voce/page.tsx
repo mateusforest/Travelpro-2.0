@@ -112,8 +112,8 @@ export default function VocePage() {
     })
 
   const companyItems = [
-    { icon: Building2, label: "Minha operação", sublabel: workspace?.name || "Nenhuma empresa cadastrada ainda", onClick: openCompany },
-    { icon: Users, label: "Fornecedores", sublabel: "Parceiros e permissões do workspace", onClick: openTeam },
+    { icon: Building2, label: "Minha agência", sublabel: workspace?.name || "Nenhuma agência cadastrada ainda", onClick: openCompany },
+    { icon: Users, label: "Equipe", sublabel: "Membros e permissões da agência", onClick: openTeam },
     { icon: CreditCard, label: "Assinatura e plano", sublabel: "Nenhuma assinatura ativa ainda", onClick: openSubscription },
   ]
 
@@ -275,7 +275,7 @@ export default function VocePage() {
     <div className="px-4 py-6 pb-32">
       <motion.div initial={{ y: -10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="mb-4">
         <h1 className="mb-0.5 text-2xl font-bold text-[#0a0a0a]">Perfil</h1>
-        <p className="text-sm text-gray-500">Gerencie seu perfil, operação e preferências.</p>
+        <p className="text-sm text-gray-500">Gerencie seu perfil, agência e preferências.</p>
       </motion.div>
 
       <motion.div
@@ -335,7 +335,7 @@ export default function VocePage() {
         </Link>
       </motion.div>
 
-      <Section title="Empresa" delay={0.2}>
+      <Section title="Minha agência" delay={0.2}>
         {companyItems.map((item) => (
           <MenuItem key={item.label} icon={item.icon} label={item.label} sublabel={item.sublabel} onClick={item.onClick} />
         ))}
