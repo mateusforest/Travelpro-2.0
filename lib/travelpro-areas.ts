@@ -60,7 +60,7 @@ export type TravelProArea = {
     ctaDisabled?: boolean
     favorite?: boolean
     aliases?: string[]
-    manager?: "clients" | "financial" | "documents"
+    manager?: "clients" | "financial" | "documents" | "trips"
     documentFilterType?: string
   }
 }
@@ -104,10 +104,10 @@ export const travelProAreas: TravelProArea[] = [
       ctaLabel: "Nova viagem",
     },
     portal: {
-      description: "O modulo de viagens ainda esta indisponivel no Portal TravelPro.",
-      emptyLabel: "As viagens serao exibidas aqui quando este modulo estiver disponivel.",
+      description: "Acompanhe viagens, datas, clientes e etapas da operacao da agencia.",
+      emptyLabel: "Nenhuma viagem registrada ainda.",
       ctaLabel: "Nova viagem",
-      ctaDisabled: true,
+      manager: "trips",
     },
   },
   {

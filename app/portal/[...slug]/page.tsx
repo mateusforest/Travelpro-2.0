@@ -6,6 +6,7 @@ import { PortalModulePage } from "@/components/portal/portal-module-page"
 import { ClientsManager } from "@/components/operations/clients-manager"
 import { DocumentsManager } from "@/components/operations/documents-manager"
 import { FinancialManager } from "@/components/operations/financial-manager"
+import { TripsManager } from "@/components/operations/trips-manager"
 import { travelProPortalAreasBySlug } from "@/lib/travelpro-areas"
 
 const EXTRA_SECTION_META: Record<
@@ -67,6 +68,19 @@ export default function PortalSectionPage({ params }: { params: Promise<{ slug: 
         <ClientsManager
           title={area.label}
           description="Gerencie clientes e relacionamentos reais da sua agencia."
+          variant="portal"
+        />
+      </div>
+    )
+  }
+
+  if (area?.portal.manager === "trips") {
+    return (
+      <div className="flex h-full flex-1 flex-col">
+        <PortalHeader />
+        <TripsManager
+          title={area.label}
+          description="Gerencie viagens reais da sua agencia e vincule ao cliente quando necessario."
           variant="portal"
         />
       </div>
