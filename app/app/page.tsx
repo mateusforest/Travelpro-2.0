@@ -30,7 +30,13 @@ import { useAuth } from "@/components/auth/auth-provider"
 import type { ChatMessage } from "@/components/app/area-chat"
 import { useSupport } from "@/components/support/support-context"
 import { toast } from "@/hooks/use-toast"
-import { appSessionHrefs } from "@/lib/area-configs"
+import {
+  appSessionHrefs,
+  areaConfigs,
+  resolveAreaConversationInput,
+  resolveConversationSessionHref,
+  resolveConversationSessionKey,
+} from "@/lib/area-configs"
 
 type ModalType = "sugerir" | "passo" | "meet" | "editar" | null
 type MicState = "idle" | "listening" | "processing" | "unsupported" | "error"
@@ -115,13 +121,25 @@ function parseConversationArea(value?: string | null): ActiveConversation {
     return generalConversation
   }
 
+  const sessionKey = resolveConversationSessionKey(value)
+
+  if (sessionKey) {
+    const config = areaConfigs[sessionKey]
+
+    return {
+      area: sessionKey,
+      label: config?.label ?? sessionKey.charAt(0).toUpperCase() + sessionKey.slice(1),
+    }
+  }
+
   const [area = "general", subArea] = value.split("/")
+  const normalizedArea = area.toLowerCase()
   const label = subArea
-    ? `${area.charAt(0).toUpperCase() + area.slice(1)} / ${subArea.charAt(0).toUpperCase() + subArea.slice(1)}`
-    : area.charAt(0).toUpperCase() + area.slice(1)
+    ? `${normalizedArea.charAt(0).toUpperCase() + normalizedArea.slice(1)} / ${subArea.charAt(0).toUpperCase() + subArea.slice(1)}`
+    : normalizedArea.charAt(0).toUpperCase() + normalizedArea.slice(1)
 
   return {
-    area,
+    area: normalizedArea,
     subArea,
     label,
   }
@@ -313,6 +331,10 @@ export default function AppHomePage() {
 
     const nextMessage = message.trim()
     const now = new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
+    const conversationInput =
+      activeConversation.area !== "general"
+        ? resolveAreaConversationInput(activeConversation.area)
+        : { area: undefined, subArea: undefined }
 
     setChatMessages((prev) => [
       ...prev,
@@ -324,8 +346,8 @@ export default function AppHomePage() {
     try {
       const result = await runOperationsEngineAction({
         message: nextMessage,
-        area: activeConversation.area !== "general" ? activeConversation.area : undefined,
-        subArea: activeConversation.subArea,
+        area: conversationInput.area,
+        subArea: activeConversation.subArea ?? conversationInput.subArea,
       })
 
       const responseTime = new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
@@ -356,6 +378,11 @@ export default function AppHomePage() {
 
       const nextConversation = parseConversationArea(conversationArea)
       setActiveConversation(nextConversation)
+      const sessionHref = resolveConversationSessionHref(conversationArea)
+
+      if (sessionHref) {
+        router.push(sessionHref)
+      }
     } catch {
       const responseTime = new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
       setChatMessages((prev) => [

@@ -16,6 +16,14 @@ export type AreaConfig = {
   subsections: string[]
   quickActions: string[]
   messages: ChatMessage[]
+  engineArea?: string
+  engineSubArea?: string
+  subtitle?: string
+  emptyLabel?: string
+  historyInputs?: Array<{
+    area: string
+    subArea?: string
+  }>
 }
 
 export type SessionPageConfig = {
@@ -33,13 +41,203 @@ export const slug = (value: string) =>
   value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "-")
 
 export const areaConfigs: Record<string, AreaConfig> = {
+  clientes: {
+    label: travelProAreasByKey.clientes.label,
+    icon: travelProAreasByKey.clientes.icon,
+    color: travelProAreasByKey.clientes.color,
+    bg: travelProAreasByKey.clientes.bg,
+    subsections: [],
+    quickActions: ["Quero cadastrar um cliente", "Buscar cliente pelo nome", "Mostrar clientes com pendencias"],
+    messages: [],
+    engineArea: "cadastros",
+    engineSubArea: "clientes",
+    subtitle: "Conversa contextual de clientes da sua agencia.",
+    emptyLabel: "Ainda nao ha mensagens nesta conversa. Use o campo abaixo para falar com o COS sobre clientes.",
+    historyInputs: [{ area: "cadastros", subArea: "clientes" }, { area: "cadastros" }],
+  },
+  viagens: {
+    label: travelProAreasByKey.viagens.label,
+    icon: travelProAreasByKey.viagens.icon,
+    color: travelProAreasByKey.viagens.color,
+    bg: travelProAreasByKey.viagens.bg,
+    subsections: [],
+    quickActions: ["Quero criar uma viagem", "Buscar viagem por cliente", "Mostrar viagens com pendencias"],
+    messages: [],
+    engineArea: "operacoes",
+    engineSubArea: "projetos",
+    subtitle: "Conversa contextual de viagens da sua agencia.",
+    emptyLabel: "Ainda nao ha mensagens nesta conversa. Use o campo abaixo para falar com o COS sobre viagens.",
+    historyInputs: [{ area: "operacoes", subArea: "projetos" }, { area: "operacoes" }],
+  },
+  cotacoes: {
+    label: travelProAreasByKey.cotacoes.label,
+    icon: travelProAreasByKey.cotacoes.icon,
+    color: travelProAreasByKey.cotacoes.color,
+    bg: travelProAreasByKey.cotacoes.bg,
+    subsections: [],
+    quickActions: ["Quero montar uma cotacao", "Buscar cotacao por cliente", "Mostrar cotacoes em aberto"],
+    messages: [],
+    engineArea: "vendas",
+    engineSubArea: "propostas",
+    subtitle: "Conversa contextual de cotacoes da sua agencia.",
+    emptyLabel: "Ainda nao ha mensagens nesta conversa. Use o campo abaixo para falar com o COS sobre cotacoes.",
+    historyInputs: [{ area: "vendas", subArea: "propostas" }, { area: "vendas", subArea: "negociacoes" }, { area: "vendas" }],
+  },
+  contratos: {
+    label: travelProAreasByKey.contratos.label,
+    icon: travelProAreasByKey.contratos.icon,
+    color: travelProAreasByKey.contratos.color,
+    bg: travelProAreasByKey.contratos.bg,
+    subsections: [],
+    quickActions: ["Quero criar um contrato", "Buscar contrato por cliente", "Mostrar contratos pendentes"],
+    messages: [],
+    engineArea: "documentos",
+    engineSubArea: "contratos",
+    subtitle: "Conversa contextual de contratos da sua agencia.",
+    emptyLabel: "Ainda nao ha mensagens nesta conversa. Use o campo abaixo para falar com o COS sobre contratos.",
+    historyInputs: [{ area: "documentos", subArea: "contratos" }],
+  },
+  reservas: {
+    label: travelProAreasByKey.reservas.label,
+    icon: travelProAreasByKey.reservas.icon,
+    color: travelProAreasByKey.reservas.color,
+    bg: travelProAreasByKey.reservas.bg,
+    subsections: [],
+    quickActions: ["Quero registrar uma reserva", "Buscar reserva por cliente", "Mostrar reservas pendentes"],
+    messages: [],
+    engineArea: "operacoes",
+    engineSubArea: "ordens",
+    subtitle: "Conversa contextual de reservas da sua agencia.",
+    emptyLabel: "Ainda nao ha mensagens nesta conversa. Use o campo abaixo para falar com o COS sobre reservas.",
+    historyInputs: [{ area: "operacoes", subArea: "ordens" }, { area: "operacoes" }],
+  },
+  financeiro: {
+    label: travelProAreasByKey.financeiro.label,
+    icon: DollarSign,
+    color: travelProAreasByKey.financeiro.color,
+    bg: travelProAreasByKey.financeiro.bg,
+    subsections: [],
+    quickActions: ["Quero registrar um recebimento", "Quero registrar um pagamento", "Mostrar resumo financeiro"],
+    messages: [],
+    engineArea: "financeiro",
+    subtitle: "Conversa contextual do financeiro da sua agencia.",
+    emptyLabel: "Ainda nao ha mensagens nesta conversa. Use o campo abaixo para falar com o COS sobre financeiro.",
+    historyInputs: [{ area: "financeiro" }, { area: "financeiro", subArea: "ganhos" }, { area: "financeiro", subArea: "gastos" }],
+  },
+  documentos: {
+    label: travelProAreasByKey.documentos.label,
+    icon: FolderOpen,
+    color: travelProAreasByKey.documentos.color,
+    bg: travelProAreasByKey.documentos.bg,
+    subsections: [],
+    quickActions: ["Quero criar um documento", "Buscar documento por nome", "Mostrar documentos recentes"],
+    messages: [],
+    engineArea: "documentos",
+    engineSubArea: "arquivos",
+    subtitle: "Conversa contextual de documentos da sua agencia.",
+    emptyLabel: "Ainda nao ha mensagens nesta conversa. Use o campo abaixo para falar com o COS sobre documentos.",
+    historyInputs: [{ area: "documentos", subArea: "arquivos" }, { area: "documentos" }],
+  },
+  fornecedores: {
+    label: travelProAreasByKey.fornecedores.label,
+    icon: travelProAreasByKey.fornecedores.icon,
+    color: travelProAreasByKey.fornecedores.color,
+    bg: travelProAreasByKey.fornecedores.bg,
+    subsections: [],
+    quickActions: ["Quero adicionar um fornecedor", "Buscar fornecedor por nome", "Mostrar fornecedores ativos"],
+    messages: [],
+    engineArea: "equipe",
+    engineSubArea: "parceiros",
+    subtitle: "Conversa contextual de fornecedores da sua agencia.",
+    emptyLabel: "Ainda nao ha mensagens nesta conversa. Use o campo abaixo para falar com o COS sobre fornecedores.",
+    historyInputs: [{ area: "equipe", subArea: "parceiros" }, { area: "equipe" }],
+  },
+  agenda: {
+    label: travelProAreasByKey.agenda.label,
+    icon: travelProAreasByKey.agenda.icon,
+    color: travelProAreasByKey.agenda.color,
+    bg: travelProAreasByKey.agenda.bg,
+    subsections: [],
+    quickActions: ["Quero agendar um compromisso", "Buscar compromisso por data", "Mostrar proximo compromisso"],
+    messages: [],
+    engineArea: "reunioes",
+    subtitle: "Conversa contextual da agenda da sua agencia.",
+    emptyLabel: "Ainda nao ha mensagens nesta conversa. Use o campo abaixo para falar com o COS sobre agenda.",
+    historyInputs: [{ area: "reunioes" }],
+  },
+  relatorios: {
+    label: travelProAreasByKey.relatorios.label,
+    icon: travelProAreasByKey.relatorios.icon,
+    color: travelProAreasByKey.relatorios.color,
+    bg: travelProAreasByKey.relatorios.bg,
+    subsections: [],
+    quickActions: ["Quero gerar um relatorio", "Buscar relatorio por periodo", "Mostrar relatorios recentes"],
+    messages: [],
+    engineArea: "documentos",
+    engineSubArea: "relatorios",
+    subtitle: "Conversa contextual de relatorios da sua agencia.",
+    emptyLabel: "Ainda nao ha mensagens nesta conversa. Use o campo abaixo para falar com o COS sobre relatorios.",
+    historyInputs: [{ area: "documentos", subArea: "relatorios" }, { area: "documentos" }],
+  },
+  integracoes: {
+    label: travelProAreasByKey.integracoes.label,
+    icon: travelProAreasByKey.integracoes.icon,
+    color: travelProAreasByKey.integracoes.color,
+    bg: travelProAreasByKey.integracoes.bg,
+    subsections: [],
+    quickActions: ["Quero revisar integracoes", "Buscar falhas de integracao", "Mostrar conexoes ativas"],
+    messages: [],
+    engineArea: "sistema",
+    subtitle: "Conversa contextual de integracoes da sua agencia.",
+    emptyLabel: "Ainda nao ha mensagens nesta conversa. Use o campo abaixo para falar com o COS sobre integracoes.",
+    historyInputs: [{ area: "sistema" }],
+  },
+  configuracoes: {
+    label: travelProAreasByKey.configuracoes.label,
+    icon: Settings,
+    color: travelProAreasByKey.configuracoes.color,
+    bg: travelProAreasByKey.configuracoes.bg,
+    subsections: [],
+    quickActions: ["Quero revisar configuracoes", "Buscar preferencia da agencia", "Mostrar ajustes recentes"],
+    messages: [],
+    engineArea: "sistema",
+    subtitle: "Conversa contextual de configuracoes da sua agencia.",
+    emptyLabel: "Ainda nao ha mensagens nesta conversa. Use o campo abaixo para falar com o COS sobre configuracoes.",
+    historyInputs: [{ area: "sistema" }],
+  },
+  roteiros: {
+    label: travelProAreasByKey.roteiros.label,
+    icon: travelProAreasByKey.roteiros.icon,
+    color: travelProAreasByKey.roteiros.color,
+    bg: travelProAreasByKey.roteiros.bg,
+    subsections: [],
+    quickActions: ["Quero montar um roteiro", "Buscar roteiro por destino", "Mostrar roteiros em andamento"],
+    messages: [],
+    engineArea: "vendas",
+    subtitle: "Conversa contextual de roteiros da sua agencia.",
+    emptyLabel: "Ainda nao ha mensagens nesta conversa. Use o campo abaixo para falar com o COS sobre roteiros.",
+    historyInputs: [{ area: "vendas" }],
+  },
+  atendimentos: {
+    label: travelProAreasByKey.atendimentos.label,
+    icon: travelProAreasByKey.atendimentos.icon,
+    color: travelProAreasByKey.atendimentos.color,
+    bg: travelProAreasByKey.atendimentos.bg,
+    subsections: [],
+    quickActions: ["Quero abrir um atendimento", "Buscar atendimento por cliente", "Mostrar atendimentos pendentes"],
+    messages: [],
+    engineArea: "suporte",
+    subtitle: "Conversa contextual de atendimentos da sua agencia.",
+    emptyLabel: "Ainda nao ha mensagens nesta conversa. Use o campo abaixo para falar com o COS sobre atendimentos.",
+    historyInputs: [{ area: "suporte" }],
+  },
   cadastros: {
     label: travelProAreasByKey.clientes.label,
     icon: travelProAreasByKey.clientes.icon,
     color: travelProAreasByKey.clientes.color,
     bg: travelProAreasByKey.clientes.bg,
     subsections: ["Clientes", "Fornecedores", "Atendimentos"],
-    quickActions: ["Criar cliente", "Buscar cliente", "Ver clientes no Portal"],
+    quickActions: ["Quero cadastrar um cliente", "Buscar cliente pelo nome", "Mostrar clientes com pendencias"],
     messages: [],
   },
   operacoes: {
@@ -48,7 +246,7 @@ export const areaConfigs: Record<string, AreaConfig> = {
     color: travelProAreasByKey.viagens.color,
     bg: travelProAreasByKey.viagens.bg,
     subsections: ["Viagens", "Reservas", "Agenda"],
-    quickActions: ["Criar viagem", "Buscar viagem", "Ver viagens no Portal"],
+    quickActions: ["Quero criar uma viagem", "Buscar viagem por cliente", "Mostrar viagens com pendencias"],
     messages: [],
   },
   vendas: {
@@ -57,16 +255,7 @@ export const areaConfigs: Record<string, AreaConfig> = {
     color: travelProAreasByKey.cotacoes.color,
     bg: travelProAreasByKey.cotacoes.bg,
     subsections: ["Cotacoes", "Roteiros", "Atendimentos"],
-    quickActions: ["Criar cotacao", "Buscar cotacao", "Ver cotacoes no Portal"],
-    messages: [],
-  },
-  financeiro: {
-    label: travelProAreasByKey.financeiro.label,
-    icon: DollarSign,
-    color: travelProAreasByKey.financeiro.color,
-    bg: travelProAreasByKey.financeiro.bg,
-    subsections: ["Recebimentos", "Pagamentos", "Fluxo de caixa"],
-    quickActions: ["Registrar recebimento", "Registrar pagamento", "Ver financeiro no Portal"],
+    quickActions: ["Quero montar uma cotacao", "Buscar cotacao por cliente", "Mostrar cotacoes em aberto"],
     messages: [],
   },
   equipe: {
@@ -75,16 +264,7 @@ export const areaConfigs: Record<string, AreaConfig> = {
     color: travelProAreasByKey.fornecedores.color,
     bg: travelProAreasByKey.fornecedores.bg,
     subsections: ["Parceiros", "Operadoras", "Companhias", "Hoteis"],
-    quickActions: ["Adicionar fornecedor", "Buscar fornecedor", "Ver fornecedores no Portal"],
-    messages: [],
-  },
-  documentos: {
-    label: travelProAreasByKey.documentos.label,
-    icon: FolderOpen,
-    color: travelProAreasByKey.documentos.color,
-    bg: travelProAreasByKey.documentos.bg,
-    subsections: ["Contratos", "Documentos", "Relatorios"],
-    quickActions: ["Criar documento", "Buscar arquivo", "Ver documentos no Portal"],
+    quickActions: ["Quero adicionar um fornecedor", "Buscar fornecedor por nome", "Mostrar fornecedores ativos"],
     messages: [],
   },
   reunioes: {
@@ -93,7 +273,7 @@ export const areaConfigs: Record<string, AreaConfig> = {
     color: travelProAreasByKey.agenda.color,
     bg: travelProAreasByKey.agenda.bg,
     subsections: [],
-    quickActions: ["Criar atendimento", "Buscar agenda", "Ver agenda no Portal"],
+    quickActions: ["Quero agendar um compromisso", "Buscar compromisso por data", "Mostrar proximo compromisso"],
     messages: [],
   },
   sistema: {
@@ -102,7 +282,7 @@ export const areaConfigs: Record<string, AreaConfig> = {
     color: travelProAreasByKey.configuracoes.color,
     bg: travelProAreasByKey.configuracoes.bg,
     subsections: [],
-    quickActions: ["Ver configuracoes", "Abrir integracoes", "Acessar Portal"],
+    quickActions: ["Quero revisar configuracoes", "Buscar falhas de integracao", "Mostrar ajustes recentes"],
     messages: [],
   },
   suporte: {
@@ -111,7 +291,7 @@ export const areaConfigs: Record<string, AreaConfig> = {
     color: travelProAreasByKey.atendimentos.color,
     bg: travelProAreasByKey.atendimentos.bg,
     subsections: [],
-    quickActions: ["Iniciar atendimento"],
+    quickActions: ["Quero abrir um atendimento", "Buscar atendimento por cliente", "Mostrar atendimentos pendentes"],
     messages: [],
   },
 }
@@ -119,6 +299,66 @@ export const areaConfigs: Record<string, AreaConfig> = {
 export const appSessionHrefs = Object.fromEntries(
   Object.entries(travelProAreasByKey).map(([key, area]) => [key, area.route.app]),
 ) as Record<keyof typeof travelProAreasByKey, string>
+
+const conversationRouteMap: Record<string, keyof typeof travelProAreasByKey> = {
+  cadastros: "clientes",
+  "cadastros/clientes": "clientes",
+  operacoes: "viagens",
+  "operacoes/projetos": "viagens",
+  "operacoes/ordens": "reservas",
+  vendas: "roteiros",
+  "vendas/propostas": "cotacoes",
+  "vendas/negociacoes": "cotacoes",
+  financeiro: "financeiro",
+  "financeiro/ganhos": "financeiro",
+  "financeiro/gastos": "financeiro",
+  equipe: "fornecedores",
+  "equipe/parceiros": "fornecedores",
+  documentos: "documentos",
+  "documentos/arquivos": "documentos",
+  "documentos/contratos": "contratos",
+  "documentos/relatorios": "relatorios",
+  reunioes: "agenda",
+  sistema: "configuracoes",
+  suporte: "atendimentos",
+}
+
+export function resolveAreaConversationInput(area: string) {
+  const config = areaConfigs[area]
+
+  return {
+    area: config?.engineArea ?? area,
+    subArea: config?.engineSubArea,
+  }
+}
+
+export function resolveAreaHistoryInputs(area: string) {
+  const config = areaConfigs[area]
+
+  if (!config) {
+    return [{ area }]
+  }
+
+  return config.historyInputs ?? [resolveAreaConversationInput(area)]
+}
+
+export function resolveConversationSessionKey(conversationArea?: string | null) {
+  if (!conversationArea) {
+    return null
+  }
+
+  return conversationRouteMap[conversationArea.toLowerCase()] ?? null
+}
+
+export function resolveConversationSessionHref(conversationArea?: string | null) {
+  const sessionKey = resolveConversationSessionKey(conversationArea)
+
+  if (!sessionKey) {
+    return null
+  }
+
+  return appSessionHrefs[sessionKey]
+}
 
 export const sessionPageConfigs: Record<string, SessionPageConfig> = Object.fromEntries(
   Object.values(travelProAreasByKey).map((area) => [

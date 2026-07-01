@@ -1,7 +1,6 @@
 "use client"
 
 import { use, useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
 import {
   getOperationsConversationMessagesAction,
   runOperationsEngineAction,
@@ -9,35 +8,12 @@ import {
 import { AreaChat, type ChatMessage } from "@/components/app/area-chat"
 import { areaConfigs, slug } from "@/lib/area-configs"
 
-const portalDestinations: Record<string, string> = {
-  clientes: "/portal/cadastros",
-  leads: "/portal/cadastros",
-  produtos: "/portal/cadastros",
-  servicos: "/portal/cadastros",
-  projetos: "/portal/operacoes",
-  ordens: "/portal/operacoes",
-  processos: "/portal/operacoes",
-  propostas: "/portal/propostas",
-  negociacoes: "/portal/vendas",
-  funil: "/portal/vendas",
-  ganhos: "/portal/financeiro",
-  gastos: "/portal/financeiro",
-  "fluxo-de-caixa": "/portal/financeiro",
-  comercial: "/portal/equipe",
-  operacional: "/portal/equipe",
-  financeiro: "/portal/equipe",
-  administrativo: "/portal/equipe",
-  contratos: "/portal/contratos",
-  arquivos: "/portal/documentos",
-  relatorios: "/portal/relatorios",
-}
-
 function resolveChatCopy(area: string, subLabel: string) {
   if (area === "cadastros") {
     return {
       subtitle: `Conversa contextual de ${subLabel.toLowerCase()} do seu workspace.`,
       emptyLabel: `Ainda nao ha mensagens nesta conversa. Use o campo abaixo para falar com o COS sobre ${subLabel.toLowerCase()}.`,
-      quickActions: ["Criar cliente", "Buscar cliente", "Ver clientes no Portal"],
+      quickActions: ["Quero cadastrar um cliente", "Buscar cliente pelo nome", "Mostrar clientes com pendencias"],
     }
   }
 
@@ -45,7 +21,7 @@ function resolveChatCopy(area: string, subLabel: string) {
     return {
       subtitle: `Conversa operacional sobre ${subLabel.toLowerCase()}.`,
       emptyLabel: `Ainda nao ha mensagens nesta conversa. Use o campo abaixo para falar com o COS sobre ${subLabel.toLowerCase()}.`,
-      quickActions: ["Criar viagem", "Buscar viagem", "Ver viagens no Portal"],
+      quickActions: ["Quero criar uma viagem", "Buscar viagem por cliente", "Mostrar viagens com pendencias"],
     }
   }
 
@@ -53,7 +29,7 @@ function resolveChatCopy(area: string, subLabel: string) {
     return {
       subtitle: `Conversa de cotações sobre ${subLabel.toLowerCase()}.`,
       emptyLabel: `Ainda nao ha mensagens nesta conversa. Use o campo abaixo para falar com o COS sobre ${subLabel.toLowerCase()}.`,
-      quickActions: ["Criar cotação", "Buscar cotação", "Ver cotações no Portal"],
+      quickActions: ["Quero montar uma cotacao", "Buscar cotacao por cliente", "Mostrar cotacoes em aberto"],
     }
   }
 
@@ -61,7 +37,7 @@ function resolveChatCopy(area: string, subLabel: string) {
     return {
       subtitle: `Conversa financeira sobre ${subLabel.toLowerCase()}.`,
       emptyLabel: `Ainda nao ha mensagens nesta conversa. Use o campo abaixo para falar com o COS sobre ${subLabel.toLowerCase()}.`,
-      quickActions: ["Registrar recebimento", "Registrar pagamento", "Ver financeiro no Portal"],
+      quickActions: ["Quero registrar um recebimento", "Quero registrar um pagamento", "Mostrar resumo financeiro"],
     }
   }
 
@@ -69,7 +45,7 @@ function resolveChatCopy(area: string, subLabel: string) {
     return {
       subtitle: `Conversa contextual de fornecedores ${subLabel.toLowerCase()}.`,
       emptyLabel: `Ainda nao ha mensagens nesta conversa. Use o campo abaixo para falar com o COS sobre a equipe ${subLabel.toLowerCase()}.`,
-      quickActions: ["Adicionar fornecedor", "Buscar fornecedor", "Ver fornecedores no Portal"],
+      quickActions: ["Quero adicionar um fornecedor", "Buscar fornecedor por nome", "Mostrar fornecedores ativos"],
     }
   }
 
@@ -77,20 +53,19 @@ function resolveChatCopy(area: string, subLabel: string) {
     return {
       subtitle: `Conversa documental sobre ${subLabel.toLowerCase()}.`,
       emptyLabel: `Ainda nao ha mensagens nesta conversa. Use o campo abaixo para falar com o COS sobre ${subLabel.toLowerCase()}.`,
-      quickActions: ["Criar documento", "Buscar arquivo", "Ver documentos no Portal"],
+      quickActions: ["Quero criar um documento", "Buscar documento por nome", "Mostrar documentos recentes"],
     }
   }
 
   return {
     subtitle: `${subLabel} · COS Operacoes`,
     emptyLabel: `Ainda nao ha mensagens nesta conversa. Use o campo abaixo para falar com o COS sobre ${subLabel.toLowerCase()}.`,
-    quickActions: ["Abrir no Portal"],
+    quickActions: [`Quero falar sobre ${subLabel.toLowerCase()}`],
   }
 }
 
 export default function SubAreaPage({ params }: { params: Promise<{ area: string; sub: string }> }) {
   const { area, sub } = use(params)
-  const router = useRouter()
   const config = areaConfigs[area]
   const [messages, setMessages] = useState<ChatMessage[]>(config?.messages ?? [])
   const [isLoadingMessages, setIsLoadingMessages] = useState(true)
@@ -141,40 +116,7 @@ export default function SubAreaPage({ params }: { params: Promise<{ area: string
       bg={config?.bg}
       messages={messages}
       isLoadingHistory={isLoadingMessages}
-      quickActions={chatCopy.quickActions.map((label) => ({
-        label,
-        onClick: () => {
-          if (label.includes("Portal")) {
-            router.push(portalDestinations[sub] || "/portal")
-            return
-          }
-
-          if (label === "Criar cliente") {
-            router.push("/app/novo/cliente")
-            return
-          }
-
-          if (label === "Criar viagem") {
-            router.push("/app/novo/viagem")
-            return
-          }
-
-          if (label === "Criar cotação") {
-            router.push("/app/novo/cotacao")
-            return
-          }
-
-          if (label === "Registrar recebimento" || label === "Registrar pagamento") {
-            router.push("/app/novo/financeiro")
-            return
-          }
-
-          if (label === "Criar documento") {
-            router.push("/app/novo/documento")
-            return
-          }
-        },
-      }))}
+      quickActions={chatCopy.quickActions.map((label) => ({ label }))}
       onSendMessage={async (input, now) => {
         try {
           const result = await runOperationsEngineAction({

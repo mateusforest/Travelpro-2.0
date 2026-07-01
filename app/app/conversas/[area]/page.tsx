@@ -9,18 +9,15 @@ import {
   runOperationsEngineAction,
 } from "@/actions/operations-engine"
 import { AreaChat, type ChatMessage } from "@/components/app/area-chat"
-import { SessionEmptyPage } from "@/components/app/session-empty-page"
-import { SupportWorkspaceCenter } from "@/components/support/support-workspace-center"
-import { useSupport } from "@/components/support/support-context"
-import { areaConfigs, sessionPageConfigs, slug } from "@/lib/area-configs"
+import { areaConfigs, resolveAreaConversationInput, resolveAreaHistoryInputs, slug } from "@/lib/area-configs"
 
 export default function AreaPage({ params }: { params: Promise<{ area: string }> }) {
   const { area } = use(params)
   const router = useRouter()
-  const { openSupport } = useSupport()
   const config = areaConfigs[area]
-  const sessionPage = sessionPageConfigs[area]
-  const isChatArea = Boolean(config) && config.subsections.length === 0 && area !== "suporte"
+  const conversationInput = resolveAreaConversationInput(area)
+  const historyInputs = resolveAreaHistoryInputs(area)
+  const isChatArea = Boolean(config) && config.subsections.length === 0
   const [messages, setMessages] = useState<ChatMessage[]>(config?.messages ?? [])
   const [isLoadingMessages, setIsLoadingMessages] = useState(isChatArea)
 
@@ -33,14 +30,19 @@ export default function AreaPage({ params }: { params: Promise<{ area: string }>
 
     const loadMessages = async () => {
       setIsLoadingMessages(true)
-      const result = await getOperationsConversationMessagesAction({ area })
+      const results = await Promise.all(historyInputs.map((input) => getOperationsConversationMessagesAction(input)))
 
       if (!isMounted) {
         return
       }
 
-      if (result.success) {
-        setMessages(result.messages)
+      const loadedMessages = results.flatMap((result) => (result.success ? result.messages : []))
+
+      if (loadedMessages.length > 0) {
+        const uniqueMessages = Array.from(
+          new Map(loadedMessages.map((message) => [message.id ?? `${message.from}:${message.time}:${message.text}`, message])).values(),
+        )
+        setMessages(uniqueMessages)
       } else {
         setMessages(config.messages ?? [])
       }
@@ -54,10 +56,6 @@ export default function AreaPage({ params }: { params: Promise<{ area: string }>
       isMounted = false
     }
   }, [area, config, isChatArea])
-
-  if (sessionPage) {
-    return <SessionEmptyPage config={sessionPage} />
-  }
 
   if (!config) {
     return (
@@ -78,39 +76,24 @@ export default function AreaPage({ params }: { params: Promise<{ area: string }>
 
   const Icon = config.icon
 
-  if (area === "suporte") {
-    return <SupportWorkspaceCenter backHref="/app/conversas" compact />
-  }
-
   if (config.subsections.length === 0) {
     return (
       <AreaChat
         conversationKey={area}
         title={config.label}
-        subtitle={
-          area === "sistema"
-            ? "Configurações, integrações e logs do workspace."
-            : `Conversa contextual de ${config.label.toLowerCase()} do seu workspace.`
-        }
+        subtitle={config.subtitle ?? `Conversa contextual de ${config.label.toLowerCase()} do seu workspace.`}
         icon={Icon}
         color={config.color}
         bg={config.bg}
         messages={messages}
         isLoadingHistory={isLoadingMessages}
-        quickActions={config.quickActions.map((label) => ({
-          label,
-          onClick:
-            label === "Iniciar atendimento"
-              ? () => openSupport()
-              : label === "Acessar Portal"
-                ? () => router.push("/portal")
-                : undefined,
-        }))}
+        quickActions={config.quickActions.map((label) => ({ label }))}
         onSendMessage={async (input, now) => {
           try {
             const result = await runOperationsEngineAction({
               message: input,
-              area,
+              area: conversationInput.area,
+              subArea: conversationInput.subArea,
             })
             const responseText =
               typeof result.message === "string" && result.message.trim()
@@ -146,11 +129,7 @@ export default function AreaPage({ params }: { params: Promise<{ area: string }>
             }
           }
         }}
-        emptyLabel={
-          area === "sistema"
-            ? "Ainda nao ha mensagens nesta conversa. Use o campo abaixo para falar com o COS sobre sistema, alertas e logs."
-            : `Ainda nao ha mensagens nesta conversa. Use o campo abaixo para falar com o COS sobre ${config.label.toLowerCase()}.`
-        }
+        emptyLabel={config.emptyLabel ?? `Ainda nao ha mensagens nesta conversa. Use o campo abaixo para falar com o COS sobre ${config.label.toLowerCase()}.`}
       />
     )
   }
