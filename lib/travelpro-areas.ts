@@ -60,7 +60,7 @@ export type TravelProArea = {
     ctaDisabled?: boolean
     favorite?: boolean
     aliases?: string[]
-    manager?: "clients" | "financial" | "documents" | "trips"
+    manager?: "clients" | "financial" | "documents" | "trips" | "quotes" | "bookings"
     documentFilterType?: string
   }
 }
@@ -128,9 +128,9 @@ export const travelProAreas: TravelProArea[] = [
       description: "Acompanhe cotacoes, propostas e oportunidades da agencia.",
       emptyLabel: "Nenhuma cotacao registrada ainda.",
       ctaLabel: "Nova cotacao",
-      ctaDisabled: true,
       favorite: true,
       aliases: ["vendas"],
+      manager: "quotes",
     },
   },
   {
@@ -175,8 +175,8 @@ export const travelProAreas: TravelProArea[] = [
       description: "Acompanhe reservas, confirmacoes e proximos passos da operacao.",
       emptyLabel: "Nenhuma reserva registrada ainda.",
       ctaLabel: "Nova reserva",
-      ctaDisabled: true,
       aliases: ["conversas"],
+      manager: "bookings",
     },
   },
   {

@@ -4,8 +4,10 @@ import { use } from "react"
 import { PortalHeader } from "@/components/portal/portal-header"
 import { PortalModulePage } from "@/components/portal/portal-module-page"
 import { ClientsManager } from "@/components/operations/clients-manager"
+import { BookingsManager } from "@/components/operations/bookings-manager"
 import { DocumentsManager } from "@/components/operations/documents-manager"
 import { FinancialManager } from "@/components/operations/financial-manager"
+import { QuotesManager } from "@/components/operations/quotes-manager"
 import { TripsManager } from "@/components/operations/trips-manager"
 import { travelProPortalAreasBySlug } from "@/lib/travelpro-areas"
 
@@ -81,6 +83,32 @@ export default function PortalSectionPage({ params }: { params: Promise<{ slug: 
         <TripsManager
           title={area.label}
           description="Gerencie viagens reais da sua agencia e vincule ao cliente quando necessario."
+          variant="portal"
+        />
+      </div>
+    )
+  }
+
+  if (area?.portal.manager === "quotes") {
+    return (
+      <div className="flex h-full flex-1 flex-col">
+        <PortalHeader />
+        <QuotesManager
+          title={area.label}
+          description="Gerencie cotacoes reais da sua agencia e vincule clientes e viagens quando necessario."
+          variant="portal"
+        />
+      </div>
+    )
+  }
+
+  if (area?.portal.manager === "bookings") {
+    return (
+      <div className="flex h-full flex-1 flex-col">
+        <PortalHeader />
+        <BookingsManager
+          title={area.label}
+          description="Gerencie reservas reais da sua agencia e acompanhe clientes, viagens e fornecedores."
           variant="portal"
         />
       </div>
