@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react"
 import { CalendarDays, Loader2, Pencil, Plus, Search, Ticket } from "lucide-react"
 import { getBookingSuppliersAction, createBookingAction, getBookingsAction, updateBookingAction, type BookingStatus, type BookingType } from "@/actions/bookings"
 import { getClientsAction, type ClientStatus } from "@/actions/clients"
+import { getQuotesAction, type QuoteStatus } from "@/actions/quotes"
 import { getTripsAction, type TripStatus } from "@/actions/trips"
 import { useAuth } from "@/components/auth/auth-provider"
 
@@ -12,6 +13,7 @@ type BookingRecord = {
   tripId: string | null
   clientId: string | null
   supplierId: string | null
+  quoteId: string | null
   bookingType: BookingType
   referenceCode: string
   status: BookingStatus
@@ -41,10 +43,17 @@ type SupplierOption = {
   status: "active" | "inactive"
 }
 
+type QuoteOption = {
+  id: string
+  title: string
+  status: QuoteStatus
+}
+
 type BookingFormState = {
   clientId: string
   tripId: string
   supplierId: string
+  quoteId: string
   bookingType: BookingType
   referenceCode: string
   status: BookingStatus
@@ -59,6 +68,7 @@ const defaultForm: BookingFormState = {
   clientId: "",
   tripId: "",
   supplierId: "",
+  quoteId: "",
   bookingType: "other",
   referenceCode: "",
   status: "draft",
@@ -127,6 +137,7 @@ export function BookingsManager({
   const [clients, setClients] = useState<ClientOption[]>([])
   const [trips, setTrips] = useState<TripOption[]>([])
   const [suppliers, setSuppliers] = useState<SupplierOption[]>([])
+  const [quotes, setQuotes] = useState<QuoteOption[]>([])
   const [search, setSearch] = useState("")
   const [filter, setFilter] = useState<"all" | BookingStatus>("all")
   const [isLoading, setIsLoading] = useState(true)
@@ -140,16 +151,18 @@ export function BookingsManager({
   const clientsMap = useMemo(() => new Map(clients.map((client) => [client.id, client.name])), [clients])
   const tripsMap = useMemo(() => new Map(trips.map((trip) => [trip.id, trip.title])), [trips])
   const suppliersMap = useMemo(() => new Map(suppliers.map((supplier) => [supplier.id, supplier.name])), [suppliers])
+  const quotesMap = useMemo(() => new Map(quotes.map((quote) => [quote.id, quote.title])), [quotes])
 
   const loadBookings = async () => {
     setIsLoading(true)
     setError(null)
 
-    const [bookingsResult, clientsResult, tripsResult, suppliersResult] = await Promise.all([
+    const [bookingsResult, clientsResult, tripsResult, suppliersResult, quotesResult] = await Promise.all([
       getBookingsAction(),
       getClientsAction(),
       getTripsAction(),
       getBookingSuppliersAction(),
+      getQuotesAction(),
     ])
 
     if (bookingsResult.error) {
@@ -169,6 +182,7 @@ export function BookingsManager({
         .filter((trip) => trip.status !== "archived"),
     )
     setSuppliers((suppliersResult.suppliers ?? []) as SupplierOption[])
+    setQuotes(((quotesResult.quotes ?? []) as QuoteOption[]).filter((quote) => quote.status !== "archived"))
     setIsLoading(false)
   }
 
@@ -183,11 +197,12 @@ export function BookingsManager({
       const clientName = booking.clientId ? clientsMap.get(booking.clientId) ?? "" : ""
       const tripName = booking.tripId ? tripsMap.get(booking.tripId) ?? "" : ""
       const supplierName = booking.supplierId ? suppliersMap.get(booking.supplierId) ?? "" : ""
+      const quoteTitle = booking.quoteId ? quotesMap.get(booking.quoteId) ?? "" : ""
       const matchesSearch =
-        !term || [booking.referenceCode, booking.notes, clientName, tripName, supplierName].join(" ").toLowerCase().includes(term)
+        !term || [booking.referenceCode, booking.notes, clientName, tripName, supplierName, quoteTitle].join(" ").toLowerCase().includes(term)
       return matchesFilter && matchesSearch
     })
-  }, [bookings, clientsMap, filter, search, suppliersMap, tripsMap])
+  }, [bookings, clientsMap, filter, quotesMap, search, suppliersMap, tripsMap])
 
   const startCreate = () => {
     setEditingBookingId(null)
@@ -203,6 +218,7 @@ export function BookingsManager({
       clientId: booking.clientId ?? "",
       tripId: booking.tripId ?? "",
       supplierId: booking.supplierId ?? "",
+      quoteId: booking.quoteId ?? "",
       bookingType: booking.bookingType,
       referenceCode: booking.referenceCode,
       status: booking.status,
@@ -226,6 +242,7 @@ export function BookingsManager({
       clientId: form.clientId || undefined,
       tripId: form.tripId || undefined,
       supplierId: form.supplierId || undefined,
+      quoteId: form.quoteId || undefined,
       bookingType: form.bookingType,
       referenceCode: form.referenceCode,
       status: form.status,
@@ -281,7 +298,7 @@ export function BookingsManager({
                 type="text"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder="Buscar por referencia, cliente, viagem ou fornecedor..."
+                placeholder="Buscar por referencia, cliente, viagem, fornecedor ou cotacao..."
                 className="w-full rounded-xl bg-gray-50 px-10 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-200"
               />
             </div>
@@ -325,6 +342,7 @@ export function BookingsManager({
                     <th className="px-4 py-3">Cliente</th>
                     <th className="px-4 py-3">Viagem</th>
                     <th className="px-4 py-3">Fornecedor</th>
+                    <th className="px-4 py-3">Cotacao</th>
                     <th className="px-4 py-3">Periodo</th>
                     <th className="px-4 py-3">Valor</th>
                     <th className="px-4 py-3">Status</th>
@@ -339,6 +357,7 @@ export function BookingsManager({
                       <td className="px-4 py-3.5 text-sm text-gray-500">{booking.clientId ? clientsMap.get(booking.clientId) ?? "-" : "-"}</td>
                       <td className="px-4 py-3.5 text-sm text-gray-500">{booking.tripId ? tripsMap.get(booking.tripId) ?? "-" : "-"}</td>
                       <td className="px-4 py-3.5 text-sm text-gray-500">{booking.supplierId ? suppliersMap.get(booking.supplierId) ?? "-" : "-"}</td>
+                      <td className="px-4 py-3.5 text-sm text-gray-500">{booking.quoteId ? quotesMap.get(booking.quoteId) ?? "-" : "-"}</td>
                       <td className="px-4 py-3.5 text-sm text-gray-500">
                         {booking.startDate || booking.endDate ? `${formatDateLabel(booking.startDate)} - ${formatDateLabel(booking.endDate)}` : "-"}
                       </td>
@@ -432,6 +451,23 @@ export function BookingsManager({
                     ))}
                   </select>
                 </FormField>
+                <FormField label="Cotacao">
+                  <select
+                    value={form.quoteId}
+                    onChange={(event) => setForm((prev) => ({ ...prev, quoteId: event.target.value }))}
+                    className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:border-gray-300 focus:outline-none"
+                  >
+                    <option value="">Sem cotacao vinculada</option>
+                    {quotes.map((quote) => (
+                      <option key={quote.id} value={quote.id}>
+                        {quote.title}
+                      </option>
+                    ))}
+                  </select>
+                </FormField>
+              </div>
+
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                 <FormField label="Tipo de reserva">
                   <select
                     value={form.bookingType}

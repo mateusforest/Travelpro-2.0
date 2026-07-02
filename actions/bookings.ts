@@ -12,6 +12,7 @@ type BookingRow = {
   trip_id: string | null
   client_id: string | null
   supplier_id: string | null
+  quote_id: string | null
   booking_type: BookingType | string | null
   reference_code: string | null
   status: BookingStatus | string | null
@@ -101,7 +102,7 @@ function parseAmount(amount: string) {
 async function resolveBookingForActor(actor: BookingActor, bookingId: string) {
   const { data, error } = await actor.adminClient
     .from("bookings")
-    .select("id, workspace_id, trip_id, client_id, supplier_id, booking_type, reference_code, status, start_date, end_date, amount, currency, notes, created_by, created_at")
+    .select("id, workspace_id, trip_id, client_id, supplier_id, quote_id, booking_type, reference_code, status, start_date, end_date, amount, currency, notes, created_by, created_at")
     .eq("id", bookingId)
     .maybeSingle<BookingRow>()
 
@@ -118,7 +119,7 @@ async function resolveBookingForActor(actor: BookingActor, bookingId: string) {
 
 async function validateWorkspaceLink(
   actor: BookingActor,
-  table: "clients" | "trips" | "suppliers",
+  table: "clients" | "trips" | "suppliers" | "quotes",
   recordId?: string,
 ) {
   const normalizedId = recordId?.trim()
@@ -138,7 +139,8 @@ async function validateWorkspaceLink(
   }
 
   if (!data || data.workspace_id !== actor.workspaceId) {
-    const label = table === "clients" ? "Cliente" : table === "trips" ? "Viagem" : "Fornecedor"
+    const label =
+      table === "clients" ? "Cliente" : table === "trips" ? "Viagem" : table === "suppliers" ? "Fornecedor" : "Cotacao"
     return { error: `${label} nao encontrado neste workspace.` }
   }
 
@@ -154,7 +156,7 @@ export async function getBookingsAction() {
 
   const { data, error } = await actor.adminClient
     .from("bookings")
-    .select("id, workspace_id, trip_id, client_id, supplier_id, booking_type, reference_code, status, start_date, end_date, amount, currency, notes, created_by, created_at")
+    .select("id, workspace_id, trip_id, client_id, supplier_id, quote_id, booking_type, reference_code, status, start_date, end_date, amount, currency, notes, created_by, created_at")
     .eq("workspace_id", actor.workspaceId)
     .order("created_at", { ascending: false })
     .returns<BookingRow[]>()
@@ -170,6 +172,7 @@ export async function getBookingsAction() {
       tripId: booking.trip_id,
       clientId: booking.client_id,
       supplierId: booking.supplier_id,
+      quoteId: booking.quote_id,
       bookingType: normalizeBookingType(booking.booking_type ?? "other"),
       referenceCode: booking.reference_code || "",
       status: normalizeBookingStatus(booking.status ?? "draft"),
@@ -217,6 +220,7 @@ export async function createBookingAction({
   clientId,
   tripId,
   supplierId,
+  quoteId,
   bookingType,
   referenceCode,
   status,
@@ -229,6 +233,7 @@ export async function createBookingAction({
   clientId?: string
   tripId?: string
   supplierId?: string
+  quoteId?: string
   bookingType?: string
   referenceCode: string
   status?: string
@@ -268,6 +273,11 @@ export async function createBookingAction({
     return { error: resolvedSupplier.error }
   }
 
+  const resolvedQuote = await validateWorkspaceLink(actor, "quotes", quoteId)
+  if ("error" in resolvedQuote) {
+    return { error: resolvedQuote.error }
+  }
+
   const { data, error } = await actor.adminClient
     .from("bookings")
     .insert({
@@ -275,6 +285,7 @@ export async function createBookingAction({
       client_id: resolvedClient.id,
       trip_id: resolvedTrip.id,
       supplier_id: resolvedSupplier.id,
+      quote_id: resolvedQuote.id,
       booking_type: normalizeBookingType(bookingType ?? "other"),
       reference_code: referenceCode.trim() || null,
       status: normalizeBookingStatus(status ?? "draft"),
@@ -300,6 +311,7 @@ export async function updateBookingAction({
   clientId,
   tripId,
   supplierId,
+  quoteId,
   bookingType,
   referenceCode,
   status,
@@ -313,6 +325,7 @@ export async function updateBookingAction({
   clientId?: string
   tripId?: string
   supplierId?: string
+  quoteId?: string
   bookingType?: string
   referenceCode: string
   status: string
@@ -357,12 +370,18 @@ export async function updateBookingAction({
     return { error: resolvedSupplier.error }
   }
 
+  const resolvedQuote = await validateWorkspaceLink(actor, "quotes", quoteId)
+  if ("error" in resolvedQuote) {
+    return { error: resolvedQuote.error }
+  }
+
   const { error } = await actor.adminClient
     .from("bookings")
     .update({
       client_id: resolvedClient.id,
       trip_id: resolvedTrip.id,
       supplier_id: resolvedSupplier.id,
+      quote_id: resolvedQuote.id,
       booking_type: normalizeBookingType(bookingType ?? "other"),
       reference_code: referenceCode.trim() || null,
       status: normalizeBookingStatus(status),
