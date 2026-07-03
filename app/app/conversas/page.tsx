@@ -14,6 +14,7 @@ import {
 } from "lucide-react"
 import { useOperationsDashboard } from "@/components/app/operations-dashboard-store"
 import { useAppInteractions } from "@/components/app/app-interactions"
+import { ExpansionLaunchItem } from "@/components/expansions/expansion-launch-item"
 import { expansionItems } from "@/lib/expansion-configs"
 import { travelProAreas } from "@/lib/travelpro-areas"
 
@@ -151,31 +152,34 @@ export default function ConversasPage() {
           <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">Expansoes</span>
         </div>
         {expansionItems.map((item, index) => (
-          <motion.button
+          <motion.div
             key={item.label}
             initial={{ x: -10, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ delay: 0.1 + index * 0.03 }}
-            onClick={() => router.push(item.href)}
-            className="flex w-full items-center gap-3 rounded-xl border border-gray-100 bg-white p-3 text-left transition-colors hover:bg-gray-50 active:bg-gray-100"
           >
-            <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: item.bg }}>
-              {item.imageSrc ? (
-                <div className="relative h-6 w-6 overflow-hidden rounded-lg">
-                  <Image src={item.imageSrc} alt={item.label} fill className="object-contain" sizes="24px" />
-                </div>
-              ) : item.icon === "headphones" ? (
-                <Headphones className="h-5 w-5" style={{ color: item.color }} />
-              ) : (
-                <Shield className="h-5 w-5" style={{ color: item.color }} />
-              )}
-            </div>
-            <div className="min-w-0 flex-1">
-              <span className="block text-sm font-semibold text-[#0a0a0a]">{item.label}</span>
-              <span className="block text-xs text-gray-500">{item.description}</span>
-            </div>
-            <ChevronRight className="h-4 w-4 flex-shrink-0 text-gray-300" />
-          </motion.button>
+            <ExpansionLaunchItem
+              item={item}
+              className="flex w-full items-center gap-3 rounded-xl border border-gray-100 bg-white p-3 text-left transition-colors hover:bg-gray-50 active:bg-gray-100"
+            >
+              <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: item.bg }}>
+                {item.imageSrc ? (
+                  <div className="relative h-6 w-6 overflow-hidden rounded-lg">
+                    <Image src={item.imageSrc} alt={item.label} fill className="object-contain" sizes="24px" />
+                  </div>
+                ) : item.icon === "headphones" ? (
+                  <Headphones className="h-5 w-5" style={{ color: item.color }} />
+                ) : (
+                  <Shield className="h-5 w-5" style={{ color: item.color }} />
+                )}
+              </div>
+              <div className="min-w-0 flex-1">
+                <span className="block text-sm font-semibold text-[#0a0a0a]">{item.label}</span>
+                <span className="block text-xs text-gray-500">{item.description}</span>
+              </div>
+              <ChevronRight className="h-4 w-4 flex-shrink-0 text-gray-300" />
+            </ExpansionLaunchItem>
+          </motion.div>
         ))}
       </div>
     </div>

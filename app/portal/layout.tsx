@@ -16,6 +16,7 @@ import {
 } from "lucide-react"
 import { ProtectedRouteGuard } from "@/components/auth/auth-route-guard"
 import { useAuth } from "@/components/auth/auth-provider"
+import { ExpansionLaunchItem } from "@/components/expansions/expansion-launch-item"
 import { PortalUIProvider, usePortalUI } from "@/components/portal/portal-ui-context"
 import { PortalInteractionsProvider, usePortalInteractions } from "@/components/portal/portal-interactions"
 import { Toaster } from "@/components/ui/toaster"
@@ -127,9 +128,9 @@ function PortalShell({ children }: { children: React.ReactNode }) {
               <ul className="space-y-1">
                 {expansionItems.map((item) => (
                   <li key={item.slug}>
-                    <Link
-                      href={item.href}
-                      onClick={() => setMobileMenuOpen(false)}
+                    <ExpansionLaunchItem
+                      item={item}
+                      onNavigate={() => setMobileMenuOpen(false)}
                       className="flex items-center gap-3 px-3 py-2 rounded-xl text-muted-foreground hover:bg-white/60 hover:text-foreground transition-all"
                     >
                       <span className="flex h-4 w-4 flex-shrink-0 items-center justify-center">
@@ -145,7 +146,7 @@ function PortalShell({ children }: { children: React.ReactNode }) {
                       </span>
                       <span className="flex-1 text-sm">{item.label}</span>
                       <span className="text-xs text-muted-foreground">{item.description}</span>
-                    </Link>
+                    </ExpansionLaunchItem>
                   </li>
                 ))}
               </ul>

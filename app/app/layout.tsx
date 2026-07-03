@@ -45,6 +45,7 @@ import { OperationsDashboardProvider, useOperationsDashboard } from "@/component
 import { AppInteractionsProvider } from "@/components/app/app-interactions"
 import { useAuth } from "@/components/auth/auth-provider"
 import { ProtectedRouteGuard } from "@/components/auth/auth-route-guard"
+import { ExpansionLaunchItem } from "@/components/expansions/expansion-launch-item"
 import { SupportProvider, useSupport } from "@/components/support/support-context"
 import { Toaster } from "@/components/ui/toaster"
 import { expansionItems } from "@/lib/expansion-configs"
@@ -492,7 +493,7 @@ function DesktopSidebar() {
           <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">Expansões</span>
         </div>
         {expansionItems.map((item) => (
-          <Link key={item.label} href={item.href} className="flex items-center gap-3 px-2.5 py-2 rounded-lg hover:bg-gray-50 transition-colors group">
+          <ExpansionLaunchItem key={item.label} item={item} className="flex items-center gap-3 px-2.5 py-2 rounded-lg hover:bg-gray-50 transition-colors group">
             <span className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: item.bg }}>
               {item.imageSrc ? (
                 <div className="relative h-5 w-5 overflow-hidden rounded-md">
@@ -508,7 +509,7 @@ function DesktopSidebar() {
               <span className="block text-sm font-medium text-[#0a0a0a] truncate">{item.label}</span>
               <span className="block text-xs text-gray-400">{item.description}</span>
             </span>
-          </Link>
+          </ExpansionLaunchItem>
         ))}
       </div>
 
