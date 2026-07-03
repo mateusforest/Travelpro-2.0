@@ -530,6 +530,82 @@ function DesktopSidebar() {
   )
 }
 
+function DesktopChatSidebar() {
+  const pathname = usePathname()
+  const { setIsOpen, setLevel } = useFAB()
+  const { summary } = useOperationsDashboard()
+
+  const navItems = [
+    { icon: Home, label: "Inicio", href: "/app", exact: true },
+    { icon: MessageSquare, label: "Conversas", href: "/app/conversas" },
+    { icon: Clock, label: "Historico", href: "/app/historico" },
+    { icon: User, label: "Voce", href: "/app/voce" },
+  ]
+
+  const conversationsBadgeCount =
+    (summary?.clientsCount ?? 0) +
+    (summary?.operationsCount ?? 0) +
+    (summary?.financial.entriesCount ?? 0) +
+    (summary?.documentsCount ?? 0) +
+    (summary?.meetingsCount ?? 0)
+
+  const isActive = (href: string, exact?: boolean) => (exact ? pathname === href : pathname.startsWith(href))
+
+  return (
+    <aside className="hidden lg:flex lg:flex-col w-[220px] flex-shrink-0 border-r border-gray-200 bg-white h-screen">
+      <div className="px-4 h-16 flex items-center justify-between flex-shrink-0 border-b border-gray-100">
+        <Image
+          src="/travelpro-logo-horizontal.png"
+          alt="TravelPro"
+          width={128}
+          height={34}
+          priority
+          className="h-7 w-auto object-contain"
+        />
+        <HeaderActions variant="desktop" />
+      </div>
+
+      <div className="p-3 flex-shrink-0">
+        <button
+          onClick={() => {
+            setLevel("main")
+            setIsOpen(true)
+          }}
+          aria-label="Nova conversa"
+          className="tp-gradient-btn flex h-10 w-10 items-center justify-center rounded-xl transition-colors"
+        >
+          <Plus className="h-4 w-4" />
+        </button>
+      </div>
+
+      <div className="flex-1 overflow-y-auto px-2 pb-3">
+        <div className="space-y-1">
+          {navItems.map((item) => {
+            const active = isActive(item.href, item.exact)
+            const badgeCount = item.label === "Conversas" ? conversationsBadgeCount : 0
+
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors ${active ? "bg-gray-100 text-[#0a0a0a]" : "text-gray-500 hover:bg-gray-50"}`}
+              >
+                <item.icon className="h-4 w-4 flex-shrink-0" />
+                <span className="flex-1 text-sm font-medium">{item.label}</span>
+                {badgeCount > 0 && (
+                  <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[#0a0a0a] px-1.5 text-[11px] text-white">
+                    {badgeCount}
+                  </span>
+                )}
+              </Link>
+            )
+          })}
+        </div>
+      </div>
+    </aside>
+  )
+}
+
 function DesktopContextPanel() {
   const [collapsed, setCollapsed] = useState(false)
   const { summary, isLoading } = useOperationsDashboard()
@@ -676,7 +752,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <FABContext.Provider value={{ isOpen, setIsOpen, level, setLevel }}>
       <div className="min-h-screen bg-[#f5f5f3] lg:flex lg:h-screen lg:overflow-hidden">
-        <DesktopSidebar />
+        <DesktopChatSidebar />
         <div className="flex flex-col flex-1 min-w-0 lg:h-screen lg:overflow-hidden">
           <GlobalHeader />
           <main className="pb-20 lg:pb-0 lg:flex-1 lg:overflow-y-auto">{children}</main>
