@@ -103,7 +103,7 @@ export async function signupAction({
   }
 
   return {
-    redirectTo: productType === "connect" ? "/connect" : "/app",
+    redirectTo: "/app",
   }
 }
 
@@ -123,7 +123,7 @@ export async function ensureWorkspaceForCurrentUserAction({
 
   if (access.workspace?.id && access.membershipRole) {
     return {
-      redirectTo: resolvePostAuthPath(access) ?? (access.workspace.type === "connect" ? "/connect" : "/app"),
+      redirectTo: resolvePostAuthPath(access) ?? "/app",
     }
   }
 

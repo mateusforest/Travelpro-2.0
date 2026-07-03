@@ -24,7 +24,7 @@ create table if not exists public.profiles (
 create table if not exists public.workspaces (
   id uuid primary key default gen_random_uuid(),
   name text,
-  type text not null default 'operations' check (type in ('operations', 'connect')),
+  type text not null default 'operations' check (type in ('operations')),
   owner_id uuid references auth.users (id) on delete set null,
   primary_system_name text,
   primary_system_url text,

@@ -68,25 +68,25 @@ export type IntakeQuickActionDefinition = {
   actionType: OperationalActionType
   intakeType?: OperationsIntakeType | null
   documentType?: OperationsDocumentType | null
-  status: "executable" | "unsupported_connected_action"
+  status: "executable" | "unsupported_external_action"
   notes?: string
 }
 
 export const intakeQuickActionRegistry: Record<IntakeQuickActionKey, IntakeQuickActionDefinition> = {
   cliente: { label: "Cliente", entityType: "client", actionType: "create", status: "executable" },
   operacao: { label: "Operacao", entityType: "project", actionType: "create", status: "executable" },
-  contrato: { label: "Contrato", entityType: "contract", actionType: "generate", intakeType: "document", documentType: "contract", status: "unsupported_connected_action" },
+  contrato: { label: "Contrato", entityType: "contract", actionType: "generate", intakeType: "document", documentType: "contract", status: "unsupported_external_action" },
   financeiro: { label: "Financeiro", entityType: "cash_flow", actionType: "register", status: "executable" },
   reuniao: { label: "Reuniao", entityType: "meeting", actionType: "create", status: "executable" },
-  equipe: { label: "Equipe", entityType: "member", actionType: "create", status: "unsupported_connected_action" },
-  arquivo: { label: "Arquivo", entityType: "file", actionType: "create", intakeType: "file", documentType: "unknown_document", status: "unsupported_connected_action" },
-  foto: { label: "Foto", entityType: "file", actionType: "create", intakeType: "photo", documentType: "image_with_data", status: "unsupported_connected_action" },
+  equipe: { label: "Equipe", entityType: "member", actionType: "create", status: "unsupported_external_action" },
+  arquivo: { label: "Arquivo", entityType: "file", actionType: "create", intakeType: "file", documentType: "unknown_document", status: "unsupported_external_action" },
+  foto: { label: "Foto", entityType: "file", actionType: "create", intakeType: "photo", documentType: "image_with_data", status: "unsupported_external_action" },
   documento: { label: "Documento", entityType: "document", actionType: "generate", intakeType: "document", documentType: "unknown_document", status: "executable" },
-  tarefa: { label: "Tarefa", entityType: "task", actionType: "create", status: "unsupported_connected_action", notes: "acao conectada pendente" },
-  relatorio: { label: "Relatorio", entityType: "report", actionType: "generate", intakeType: "document", documentType: "report", status: "unsupported_connected_action" },
-  formulario: { label: "Formulario", entityType: "form", actionType: "generate", intakeType: "document", documentType: "form", status: "unsupported_connected_action", notes: "acao conectada pendente" },
-  marketing: { label: "Marketing", entityType: "marketing_action", actionType: "create", status: "unsupported_connected_action", notes: "acao conectada pendente" },
-  integracao: { label: "Integracao", entityType: "integration", actionType: "open", status: "unsupported_connected_action" },
+  tarefa: { label: "Tarefa", entityType: "task", actionType: "create", status: "unsupported_external_action", notes: "acao externa pendente" },
+  relatorio: { label: "Relatorio", entityType: "report", actionType: "generate", intakeType: "document", documentType: "report", status: "unsupported_external_action" },
+  formulario: { label: "Formulario", entityType: "form", actionType: "generate", intakeType: "document", documentType: "form", status: "unsupported_external_action", notes: "acao externa pendente" },
+  marketing: { label: "Marketing", entityType: "marketing_action", actionType: "create", status: "unsupported_external_action", notes: "acao externa pendente" },
+  integracao: { label: "Integracao", entityType: "integration", actionType: "open", status: "unsupported_external_action" },
   suporte: { label: "Suporte", entityType: "ticket", actionType: "open", status: "executable" },
 }
 
@@ -160,3 +160,4 @@ export function findQuickActionByLabel(label: string) {
 
   return Object.values(intakeQuickActionRegistry).find((entry) => normalizeIntakeText(entry.label) === normalized) ?? null
 }
+

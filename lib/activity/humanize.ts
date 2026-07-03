@@ -24,15 +24,6 @@ const activityLabels: Record<string, string> = {
   meeting_created: "Reuniao criada",
   meeting_updated: "Reuniao atualizada",
   meeting_archived: "Reuniao arquivada",
-  connect_source_created: "Fonte conectada",
-  connect_source_updated: "Fonte atualizada",
-  connect_source_deleted: "Fonte removida",
-  connect_section_created: "Sessao criada",
-  connect_section_updated: "Sessao atualizada",
-  connect_section_deleted: "Sessao removida",
-  connect_action_created: "Acao criada",
-  connect_action_updated: "Acao atualizada",
-  connect_action_deleted: "Acao removida",
 }
 
 function detectFinancialLabel(description: string | null | undefined, labels: { income: string; expense: string; fallback: string }) {

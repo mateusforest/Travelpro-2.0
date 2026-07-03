@@ -14,7 +14,7 @@ type MasterActor = {
 type WorkspaceRow = {
   id: string
   name: string | null
-  type: "operations" | "connect" | null
+  type: "operations" | null
   owner_id: string | null
   created_at: string | null
 }
@@ -102,7 +102,6 @@ function toCurrencyBRL(value: number) {
 
 function normalizeWorkspaceType(value: string | null | undefined) {
   if (value === "operations") return "Operacoes"
-  if (value === "connect") return "Connect"
   return "-"
 }
 
@@ -110,15 +109,6 @@ function humanizeMasterActivityAction(action: string | null | undefined) {
   const normalized = (action || "activity_logged").trim().toLowerCase()
 
   const labels: Record<string, string> = {
-    connect_action_created: "Ação criada",
-    connect_action_updated: "Ação atualizada",
-    connect_action_deleted: "Ação removida",
-    connect_section_created: "Sessão criada",
-    connect_section_updated: "Sessão atualizada",
-    connect_section_deleted: "Sessão removida",
-    connect_source_created: "Fonte conectada",
-    connect_source_updated: "Fonte atualizada",
-    connect_source_deleted: "Fonte removida",
     financial_entry_created: "Lançamento financeiro criado",
     financial_entry_updated: "Lançamento financeiro atualizado",
     financial_entry_deleted: "Lançamento financeiro removido",
@@ -178,14 +168,6 @@ function classifyMasterActivity({
     return "Assinatura"
   }
 
-  if (normalizedAction.startsWith("connect_source_")) {
-    return "Integração"
-  }
-
-  if (normalizedAction.startsWith("connect_section_")) {
-    return "Sessão"
-  }
-
   if (combined.includes("workspace")) {
     return "Workspace"
   }
@@ -241,7 +223,6 @@ export async function getMasterDashboardStatsAction() {
     profilesResult,
     openTicketsResult,
     aiUsageResult,
-    connectSourcesResult,
     invoicesResult,
   ] = await Promise.all([
     actor.adminClient.from("workspaces").select("id", { count: "exact", head: true }),
@@ -251,14 +232,12 @@ export async function getMasterDashboardStatsAction() {
       .select("id", { count: "exact", head: true })
       .in("status", ["open", "in_progress", "waiting"]),
     actor.adminClient.from("ai_usage_logs").select("total_tokens"),
-    actor.adminClient.from("connect_sources").select("id", { count: "exact", head: true }).eq("status", "connected"),
     actor.adminClient.from("invoices").select("status, paid_at, created_at, amount, amount_paid, total"),
   ])
 
   const workspaceCount = workspacesResult.count ?? 0
   const usersCount = profilesResult.count ?? 0
   const openTicketsCount = openTicketsResult.count ?? 0
-  const connectedSourcesCount = connectSourcesResult.count ?? 0
 
   const monthlyInvoices = (Array.isArray(invoicesResult.data) ? invoicesResult.data : []).filter((invoice) => {
     const status = typeof invoice.status === "string" ? invoice.status.toLowerCase() : ""
@@ -298,7 +277,7 @@ export async function getMasterDashboardStatsAction() {
       monthlyRevenueLabel: toCurrencyBRL(monthlyRevenue),
       aiUsageTokens: totalTokens,
       openSupportTickets: openTicketsCount,
-      activeIntegrations: connectedSourcesCount,
+      activeIntegrations: 0,
     },
   }
 }
@@ -348,7 +327,6 @@ export async function getMasterOverviewAction() {
     profilesResult,
     openTicketsResult,
     aiUsageResult,
-    connectSourcesResult,
     invoicesResult,
     logsResult,
     membersResult,
@@ -360,7 +338,6 @@ export async function getMasterOverviewAction() {
       .select("id", { count: "exact", head: true })
       .in("status", ["open", "in_progress", "waiting"]),
     actor.adminClient.from("ai_usage_logs").select("total_tokens"),
-    actor.adminClient.from("connect_sources").select("id").eq("status", "connected"),
     actor.adminClient.from("invoices").select("status, paid_at, created_at, amount, amount_paid, total"),
     loadMasterActivityRows(actor, 8),
     actor.adminClient.from("workspace_members").select("workspace_id, user_id, role").returns<WorkspaceMemberRow[]>(),
@@ -370,8 +347,7 @@ export async function getMasterOverviewAction() {
     workspacesResult.error ||
     profilesResult.error ||
     openTicketsResult.error ||
-    aiUsageResult.error ||
-    connectSourcesResult.error ||
+    aiUsageResult.error  ||
     invoicesResult.error ||
     logsResult.error ||
     membersResult.error
@@ -441,7 +417,7 @@ export async function getMasterOverviewAction() {
         monthlyRevenueLabel: toCurrencyBRL(monthlyRevenue),
         aiUsageTokens: totalTokens,
         openSupportTickets: openTicketsResult.count ?? 0,
-        activeIntegrations: Array.isArray(connectSourcesResult.data) ? connectSourcesResult.data.length : 0,
+        activeIntegrations: 0,
       } satisfies MasterOverviewStats,
       activities: mapMasterActivities({
         logs,
@@ -695,3 +671,4 @@ export async function getMasterAuditLogsAction() {
     }),
   }
 }
+

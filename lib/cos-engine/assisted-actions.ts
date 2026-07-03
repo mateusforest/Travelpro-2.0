@@ -11,7 +11,7 @@ export type AssistedActionSuggestion = {
   missingFields: string[]
   confidence: number
   requiresConfirmation: true
-  status: "executable" | "unsupported_connected_action" | "blocked"
+  status: "executable" | "unsupported_external_action" | "blocked"
 }
 
 export type ExternalSendAnalysis = {
@@ -101,7 +101,7 @@ export function buildAssistedActions(input: {
           missingFields: input.entities.title || input.entities.clientName ? [] : ["title"],
           confidence: input.confidence,
           requiresConfirmation: true,
-          status: "unsupported_connected_action",
+          status: "unsupported_external_action",
         } satisfies AssistedActionSuggestion
       }
 
@@ -114,7 +114,7 @@ export function buildAssistedActions(input: {
           missingFields: input.entities.title ? [] : ["title"],
           confidence: input.confidence,
           requiresConfirmation: true,
-          status: "unsupported_connected_action",
+          status: "unsupported_external_action",
         } satisfies AssistedActionSuggestion
       }
 
@@ -127,7 +127,7 @@ export function buildAssistedActions(input: {
           missingFields: input.entities.title ? [] : ["title"],
           confidence: input.confidence,
           requiresConfirmation: true,
-          status: entityType === "document" && input.intakeType !== "photo" ? "executable" : "unsupported_connected_action",
+          status: entityType === "document" && input.intakeType !== "photo" ? "executable" : "unsupported_external_action",
         } satisfies AssistedActionSuggestion
       }
 
@@ -140,7 +140,7 @@ export function buildAssistedActions(input: {
           missingFields: input.entities.name ? [] : ["name"],
           confidence: input.confidence,
           requiresConfirmation: true,
-          status: "unsupported_connected_action",
+          status: "unsupported_external_action",
         } satisfies AssistedActionSuggestion
       }
 
@@ -157,3 +157,4 @@ export function buildAssistedActions(input: {
     })
     .slice(0, 5)
 }
+

@@ -217,7 +217,7 @@ export function detectOperationsIntent(
       targetReference: null,
       clarificationQuestion: operationalFallback.clarificationQuestion,
       unsupportedReason:
-        quickAction?.status === "unsupported_connected_action"
+        quickAction?.status === "unsupported_external_action"
           ? `Entendi a acao ${quickAction.label}, mas essa execucao ainda nao esta conectada.`
           : operationalFallback.unsupportedReason,
       unresolvedReference: operationalFallback.unresolvedReference,
@@ -255,3 +255,4 @@ export function detectOperationsIntent(
     readFields: [],
   }
 }
+

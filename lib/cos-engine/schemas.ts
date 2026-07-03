@@ -155,7 +155,7 @@ function normalizeSuggestedActions(value: unknown): AssistedActionSuggestion[] {
     const confidence = typeof record.confidence === "number" ? Math.max(0, Math.min(1, record.confidence)) : 0
     const requiresConfirmation = record.requiresConfirmation === true
     const status =
-      record.status === "executable" || record.status === "unsupported_connected_action" || record.status === "blocked"
+      record.status === "executable" || record.status === "unsupported_external_action" || record.status === "blocked"
         ? record.status
         : "blocked"
     const missingFields = Array.isArray(record.missingFields)
@@ -222,7 +222,7 @@ const assistedActionSchema = z.object({
   missingFields: z.array(z.string()),
   confidence: z.number().min(0).max(1),
   requiresConfirmation: z.literal(true),
-  status: z.enum(["executable", "unsupported_connected_action", "blocked"]),
+  status: z.enum(["executable", "unsupported_external_action", "blocked"]),
 })
 
 export const operationsResolvedIntentSchema = z.object({
@@ -456,7 +456,7 @@ export const operationsOpenAiJsonSchema = {
             },
             status: {
               type: "string",
-              enum: ["executable", "unsupported_connected_action", "blocked"],
+              enum: ["executable", "unsupported_external_action", "blocked"],
             },
           },
         },
@@ -665,3 +665,4 @@ export function extractUsageFromOpenAiResponse(usage: unknown): OperationsIntent
     totalTokens,
   }
 }
+
