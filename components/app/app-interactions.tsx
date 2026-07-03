@@ -42,6 +42,7 @@ type CompanyState = {
 type InviteState = {
   name: string
   email: string
+  password: string
   role: "owner" | "admin" | "member"
 }
 
@@ -103,6 +104,7 @@ const defaultCompany: CompanyState = {
 const defaultInvite: InviteState = {
   name: "",
   email: "",
+  password: "",
   role: "member",
 }
 
@@ -244,12 +246,14 @@ export function AppInteractionsProvider({ children }: { children: ReactNode }) {
     closeModal()
   }
 
-  const sendInvite = async () => {
+  const createTeamMember = async () => {
     setInvitingMember(true)
     setInviteError("")
 
     const result = await addWorkspaceMemberAction({
+      name: invite.name,
       email: invite.email,
+      password: invite.password,
       role: invite.role,
     })
 
@@ -267,7 +271,7 @@ export function AppInteractionsProvider({ children }: { children: ReactNode }) {
 
     toast({
       title: "Membro adicionado",
-      description: "O usuário foi vinculado ao workspace com sucesso.",
+      description: "A conta foi criada e vinculada ao workspace com sucesso.",
     })
     setInvite(defaultInvite)
     setInviteOpen(false)
@@ -453,7 +457,7 @@ export function AppInteractionsProvider({ children }: { children: ReactNode }) {
                           </div>
                         )}
 
-                        {hasOnlyOwner && <EmptyHint text="Nenhum outro membro convidado ainda." />}
+                        {hasOnlyOwner && <EmptyHint text="Nenhum outro membro cadastrado ainda." />}
                       </>
                     )}
 
@@ -469,7 +473,7 @@ export function AppInteractionsProvider({ children }: { children: ReactNode }) {
                         className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#0a0a0a] px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-[#1a1a1a]"
                       >
                         <UserPlus className="h-4 w-4" />
-                        Convidar membro
+                        Novo membro
                       </button>
                       <button
                         type="button"
@@ -503,6 +507,13 @@ export function AppInteractionsProvider({ children }: { children: ReactNode }) {
                               onChange={(email) => setInvite((prev) => ({ ...prev, email }))}
                               placeholder="E-mail"
                             />
+                            <InputField
+                              label="Senha"
+                              type="password"
+                              value={invite.password}
+                              onChange={(password) => setInvite((prev) => ({ ...prev, password }))}
+                              placeholder="Senha"
+                            />
                             <ChoiceField
                               label="Papel"
                               value={formatRole(invite.role)}
@@ -519,15 +530,14 @@ export function AppInteractionsProvider({ children }: { children: ReactNode }) {
                               }
                               options={["Proprietário", "Admin", "Membro"]}
                             />
-                            <EmptyHint text="Se o e-mail já existir em profiles, o usuário será adicionado ao workspace. Caso contrário, o convite por e-mail será ativado posteriormente." />
                             {inviteError && <InlineMessage tone="error" text={inviteError} />}
                             <button
                               type="button"
-                              onClick={sendInvite}
-                              disabled={invitingMember || !invite.email.trim()}
+                              onClick={createTeamMember}
+                              disabled={invitingMember || !invite.name.trim() || !invite.email.trim() || !invite.password.trim()}
                               className="w-full rounded-2xl bg-[#0a0a0a] px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-[#1a1a1a] disabled:cursor-not-allowed disabled:opacity-50"
                             >
-                              {invitingMember ? "Enviando..." : "Enviar convite"}
+                              {invitingMember ? "Criando..." : "Criar membro"}
                             </button>
                           </div>
                         </motion.div>
@@ -640,12 +650,14 @@ function ModalShell({
 
 function InputField({
   label,
+  type = "text",
   value,
   onChange,
   placeholder,
   disabled = false,
 }: {
   label: string
+  type?: string
   value: string
   onChange: (value: string) => void
   placeholder: string
@@ -655,7 +667,7 @@ function InputField({
     <label className="block space-y-1.5">
       <span className="text-sm font-medium text-[#0a0a0a]">{label}</span>
       <input
-        type="text"
+        type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
