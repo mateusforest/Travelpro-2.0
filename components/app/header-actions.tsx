@@ -28,7 +28,7 @@ const avatarMenu = [
   { icon: ExternalLink, label: "Acessar Portal", href: "/portal" },
 ]
 
-export function HeaderActions({ variant: _variant }: { variant?: "mobile" | "desktop" }) {
+export function HeaderActions({ variant = "mobile" }: { variant?: "mobile" | "desktop" }) {
   const router = useRouter()
   const { user, profile, clearAuth } = useAuth()
   const [searchOpen, setSearchOpen] = useState(false)
@@ -77,7 +77,11 @@ export function HeaderActions({ variant: _variant }: { variant?: "mobile" | "des
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -8, scale: 0.97 }}
                   transition={{ duration: 0.15 }}
-                  className="absolute right-0 mt-2 w-60 bg-white rounded-2xl shadow-xl border border-gray-100 z-50 overflow-hidden"
+                  className={`z-50 rounded-2xl border border-gray-100 bg-white shadow-xl ${
+                    variant === "desktop"
+                      ? "absolute right-0 top-full mt-2 w-60 max-w-[calc(100vw-1rem)] max-h-[calc(100vh-5rem)] origin-top-right overflow-y-auto"
+                      : "absolute right-0 mt-2 w-60 overflow-hidden"
+                  }`}
                 >
                   <div className="flex items-center gap-3 p-4 border-b border-gray-100">
                     <UserAvatar fullName={profile?.full_name} email={profile?.email || user?.email} avatarUrl={profile?.avatar_url} size={40} />
