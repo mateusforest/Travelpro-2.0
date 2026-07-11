@@ -57,6 +57,40 @@ const operationsSystemPrompt = [
   "Nao retorne markdown, comentarios, texto adicional ou blocos de codigo.",
 ].join(" ")
 
+function shouldPreferHeuristicIntent(input: {
+  resolvedIntent: OperationsResolvedIntent
+  message: string
+  heuristicIntent: ReturnType<typeof detectOperationsIntent>
+}) {
+  if (input.resolvedIntent.intent !== "create_client") {
+    return false
+  }
+
+  if (
+    ![
+      "create_operation",
+      "create_document",
+      "create_financial_income",
+      "create_financial_expense",
+      "create_meeting",
+      "create_support_ticket",
+      "update_client",
+    ].includes(input.heuristicIntent.intent)
+  ) {
+    return false
+  }
+
+  const normalizedMessage = input.message
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+
+  return /\b(viagem|operacao|processo|projeto|ordem|documento|contrato|proposta|relatorio|arquivo|reuniao|gasto|despesa|receita|ganho|chamado|suporte)\b/.test(
+    normalizedMessage,
+  )
+}
+
 function buildFallbackResolution(
   message: string,
   context: OperationsEngineContext,
@@ -312,6 +346,27 @@ export async function resolveOperationsIntent(input: OperationsEngineInput): Pro
         fileName: input.fileName ?? null,
         fileMimeType: input.fileMimeType ?? null,
         errorMessage: "OpenAI retornou JSON fora do contrato esperado.",
+      })
+    }
+
+    const heuristicIntent = detectOperationsIntent(message, context, conversationMemory, {
+      fileName: input.fileName ?? null,
+      fileMimeType: input.fileMimeType ?? null,
+    })
+
+    if (
+      shouldPreferHeuristicIntent({
+        resolvedIntent,
+        message,
+        heuristicIntent,
+      })
+    ) {
+      return buildFallbackResolution(message, context, conversationMemory, "openai_requested_fallback", {
+        model: operationsOpenAiModel,
+        latencyMs,
+        usage,
+        fileName: input.fileName ?? null,
+        fileMimeType: input.fileMimeType ?? null,
       })
     }
 

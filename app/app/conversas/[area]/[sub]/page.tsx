@@ -6,6 +6,7 @@ import {
   runOperationsEngineAction,
 } from "@/actions/operations-engine"
 import { AreaChat, type ChatMessage } from "@/components/app/area-chat"
+import { useOperationsDashboard } from "@/components/app/operations-dashboard-store"
 import { areaConfigs, slug } from "@/lib/area-configs"
 
 function resolveChatCopy(area: string, subLabel: string) {
@@ -67,6 +68,7 @@ function resolveChatCopy(area: string, subLabel: string) {
 export default function SubAreaPage({ params }: { params: Promise<{ area: string; sub: string }> }) {
   const { area, sub } = use(params)
   const config = areaConfigs[area]
+  const { refreshSummary } = useOperationsDashboard()
   const [messages, setMessages] = useState<ChatMessage[]>(config?.messages ?? [])
   const [isLoadingMessages, setIsLoadingMessages] = useState(true)
 
@@ -132,6 +134,10 @@ export default function SubAreaPage({ params }: { params: Promise<{ area: string
             "suggestedLabel" in result && typeof result.suggestedLabel === "string" ? result.suggestedLabel : undefined
           const ctaHref =
             "suggestedHref" in result && typeof result.suggestedHref === "string" ? result.suggestedHref : undefined
+
+          if (result.ok) {
+            void refreshSummary({ silent: true, force: true })
+          }
 
           return {
             messages: [

@@ -65,6 +65,7 @@ export default function PortalSectionPage({ params }: { params: Promise<{ slug: 
       <div className="flex h-full flex-1 flex-col">
         <PortalHeader />
         <ClientsManager
+          key={`clients:${key}`}
           title={area.label}
           description="Gerencie clientes e relacionamentos reais da sua agencia."
           variant="portal"
@@ -78,6 +79,7 @@ export default function PortalSectionPage({ params }: { params: Promise<{ slug: 
       <div className="flex h-full flex-1 flex-col">
         <PortalHeader />
         <TripsManager
+          key={`trips:${key}`}
           title={area.label}
           description="Gerencie viagens reais da sua agencia e vincule ao cliente quando necessario."
           variant="portal"
@@ -91,6 +93,7 @@ export default function PortalSectionPage({ params }: { params: Promise<{ slug: 
       <div className="flex h-full flex-1 flex-col">
         <PortalHeader />
         <QuotesManager
+          key={`quotes:${key}`}
           title={area.label}
           description="Gerencie cotacoes reais da sua agencia e vincule clientes e viagens quando necessario."
           variant="portal"
@@ -104,6 +107,7 @@ export default function PortalSectionPage({ params }: { params: Promise<{ slug: 
       <div className="flex h-full flex-1 flex-col">
         <PortalHeader />
         <BookingsManager
+          key={`bookings:${key}`}
           title={area.label}
           description="Gerencie reservas reais da sua agencia e acompanhe clientes, viagens e fornecedores."
           variant="portal"
@@ -117,6 +121,7 @@ export default function PortalSectionPage({ params }: { params: Promise<{ slug: 
       <div className="flex h-full flex-1 flex-col">
         <PortalHeader />
         <ContractsManager
+          key={`contracts:${key}`}
           title={area.label}
           description="Gerencie contratos reais da sua agencia e vincule clientes, viagens e cotacoes."
           variant="portal"
@@ -130,6 +135,7 @@ export default function PortalSectionPage({ params }: { params: Promise<{ slug: 
       <div className="flex h-full flex-1 flex-col">
         <PortalHeader />
         <SuppliersManager
+          key={`suppliers:${key}`}
           title={area.label}
           description="Gerencie fornecedores reais da sua agencia com os principais dados de contato."
           variant="portal"
@@ -143,6 +149,7 @@ export default function PortalSectionPage({ params }: { params: Promise<{ slug: 
       <div className="flex h-full flex-1 flex-col">
         <PortalHeader />
         <FinancialManager
+          key={`financial:${key}`}
           title={key === "balanco" ? "Balanco" : area?.label ?? "Financeiro"}
           description="Visualize o balanco consolidado do seu workspace com dados reais."
           variant="portal"
@@ -162,6 +169,7 @@ export default function PortalSectionPage({ params }: { params: Promise<{ slug: 
       <div className="flex h-full flex-1 flex-col">
         <PortalHeader />
         <DocumentsManager
+          key={`documents:${key}:${documentMeta.filterType}`}
           title={documentMeta.title}
           description={documentMeta.description}
           variant="portal"

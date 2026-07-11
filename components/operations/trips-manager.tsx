@@ -9,6 +9,7 @@ import {
   updateTripAction,
   type TripStatus,
 } from "@/actions/trips"
+import { useOperationsDashboard } from "@/components/app/operations-dashboard-store"
 import { useAuth } from "@/components/auth/auth-provider"
 
 type TripRecord = {
@@ -91,6 +92,7 @@ export function TripsManager({
   variant: "app" | "portal"
 }) {
   const { canManageWorkspace } = useAuth()
+  const { refreshSummary } = useOperationsDashboard()
   const [trips, setTrips] = useState<TripRecord[]>([])
   const [clients, setClients] = useState<ClientOption[]>([])
   const [search, setSearch] = useState("")
@@ -194,6 +196,7 @@ export function TripsManager({
 
     setFeedback(editingTripId ? "Viagem atualizada com sucesso." : "Viagem criada com sucesso.")
     setModalOpen(false)
+    await refreshSummary({ silent: true, force: true })
     await loadTrips()
   }
 

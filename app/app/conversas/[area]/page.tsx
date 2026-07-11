@@ -9,6 +9,7 @@ import {
   runOperationsEngineAction,
 } from "@/actions/operations-engine"
 import { AreaChat, type ChatMessage } from "@/components/app/area-chat"
+import { useOperationsDashboard } from "@/components/app/operations-dashboard-store"
 import { areaConfigs, resolveAreaConversationInput, resolveAreaHistoryInputs, slug } from "@/lib/area-configs"
 
 export default function AreaPage({ params }: { params: Promise<{ area: string }> }) {
@@ -18,6 +19,7 @@ export default function AreaPage({ params }: { params: Promise<{ area: string }>
   const conversationInput = resolveAreaConversationInput(area)
   const historyInputs = resolveAreaHistoryInputs(area)
   const isChatArea = Boolean(config) && config.subsections.length === 0
+  const { refreshSummary } = useOperationsDashboard()
   const [messages, setMessages] = useState<ChatMessage[]>(config?.messages ?? [])
   const [isLoadingMessages, setIsLoadingMessages] = useState(isChatArea)
 
@@ -103,6 +105,10 @@ export default function AreaPage({ params }: { params: Promise<{ area: string }>
               "suggestedLabel" in result && typeof result.suggestedLabel === "string" ? result.suggestedLabel : undefined
             const ctaHref =
               "suggestedHref" in result && typeof result.suggestedHref === "string" ? result.suggestedHref : undefined
+
+            if (result.ok) {
+              void refreshSummary({ silent: true, force: true })
+            }
 
             return {
               messages: [
