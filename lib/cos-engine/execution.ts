@@ -1,4 +1,5 @@
 import { createClientAction, getClientByIdAction, getClientsAction, updateClientAction } from "@/actions/clients"
+import { createContractAction } from "@/actions/contracts"
 import { createDocumentAction } from "@/actions/documents"
 import { createFinancialEntryAction, getFinancialSummaryAction } from "@/actions/financial"
 import { createMeetingAction } from "@/actions/meetings"
@@ -492,6 +493,62 @@ export async function executeResolvedIntent(input: {
     case "create_document": {
       const title = String(resolvedIntent.entities.title || "").trim()
       const type = String(resolvedIntent.entities.type || "outro").trim()
+      const clientName = String(resolvedIntent.entities.clientName || "").trim()
+
+      if (type.toLowerCase() === "contrato") {
+        let clientId: string | undefined
+        let resolvedClientName = ""
+
+        if (clientName) {
+          const clientResolution = await resolveClientByName(clientName)
+          if ("error" in clientResolution) {
+            return buildExecutionFailure(
+              `Nao encontrei um cliente chamado ${clientName}. Voce quer cadastrar esse cliente primeiro ou selecionar outro cliente?`,
+              "create_document",
+              "validation_failed",
+              resolvedIntent,
+            )
+          }
+
+          clientId = clientResolution.client.id
+          resolvedClientName = clientResolution.client.name || clientName
+        }
+
+        const result = await createContractAction({
+          clientId,
+          title,
+          status: "draft",
+          fileUrl: "",
+          notes: message,
+        })
+
+        if (result.error) {
+          return buildExecutionFailure("Nao consegui criar o contrato agora. Tente novamente em instantes.", "create_document", "failed", resolvedIntent)
+        }
+
+        return buildExecutionSuccess({
+          action: "create_document",
+          resultId: result.contractId,
+          message: resolvedClientName
+            ? `Contrato ${title} criado com sucesso para ${resolvedClientName}.`
+            : `Contrato ${title} criado com sucesso.`,
+          suggestedLabel: "Ver contratos no Portal",
+          suggestedHref: "/portal/operacoes",
+          resolvedIntent,
+          targetId: result.contractId,
+          targetName: title,
+          area: "documentos",
+          entityType: "document",
+          actionType: "create",
+          entities: {
+            ...resolvedIntent.entities,
+            title,
+            type,
+            clientName: resolvedClientName || clientName || null,
+          },
+        })
+      }
+
       const result = await createDocumentAction({
         title,
         type,

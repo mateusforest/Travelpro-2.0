@@ -94,7 +94,7 @@ function buildMissingFieldMessage(
   }
 
   if (intent === "create_document" && missingFields.includes("title")) {
-    return "Qual sera o titulo do documento?"
+    return entities?.type === "contrato" ? "Qual sera o titulo do contrato?" : "Qual sera o titulo do documento?"
   }
 
   if (intent === "create_meeting" && missingFields.includes("title")) {

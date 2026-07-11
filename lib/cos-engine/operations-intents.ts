@@ -148,6 +148,7 @@ export function detectOperationsIntent(
       entities: {
         title: extractDocumentTitle(message, context),
         type: detectDocumentType(message),
+        clientName: extractOperationClientName(message),
       },
       area: "documentos",
       entityType: "document",

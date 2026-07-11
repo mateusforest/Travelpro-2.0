@@ -307,6 +307,13 @@ export function detectDocumentType(message: string) {
 
 export function extractDocumentTitle(message: string, context: OperationsEngineContext) {
   const direct = extractAfterKeyword(message, [
+    "criar contrato ",
+    "crie contrato ",
+    "gerar contrato ",
+    "gere contrato ",
+    "cadastrar contrato ",
+    "cadastre contrato ",
+    "novo contrato ",
     "criar documento ",
     "novo documento ",
     "documento ",
@@ -702,7 +709,7 @@ export function looksLikeCreateOperation(message: string, context: OperationsEng
 
 export function looksLikeCreateDocument(message: string, context: OperationsEngineContext) {
   const normalized = normalizeEngineText(message)
-  if (/\b(documento|contrato|proposta|relatorio|arquivo)\b/.test(normalized) && /\b(criar|crie|novo|nova)\b/.test(normalized)) return true
+  if (/\b(documento|contrato|proposta|relatorio|arquivo)\b/.test(normalized) && /\b(criar|crie|novo|nova|gerar|gere|cadastrar|cadastre)\b/.test(normalized)) return true
   if (isDocumentsContext(context) && !!extractDocumentTitle(message, context)) return true
   return false
 }
