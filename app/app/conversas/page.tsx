@@ -1,8 +1,8 @@
 "use client"
 
 import Image from "next/image"
+import Link from "next/link"
 import { useMemo, useState } from "react"
-import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 import {
   Search,
@@ -45,7 +45,6 @@ const baseConversations: Conversation[] = travelProAreas.map((area) => ({
 export default function ConversasPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const { summary } = useOperationsDashboard()
-  const router = useRouter()
   const { openFilters } = useAppInteractions()
 
   const conversations = useMemo(
@@ -117,33 +116,36 @@ export default function ConversasPage() {
 
       <div className="space-y-1">
         {filtered.map((conversation, index) => (
-          <motion.button
+          <motion.div
             key={conversation.key}
             initial={{ x: -10, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ delay: 0.05 + index * 0.03 }}
-            onClick={() => router.push(conversation.href)}
-            className="flex w-full items-center gap-3 rounded-xl border border-gray-100 bg-white p-3 text-left transition-colors hover:bg-gray-50 active:bg-gray-100"
           >
-            <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: conversation.bgColor }}>
-              <conversation.icon className="h-5 w-5" style={{ color: conversation.color }} />
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="mb-0.5 flex items-center justify-between">
-                <span className="text-sm font-semibold text-[#0a0a0a]">{conversation.label}</span>
-                <span className="text-xs text-gray-400">{conversation.time}</span>
+            <Link
+              href={conversation.href}
+              className="flex w-full items-center gap-3 rounded-xl border border-gray-100 bg-white p-3 text-left transition-colors hover:bg-gray-50 active:bg-gray-100"
+            >
+              <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: conversation.bgColor }}>
+                <conversation.icon className="h-5 w-5" style={{ color: conversation.color }} />
               </div>
-              <div className="flex items-center justify-between">
-                <span className="truncate pr-2 text-xs text-gray-500">{conversation.lastMessage}</span>
-                {conversation.count > 0 && (
-                  <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[#0a0a0a] px-1.5 text-[11px] text-white">
-                    {conversation.count}
-                  </span>
-                )}
+              <div className="min-w-0 flex-1">
+                <div className="mb-0.5 flex items-center justify-between">
+                  <span className="text-sm font-semibold text-[#0a0a0a]">{conversation.label}</span>
+                  <span className="text-xs text-gray-400">{conversation.time}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="truncate pr-2 text-xs text-gray-500">{conversation.lastMessage}</span>
+                  {conversation.count > 0 && (
+                    <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[#0a0a0a] px-1.5 text-[11px] text-white">
+                      {conversation.count}
+                    </span>
+                  )}
+                </div>
               </div>
-            </div>
-            <ChevronRight className="h-4 w-4 flex-shrink-0 text-gray-300" />
-          </motion.button>
+              <ChevronRight className="h-4 w-4 flex-shrink-0 text-gray-300" />
+            </Link>
+          </motion.div>
         ))}
       </div>
 

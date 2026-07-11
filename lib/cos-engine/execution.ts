@@ -8,7 +8,7 @@ import { createSupportTicketAction } from "@/actions/support"
 import { createTripAction } from "@/actions/trips"
 import { getWorkspaceActivityLogsAction } from "@/actions/activity"
 import { formatCurrencyBRL, humanizeActivityAction } from "@/lib/cos-engine/operations-response"
-import { normalizeEngineText, toTitleCase } from "@/lib/cos-engine/operations-tools"
+import { extractEmail, extractPhone, normalizeEngineText, toTitleCase } from "@/lib/cos-engine/operations-tools"
 import type { OperationsEngineResult, OperationsResolvedIntent } from "@/lib/cos-engine/types"
 
 type ResolvedClientRecord = {
@@ -22,7 +22,18 @@ type ResolvedClientRecord = {
   createdAt: string | null
 }
 
-async function resolveClientByName(clientName: string) {
+function buildClientDisambiguationLabel(client: ResolvedClientRecord) {
+  const details = [client.email, client.phone, client.company].filter(Boolean)
+  return details.length > 0 ? `${client.name} (${details.join(" | ")})` : client.name
+}
+
+async function resolveClientByName(
+  clientName: string,
+  hints?: {
+    email?: string
+    phone?: string
+  },
+) {
   const clientsResult = await getClientsAction()
 
   if (clientsResult.error) {
@@ -33,14 +44,37 @@ async function resolveClientByName(clientName: string) {
   const activeClients = (clientsResult.clients ?? []).filter((client) => client.status !== "archived")
   const exactMatches = activeClients.filter((client) => client.name.trim().toLowerCase() === normalizedTarget)
   const partialMatches = activeClients.filter((client) => client.name.trim().toLowerCase().includes(normalizedTarget))
-  const matches = exactMatches.length > 0 ? exactMatches : partialMatches
+  let matches = exactMatches.length > 0 ? exactMatches : partialMatches
+
+  const normalizedEmail = hints?.email?.trim().toLowerCase()
+  const normalizedPhone = hints?.phone?.replace(/\D/g, "")
+
+  if (matches.length > 1 && normalizedEmail) {
+    const filteredByEmail = matches.filter((client) => client.email.trim().toLowerCase() === normalizedEmail)
+    if (filteredByEmail.length > 0) {
+      matches = filteredByEmail
+    }
+  }
+
+  if (matches.length > 1 && normalizedPhone) {
+    const filteredByPhone = matches.filter((client) => client.phone.replace(/\D/g, "") === normalizedPhone)
+    if (filteredByPhone.length > 0) {
+      matches = filteredByPhone
+    }
+  }
 
   if (matches.length === 0) {
     return { error: `Nao encontrei um cliente chamado ${clientName}.` }
   }
 
   if (matches.length > 1) {
-    return { error: "Encontrei mais de um cliente com esse nome. Pode informar o nome completo?" }
+    return {
+      ambiguous: true as const,
+      error: `Encontrei mais de um cliente com esse nome. Informe email ou telefone para eu identificar o cliente correto. Opcoes: ${matches
+        .slice(0, 3)
+        .map(buildClientDisambiguationLabel)
+        .join("; ")}.`,
+    }
   }
 
   return { client: matches[0] }
@@ -208,6 +242,8 @@ export async function executeResolvedIntent(input: {
   resolvedIntent: OperationsResolvedIntent
 }): Promise<OperationsEngineResult> {
   const { message, resolvedIntent } = input
+  const messageEmail = extractEmail(message)
+  const messagePhone = extractPhone(message)
 
   switch (resolvedIntent.intent) {
     case "create_client": {
@@ -277,7 +313,10 @@ export async function executeResolvedIntent(input: {
 
         targetClient = clientResult.client
       } else if (directClientName) {
-        const clientResolution = await resolveClientByName(directClientName)
+        const clientResolution = await resolveClientByName(directClientName, {
+          email: messageEmail,
+          phone: messagePhone,
+        })
         if ("error" in clientResolution) {
           return buildExecutionFailure(
             clientResolution.error || "Nao encontrei esse cliente para atualizar.",
@@ -401,12 +440,16 @@ export async function executeResolvedIntent(input: {
       let resolvedClientName = ""
 
       if (clientName) {
-        const clientResolution = await resolveClientByName(clientName)
+        const clientResolution = await resolveClientByName(clientName, {
+          email: messageEmail,
+          phone: messagePhone,
+        })
         if ("error" in clientResolution) {
           return buildExecutionFailure(
-            isTripRequest
-              ? `Nao encontrei um cliente chamado ${clientName}. Voce quer cadastrar esse cliente primeiro ou selecionar outro cliente?`
-              : clientResolution.error || "Nao consegui localizar este cliente agora.",
+            clientResolution.error ||
+              (isTripRequest
+                ? `Nao encontrei um cliente chamado ${clientName}. Voce quer cadastrar esse cliente primeiro ou selecionar outro cliente?`
+                : "Nao consegui localizar este cliente agora."),
             "create_operation",
             "validation_failed",
           )
@@ -499,11 +542,15 @@ export async function executeResolvedIntent(input: {
         let clientId: string | undefined
         let resolvedClientName = ""
 
-        if (clientName) {
-          const clientResolution = await resolveClientByName(clientName)
+      if (clientName) {
+          const clientResolution = await resolveClientByName(clientName, {
+            email: messageEmail,
+            phone: messagePhone,
+          })
           if ("error" in clientResolution) {
             return buildExecutionFailure(
-              `Nao encontrei um cliente chamado ${clientName}. Voce quer cadastrar esse cliente primeiro ou selecionar outro cliente?`,
+              clientResolution.error ||
+                `Nao encontrei um cliente chamado ${clientName}. Voce quer cadastrar esse cliente primeiro ou selecionar outro cliente?`,
               "create_document",
               "validation_failed",
               resolvedIntent,

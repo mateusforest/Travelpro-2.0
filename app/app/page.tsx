@@ -372,13 +372,13 @@ export default function AppHomePage() {
         },
       ])
 
-      if (result.ok) {
-        await refreshSummary({ silent: true, force: true })
-      }
-
       const nextConversation = parseConversationArea(conversationArea)
       setActiveConversation(nextConversation)
       const sessionHref = resolveConversationSessionHref(conversationArea)
+
+      if (result.ok) {
+        void refreshSummary({ silent: true, force: true })
+      }
 
       if (sessionHref) {
         router.push(sessionHref)

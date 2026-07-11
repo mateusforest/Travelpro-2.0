@@ -72,10 +72,14 @@ function normalizeDocumentStatus(status: string): DocumentStatus {
 }
 
 function normalizeDocumentType(type: string): DocumentType {
-  const normalized = type.trim().toLowerCase()
+  const normalized = type
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
   if (normalized === "contrato") return "contrato"
-  if (normalized === "arquivo") return "arquivo"
-  if (normalized === "relatorio" || normalized === "relatorio") return "relatorio"
+  if (normalized === "arquivo" || normalized === "documento") return "arquivo"
+  if (normalized === "relatorio") return "relatorio"
   if (normalized === "proposta") return "proposta"
   return "outro"
 }

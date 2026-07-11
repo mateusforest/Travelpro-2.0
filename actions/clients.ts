@@ -319,3 +319,39 @@ export async function deleteClientAction({ clientId }: { clientId: string }) {
 
   return { success: true }
 }
+
+export async function permanentlyDeleteClientAction({ clientId }: { clientId: string }) {
+  const actor = await getClientActor()
+
+  if ("error" in actor) {
+    return { error: actor.error }
+  }
+
+  if (!actor.canManage && !actor.isMaster) {
+    return { error: "Apenas owner, admin ou master podem excluir clientes." }
+  }
+
+  const resolved = await resolveClientForActor(actor, clientId)
+  if ("error" in resolved) {
+    return { error: resolved.error }
+  }
+
+  const { error } = await actor.adminClient
+    .from("clients")
+    .delete()
+    .eq("id", clientId)
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  await logClientActivity({
+    adminClient: actor.adminClient,
+    workspaceId: actor.workspaceId,
+    userId: actor.actorId,
+    action: "client_deleted",
+    description: "cliente excluido permanentemente",
+  })
+
+  return { success: true, clientId: resolved.client.id }
+}

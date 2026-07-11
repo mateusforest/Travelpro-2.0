@@ -6,6 +6,7 @@ import {
   createClientAction,
   deleteClientAction,
   getClientsAction,
+  permanentlyDeleteClientAction,
   updateClientAction,
   type ClientStatus,
 } from "@/actions/clients"
@@ -157,6 +158,10 @@ export function ClientsManager({
   }
 
   const archiveClient = async (clientId: string) => {
+    if (typeof window !== "undefined" && !window.confirm("Deseja arquivar este cliente?")) {
+      return
+    }
+
     setError(null)
     setFeedback(null)
 
@@ -168,6 +173,28 @@ export function ClientsManager({
     }
 
     setFeedback("Cliente arquivado com sucesso.")
+    await loadClients()
+  }
+
+  const permanentlyDeleteClient = async (clientId: string) => {
+    if (
+      typeof window !== "undefined" &&
+      !window.confirm("Deseja excluir este cliente permanentemente? Esta acao nao pode ser desfeita.")
+    ) {
+      return
+    }
+
+    setError(null)
+    setFeedback(null)
+
+    const result = await permanentlyDeleteClientAction({ clientId })
+
+    if (result.error) {
+      setError(result.error)
+      return
+    }
+
+    setFeedback("Cliente excluido permanentemente com sucesso.")
     await loadClients()
   }
 
@@ -275,6 +302,14 @@ export function ClientsManager({
                           >
                             <Trash2 className="h-3.5 w-3.5" />
                             Arquivar
+                          </button>
+                          <button
+                            onClick={() => permanentlyDeleteClient(client.id)}
+                            disabled={!canManageWorkspace}
+                            className="inline-flex items-center gap-1 rounded-lg border border-red-200 px-3 py-2 text-xs text-red-700 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                            Excluir
                           </button>
                         </div>
                       </td>

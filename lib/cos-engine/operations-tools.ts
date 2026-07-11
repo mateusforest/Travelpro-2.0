@@ -302,6 +302,7 @@ export function detectDocumentType(message: string) {
   if (normalized.includes("proposta")) return "proposta"
   if (normalized.includes("relatorio")) return "relatório"
   if (normalized.includes("arquivo")) return "arquivo"
+  if (normalized.includes("documento")) return "arquivo"
   return "outro"
 }
 
@@ -687,6 +688,12 @@ export function extractClientUpdateEntities(message: string) {
 
 export function looksLikeCreateClient(message: string, context: OperationsEngineContext) {
   const normalized = normalizeEngineText(message)
+  const isOtherCreateFlow =
+    /\b(viagem|operacao|processo|projeto|ordem|documento|contrato|proposta|relatorio|arquivo|reuniao)\b/.test(
+      normalized,
+    )
+
+  if (isOtherCreateFlow && !isClientsContext(context)) return false
   if (/\b(cliente)\b/.test(normalized) && /\b(crie|criar|novo|nova|cadastrar|cadastre|adicione|adicionar)\b/.test(normalized)) return true
   if (isClientsContext(context) && !!extractClientName(message, context)) return true
   return false
