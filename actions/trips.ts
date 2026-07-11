@@ -33,6 +33,32 @@ type TripActor = {
   adminClient: NonNullable<ReturnType<typeof createSupabaseAdminClient>>
 }
 
+async function logTripActivity({
+  adminClient,
+  workspaceId,
+  userId,
+  action,
+  description,
+}: {
+  adminClient: TripActor["adminClient"]
+  workspaceId: string
+  userId: string
+  action: string
+  description: string
+}) {
+  const { error } = await adminClient.from("activity_logs").insert({
+    workspace_id: workspaceId,
+    user_id: userId,
+    area: "operations",
+    action,
+    description,
+  })
+
+  if (error) {
+    console.error("[trips] activity-log:", error.message)
+  }
+}
+
 async function getTripActor() {
   const supabase = await createSupabaseServerClient()
   const { data: authData, error: authError } = await supabase.auth.getUser()
@@ -167,12 +193,12 @@ export async function createTripAction({
 }: {
   clientId?: string
   title: string
-  destination: string
+  destination?: string
   startDate?: string
   endDate?: string
   travelerCount?: string
   status?: string
-  notes: string
+  notes?: string
 }) {
   const actor = await getTripActor()
 
@@ -196,12 +222,12 @@ export async function createTripAction({
       workspace_id: actor.workspaceId,
       client_id: resolvedClient.clientId,
       title: trimmedTitle,
-      destination: destination.trim() || null,
+      destination: destination?.trim() || null,
       start_date: startDate || null,
       end_date: endDate || null,
       traveler_count: normalizeTravelerCount(travelerCount ?? "1"),
       status: normalizeTripStatus(status ?? "draft"),
-      notes: notes.trim() || null,
+      notes: notes?.trim() || null,
       created_by: actor.actorId,
     })
     .select("id")
@@ -210,6 +236,14 @@ export async function createTripAction({
   if (error || !data) {
     return { error: error?.message ?? "Nao foi possivel criar a viagem." }
   }
+
+  await logTripActivity({
+    adminClient: actor.adminClient,
+    workspaceId: actor.workspaceId,
+    userId: actor.actorId,
+    action: "operation_created",
+    description: "viagem criada",
+  })
 
   return { success: true, tripId: data.id }
 }

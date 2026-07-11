@@ -90,7 +90,7 @@ function buildMissingFieldMessage(
   }
 
   if (intent === "create_operation" && missingFields.includes("title")) {
-    return entities?.clientName ? "Qual sera o titulo da viagem?" : "Qual sera o titulo da operacao?"
+    return "Qual sera o titulo da viagem?"
   }
 
   if (intent === "create_document" && missingFields.includes("title")) {

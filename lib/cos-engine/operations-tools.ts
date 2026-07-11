@@ -264,6 +264,21 @@ export function extractOperationTitle(message: string, context: OperationsEngine
   if (/^para\b/i.test(raw)) {
     return ""
   }
+
+  const normalizedRaw = normalizeEngineText(raw)
+  if (
+    normalizedRaw === "viagem" ||
+    normalizedRaw === "nova viagem" ||
+    normalizedRaw === "criar viagem" ||
+    normalizedRaw === "crie viagem" ||
+    normalizedRaw === "cadastrar viagem" ||
+    normalizedRaw === "cadastre viagem" ||
+    normalizedRaw === "abrir viagem" ||
+    normalizedRaw === "iniciar viagem"
+  ) {
+    return ""
+  }
+
   return toTitleCase(raw)
 }
 
