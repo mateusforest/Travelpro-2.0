@@ -158,3 +158,7 @@ export function useOperationsDashboard() {
 
   return context
 }
+
+export function useOptionalOperationsDashboard() {
+  return useContext(OperationsDashboardContext)
+}
