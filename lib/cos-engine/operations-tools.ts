@@ -43,8 +43,8 @@ export function extractEmail(message: string) {
 }
 
 export function extractPhone(message: string) {
-  const digits = message.match(/\b\d{8,15}\b/)
-  return digits?.[0] || ""
+  const match = message.match(/(?:\+?\d[\d\s().-]{7,}\d)/)
+  return match?.[0]?.trim() || ""
 }
 
 export function extractMoneyValue(message: string) {
@@ -132,9 +132,9 @@ function isLikelyClientName(value: string) {
 
 function extractClientNameByPatterns(message: string) {
   const patterns = [
-    /^(?:crie|criar|cadastre|cadastrar)\s+(.+?)\s+como\s+cliente$/iu,
-    /^(?:crie|criar|cadastre|cadastrar)\s+(?:um\s+|uma\s+)?cliente\s+(.+)$/iu,
-    /^(?:crie|criar|cadastre|cadastrar)\s+cliente\s+(.+)$/iu,
+    /^(?:crie|criar|cadastre|cadastrar|adicione|adicionar)\s+(.+?)\s+como\s+cliente$/iu,
+    /^(?:crie|criar|cadastre|cadastrar|adicione|adicionar)\s+(?:um\s+|uma\s+)?cliente\s+(.+)$/iu,
+    /^(?:crie|criar|cadastre|cadastrar|adicione|adicionar)\s+cliente\s+(.+)$/iu,
     /^cliente\s+(.+)$/iu,
   ]
 
@@ -165,10 +165,15 @@ export function extractClientName(message: string, context: OperationsEngineCont
     "cliente chamado",
     "cliente com nome",
     "cadastrar cliente",
+    "adicionar cliente",
+    "adicione cliente",
     "crie um cliente chamado",
     "crie cliente chamado",
     "crie um cliente",
     "crie cliente",
+    "adicione um cliente chamado",
+    "adicione cliente chamado",
+    "adicione um cliente",
     "novo cliente",
   ])
 
@@ -648,7 +653,7 @@ export function extractClientUpdateEntities(message: string) {
 
 export function looksLikeCreateClient(message: string, context: OperationsEngineContext) {
   const normalized = normalizeEngineText(message)
-  if (/\b(cliente)\b/.test(normalized) && /\b(crie|criar|novo|nova|cadastrar|cadastre)\b/.test(normalized)) return true
+  if (/\b(cliente)\b/.test(normalized) && /\b(crie|criar|novo|nova|cadastrar|cadastre|adicione|adicionar)\b/.test(normalized)) return true
   if (isClientsContext(context) && !!extractClientName(message, context)) return true
   return false
 }
