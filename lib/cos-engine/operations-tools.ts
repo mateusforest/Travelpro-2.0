@@ -98,7 +98,7 @@ export function cleanupEntityTail(value: string) {
 
 function stripLeadingCommand(value: string) {
   return value
-    .replace(/^(crie|criar|novo|nova|cadastrar|cadastre|registrar|registre|lancar|lance|adicionar|abrir)\s+/i, "")
+    .replace(/^(crie|criar|novo|nova|cadastrar|cadastre|registrar|registre|lancar|lance|adicionar|abrir|iniciar|inicie)\s+/i, "")
     .trim()
 }
 
@@ -238,9 +238,21 @@ export function extractServiceName(message: string) {
 }
 
 export function extractOperationTitle(message: string, context: OperationsEngineContext) {
+  if (/(?:criar|crie|cadastrar|cadastre|abrir|abra|iniciar|inicie)\s+viagem\s+para\s+/iu.test(message)) {
+    return ""
+  }
+
   const direct = extractAfterKeyword(message, [
     "chamada ",
     "chamado ",
+    "viagem chamada ",
+    "viagem com titulo ",
+    "criar viagem ",
+    "crie viagem ",
+    "cadastrar viagem ",
+    "cadastre viagem ",
+    "abrir viagem ",
+    "iniciar viagem ",
     "criar operacao ",
     "crie operacao ",
     "nova operacao ",
@@ -249,6 +261,9 @@ export function extractOperationTitle(message: string, context: OperationsEngine
   ])
 
   const raw = stripLeadingCommand(cleanupEntityTail(direct || (isOperationsContext(context) ? message : "")))
+  if (/^para\b/i.test(raw)) {
+    return ""
+  }
   return toTitleCase(raw)
 }
 
@@ -265,8 +280,20 @@ export function extractProcessTitle(message: string) {
 }
 
 export function extractOperationClientName(message: string) {
-  const match = message.match(/cliente\s+([a-zA-ZÀ-ÿ0-9 ]+?)(?:\s+chamad[ao]|\s*$)/i)
-  return match?.[1] ? toTitleCase(match[1].trim()) : ""
+  const patterns = [
+    /cliente\s+([a-zA-ZÀ-ÿ0-9 ]+?)(?:\s+chamad[ao]|\s*$)/i,
+    /(?:viagem|operacao|operação|processo|projeto)\s+para\s+([a-zA-ZÀ-ÿ0-9 ]+?)(?:\s*$|\s+com\s+)/i,
+    /para\s+o?\s*cliente\s+([a-zA-ZÀ-ÿ0-9 ]+?)(?:\s*$|\s+com\s+)/i,
+  ]
+
+  for (const pattern of patterns) {
+    const match = message.match(pattern)
+    if (match?.[1]) {
+      return toTitleCase(match[1].trim())
+    }
+  }
+
+  return ""
 }
 
 export function detectDocumentType(message: string) {
@@ -667,8 +694,9 @@ export function looksLikeCreateFinancial(message: string, context: OperationsEng
 
 export function looksLikeCreateOperation(message: string, context: OperationsEngineContext) {
   const normalized = normalizeEngineText(message)
-  if (/\b(operacao|processo|projeto|ordem)\b/.test(normalized) && /\b(criar|crie|novo|nova|abrir)\b/.test(normalized)) return true
+  if (/\b(operacao|processo|projeto|ordem|viagem)\b/.test(normalized) && /\b(criar|crie|novo|nova|abrir|cadastrar|cadastre|iniciar|inicie)\b/.test(normalized)) return true
   if (isOperationsContext(context) && !!extractOperationTitle(message, context)) return true
+  if (isOperationsContext(context) && !!extractOperationClientName(message)) return true
   return false
 }
 

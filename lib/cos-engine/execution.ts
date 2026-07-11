@@ -4,9 +4,10 @@ import { createFinancialEntryAction, getFinancialSummaryAction } from "@/actions
 import { createMeetingAction } from "@/actions/meetings"
 import { createOperationAction } from "@/actions/operations"
 import { createSupportTicketAction } from "@/actions/support"
+import { createTripAction } from "@/actions/trips"
 import { getWorkspaceActivityLogsAction } from "@/actions/activity"
 import { formatCurrencyBRL, humanizeActivityAction } from "@/lib/cos-engine/operations-response"
-import { toTitleCase } from "@/lib/cos-engine/operations-tools"
+import { normalizeEngineText, toTitleCase } from "@/lib/cos-engine/operations-tools"
 import type { OperationsEngineResult, OperationsResolvedIntent } from "@/lib/cos-engine/types"
 
 type ResolvedClientRecord = {
@@ -393,6 +394,7 @@ export async function executeResolvedIntent(input: {
     case "create_operation": {
       const title = String(resolvedIntent.entities.title || "").trim()
       const clientName = String(resolvedIntent.entities.clientName || "").trim()
+      const isTripRequest = /\bviagem\b/.test(normalizeEngineText(message))
 
       let clientId: string | undefined
       let resolvedClientName = ""
@@ -401,13 +403,54 @@ export async function executeResolvedIntent(input: {
         const clientResolution = await resolveClientByName(clientName)
         if ("error" in clientResolution) {
           return buildExecutionFailure(
-            clientResolution.error || "Nao consegui localizar este cliente agora.",
+            isTripRequest
+              ? `Nao encontrei um cliente chamado ${clientName}. Voce quer cadastrar esse cliente primeiro ou selecionar outro cliente?`
+              : clientResolution.error || "Nao consegui localizar este cliente agora.",
             "create_operation",
+            "validation_failed",
           )
         }
 
         clientId = clientResolution.client.id
         resolvedClientName = clientResolution.client.name || clientName
+      }
+
+      if (isTripRequest) {
+        const result = await createTripAction({
+          clientId,
+          title,
+          destination: "",
+          startDate: "",
+          endDate: "",
+          travelerCount: "1",
+          status: "draft",
+          notes: message,
+        })
+
+        if (result.error) {
+          return buildExecutionFailure("Nao consegui criar a viagem agora. Tente novamente em instantes.", "create_operation", "failed", resolvedIntent)
+        }
+
+        return buildExecutionSuccess({
+          action: "create_operation",
+          resultId: result.tripId,
+          message: resolvedClientName
+            ? `Viagem ${title} criada com sucesso para ${resolvedClientName}.`
+            : `Viagem ${title} criada com sucesso.`,
+          suggestedLabel: "Ver viagens no Portal",
+          suggestedHref: "/portal/viagens",
+          resolvedIntent,
+          targetId: result.tripId,
+          targetName: title,
+          area: "operacoes",
+          entityType: "project",
+          actionType: "create",
+          entities: {
+            ...resolvedIntent.entities,
+            title,
+            clientName: resolvedClientName || clientName || null,
+          },
+        })
       }
 
       const result = await createOperationAction({
