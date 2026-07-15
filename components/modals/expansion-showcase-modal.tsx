@@ -84,10 +84,10 @@ export function ExpansionShowcaseModal({
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: "100%", opacity: 0 }}
             transition={{ type: "spring", damping: 28, stiffness: 320 }}
-            className="fixed inset-x-0 bottom-0 z-[90] overflow-hidden rounded-t-[2rem] bg-[#fcfcfb] shadow-2xl lg:inset-0 lg:m-auto lg:h-fit lg:max-h-[85vh] lg:max-w-2xl lg:rounded-[2rem]"
+            className="fixed inset-x-0 bottom-0 z-[90] max-h-[calc(100vh-1rem)] overflow-hidden rounded-t-[2rem] bg-[#fcfcfb] shadow-2xl lg:inset-x-auto lg:bottom-auto lg:left-1/2 lg:top-1/2 lg:w-[min(42rem,calc(100vw-2rem))] lg:max-h-[85vh] lg:-translate-x-1/2 lg:-translate-y-1/2 lg:rounded-[2rem]"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="relative overflow-hidden">
+            <div className="relative flex max-h-[calc(100vh-1rem)] flex-col overflow-hidden lg:max-h-[85vh]">
               <div
                 className="absolute inset-x-0 top-0 h-40 opacity-90"
                 style={{
@@ -95,7 +95,7 @@ export function ExpansionShowcaseModal({
                 }}
               />
 
-              <div className="relative px-5 pb-8 pt-5 lg:px-8 lg:pb-9 lg:pt-7">
+              <div className="relative min-h-0 flex-1 overflow-y-auto px-5 pb-8 pt-5 lg:px-8 lg:pb-9 lg:pt-7">
                 <div className="mb-8 flex items-start justify-between">
                   <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-medium text-white backdrop-blur-sm">
                     <Sparkles className="h-3.5 w-3.5" />

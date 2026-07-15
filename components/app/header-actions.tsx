@@ -80,7 +80,7 @@ export function HeaderActions({ variant = "mobile" }: { variant?: "mobile" | "de
                   className={`z-50 rounded-2xl border border-gray-100 bg-white shadow-xl ${
                     variant === "desktop"
                       ? "absolute right-0 top-full mt-2 w-60 max-w-[calc(100vw-1rem)] max-h-[calc(100vh-5rem)] origin-top-right overflow-y-auto"
-                      : "absolute right-0 top-full mt-2 w-60 max-w-[calc(100vw-1rem)] max-h-[calc(100vh-5rem)] origin-top-right overflow-y-auto"
+                      : "fixed right-2 top-14 w-auto min-w-[15rem] max-w-[calc(100vw-1rem)] max-h-[calc(100vh-4.5rem)] origin-top-right overflow-y-auto"
                   }`}
                 >
                   <div className="flex items-center gap-3 p-4 border-b border-gray-100">
