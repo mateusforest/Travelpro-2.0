@@ -1,6 +1,7 @@
 "use client"
 
 import { AnimatePresence, motion } from "framer-motion"
+import { createPortal } from "react-dom"
 import { Headphones, Shield, Sparkles, X, type LucideIcon } from "lucide-react"
 import type { ExpansionItem } from "@/lib/expansion-configs"
 
@@ -66,9 +67,13 @@ export function ExpansionShowcaseModal({
     return null
   }
 
+  if (typeof document === "undefined") {
+    return null
+  }
+
   const Icon = content.icon
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {open && (
         <>
@@ -158,5 +163,5 @@ export function ExpansionShowcaseModal({
         </>
       )}
     </AnimatePresence>
-  )
+  , document.body)
 }
