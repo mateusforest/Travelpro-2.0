@@ -77,7 +77,7 @@ type SessionItem = {
   href: string
 }
 
-const sessions = travelProAreas.map((area) => ({
+const sessions = travelProAreas.filter((area) => !area.premiumExpansion).map((area) => ({
   icon: area.icon as typeof Users,
   label: area.label,
   time: "Em preparacao",
@@ -350,7 +350,7 @@ function DesktopSidebar() {
   const pathname = usePathname()
   const { setIsOpen, setLevel } = useFAB()
   const { summary } = useOperationsDashboard()
-  const sessionsData: SessionItem[] = travelProAreas.map((area) => {
+  const sessionsData: SessionItem[] = travelProAreas.filter((area) => !area.premiumExpansion).map((area) => {
     if (area.key === "clientes") {
       const count = summary?.clientsCount ?? 0
       return {

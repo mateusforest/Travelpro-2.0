@@ -30,7 +30,7 @@ type Conversation = {
   bgColor: string
 }
 
-const baseConversations: Conversation[] = travelProAreas.map((area) => ({
+const baseConversations: Conversation[] = travelProAreas.filter((area) => !area.premiumExpansion).map((area) => ({
   key: area.key,
   icon: area.icon as typeof Users,
   label: area.label,

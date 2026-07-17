@@ -44,6 +44,7 @@ export type TravelProArea = {
   color: string
   bg: string
   status: TravelProAreaStatus
+  premiumExpansion?: boolean
   route: {
     app: string
     portal: string
@@ -386,6 +387,7 @@ export const travelProAreas: TravelProArea[] = [
     color: "#4f46e5",
     bg: "#eef2ff",
     status: "active",
+    premiumExpansion: true,
     route: { app: "/app/conversas/advisor", portal: "/portal/advisor" },
     destination: { app: "/app/conversas/advisor", portal: "/app/conversas/advisor" },
     app: {
@@ -408,6 +410,7 @@ export const travelProAreas: TravelProArea[] = [
     color: "#2563eb",
     bg: "#eef6ff",
     status: "active",
+    premiumExpansion: true,
     route: { app: "/app/conversas/agent", portal: "/portal/agent" },
     destination: { app: "/app/conversas/agent", portal: "/app/conversas/agent" },
     app: {

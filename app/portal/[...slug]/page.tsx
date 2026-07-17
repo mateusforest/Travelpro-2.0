@@ -1,8 +1,10 @@
 "use client"
 
 import { use } from "react"
+import { Bot, BriefcaseBusiness } from "lucide-react"
 import { PortalHeader } from "@/components/portal/portal-header"
 import { PortalModulePage } from "@/components/portal/portal-module-page"
+import { PremiumExpansionHome } from "@/components/portal/premium-expansion-home"
 import { ClientsManager } from "@/components/operations/clients-manager"
 import { BookingsManager } from "@/components/operations/bookings-manager"
 import { ContractsManager } from "@/components/operations/contracts-manager"
@@ -51,6 +53,47 @@ const DOCUMENT_MANAGER_META: Record<string, { title: string; description: string
   },
 }
 
+const PREMIUM_EXPANSION_META = {
+  advisor: {
+    title: "Advisor",
+    eyebrow: "Consultor Estrategico",
+    description: "Use o Advisor como frente premium para orientar crescimento, atendimento e decisoes estrategicas da sua agencia.",
+    accentColor: "#4f46e5",
+    accentBg: "#eef2ff",
+    icon: BriefcaseBusiness,
+    primaryHref: "/portal/advisor",
+    primaryLabel: "Abrir Advisor",
+    secondaryHref: "/app/conversas/advisor",
+    secondaryLabel: "Abrir conversa",
+    ctas: [
+      { label: "Vender mais", href: "/app/conversas/advisor" },
+      { label: "Resolver problemas com clientes", href: "/app/conversas/advisor" },
+      { label: "Melhorar atendimento", href: "/app/conversas/advisor" },
+      { label: "Analisar a agencia", href: "/app/conversas/advisor" },
+      { label: "Crescer no internacional", href: "/app/conversas/advisor" },
+    ],
+  },
+  agent: {
+    title: "Agent",
+    eyebrow: "Agente Operacional",
+    description: "Use o Agent como frente premium para executar rotinas operacionais com contexto e continuidade dentro do TravelPro.",
+    accentColor: "#2563eb",
+    accentBg: "#eef6ff",
+    icon: Bot,
+    primaryHref: "/portal/agent",
+    primaryLabel: "Abrir Agent",
+    secondaryHref: "/app/conversas/agent",
+    secondaryLabel: "Abrir conversa",
+    ctas: [
+      { label: "Configurar WhatsApp", href: "/app/conversas/agent" },
+      { label: "Atender clientes", href: "/app/conversas/agent" },
+      { label: "Cadastrar clientes", href: "/app/conversas/agent" },
+      { label: "Executar tarefas", href: "/app/conversas/agent" },
+      { label: "Organizar operacoes", href: "/app/conversas/agent" },
+    ],
+  },
+} as const
+
 function titleize(slug: string) {
   return slug.charAt(0).toUpperCase() + slug.slice(1).replace(/-/g, " ")
 }
@@ -59,6 +102,11 @@ export default function PortalSectionPage({ params }: { params: Promise<{ slug: 
   const { slug } = use(params)
   const key = slug[slug.length - 1]
   const area = travelProPortalAreasBySlug[key]
+  const premiumExpansion = PREMIUM_EXPANSION_META[key as keyof typeof PREMIUM_EXPANSION_META]
+
+  if (premiumExpansion) {
+    return <PremiumExpansionHome {...premiumExpansion} />
+  }
 
   if (area?.portal.manager === "clients") {
     return (

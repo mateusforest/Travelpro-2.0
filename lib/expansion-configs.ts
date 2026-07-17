@@ -4,6 +4,7 @@ export type ExpansionItem = {
   slug: string
   label: string
   href: string
+  portalHref?: string
   description: string
   bg: string
   color: string
@@ -29,6 +30,26 @@ export const expansionItems: ExpansionItem[] = [
     bg: "#fff2e8",
     color: "#fe6708",
     imageSrc: "/expansions/travelmatch-symbol.png",
+  },
+  {
+    slug: "advisor",
+    label: "Advisor",
+    href: "/app/conversas/advisor",
+    portalHref: "/portal/advisor",
+    description: "Consultor estrategico",
+    bg: "#eef2ff",
+    color: "#4f46e5",
+    icon: "headphones",
+  },
+  {
+    slug: "agent",
+    label: "Agent",
+    href: "/app/conversas/agent",
+    portalHref: "/portal/agent",
+    description: "Agente operacional",
+    bg: "#eef6ff",
+    color: "#2563eb",
+    icon: "shield",
   },
 ]
 

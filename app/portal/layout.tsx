@@ -23,7 +23,7 @@ import { Toaster } from "@/components/ui/toaster"
 import { expansionItems } from "@/lib/expansion-configs"
 import { travelProAreas } from "@/lib/travelpro-areas"
 
-const mainNavItems = travelProAreas.map((area) => ({
+const mainNavItems = travelProAreas.filter((area) => !area.premiumExpansion).map((area) => ({
   icon: area.icon,
   label: area.label,
   href: area.route.portal,
@@ -130,6 +130,7 @@ function PortalShell({ children }: { children: React.ReactNode }) {
                   <li key={item.slug}>
                     <ExpansionLaunchItem
                       item={item}
+                      href={item.portalHref ?? item.href}
                       onNavigate={() => setMobileMenuOpen(false)}
                       className="flex items-center gap-3 px-3 py-2 rounded-xl text-muted-foreground hover:bg-white/60 hover:text-foreground transition-all"
                     >
