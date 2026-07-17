@@ -162,3 +162,31 @@
   background-image: linear-gradient(135deg, #FE6708 0%, #FE8414 100%);
   color: #fff;
 }
+
+@keyframes tp-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes tp-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-tp-fade {
+  animation: tp-fade 0.7s ease-out both;
+}
+
+.animate-tp-fade-up {
+  animation: tp-fade-up 0.8s ease-out both;
+}
