@@ -201,8 +201,8 @@ export function recoverClientNameFromMessage(message: string) {
 export function inferFinancialType(message: string, context: OperationsEngineContext) {
   const normalized = normalizeEngineText(message)
 
-  if (/\b(gasto|despesa|pagar|pagamento)\b/.test(normalized)) return "expense"
-  if (/\b(ganho|receita|venda|faturamento|consultoria|entrada)\b/.test(normalized)) return "income"
+  if (/\b(gastei|gasto|despesa|paguei|pagar|pagamento|saida)\b/.test(normalized)) return "expense"
+  if (/\b(recebi|recebimento|ganho|receita|venda|faturamento|consultoria|entrada)\b/.test(normalized)) return "income"
   if (context.subArea === "gastos") return "expense"
   if (context.subArea === "ganhos") return "income"
 
@@ -210,19 +210,46 @@ export function inferFinancialType(message: string, context: OperationsEngineCon
 }
 
 export function extractFinancialTitle(message: string) {
-  const explicit = extractAfterKeyword(message, ["com ", "referente a ", "de "])
-  const raw = cleanupEntityTail(explicit)
+  const normalized = normalizeEngineText(message)
+  const amount = extractMoneyValue(message)
+  const amountPattern = amount ? amount.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") : ""
 
-  if (raw) {
-    const cleaned = raw.replace(/^\d+(?:[.,]\d+)?\s*/, "").trim()
-    return toTitleCase(cleaned)
+  const patterns = amountPattern
+    ? [
+        new RegExp(`(?:recebi|recebimento|receita|ganho|entrada)\\s+(?:de\\s+)?${amountPattern}\\s+(?:d[oa]s?\\s+|de\\s+)(.+)$`, "iu"),
+        new RegExp(`(?:paguei|gastei|gasto|despesa|pagamento)\\s+(?:de\\s+)?${amountPattern}\\s+(?:com\\s+|d[oa]s?\\s+|de\\s+)(.+)$`, "iu"),
+      ]
+    : []
+
+  for (const pattern of patterns) {
+    const match = message.match(pattern)
+    const candidate = cleanupEntityTail(match?.[1] || "")
+      .replace(/^(o|a|os|as)\s+/iu, "")
+      .trim()
+    if (candidate) {
+      return toTitleCase(candidate)
+    }
   }
 
-  const amount = extractMoneyValue(message)
+  const explicit = extractAfterKeyword(message, ["com ", "referente a "])
+  const raw = cleanupEntityTail(explicit)
+
+  if (raw && !/^(r\$\s*)?\d/i.test(raw.trim())) {
+    return toTitleCase(raw)
+  }
+
   if (!amount) return ""
 
   const remainder = message.slice(message.toLowerCase().indexOf(amount.toLowerCase()) + amount.length).trim()
-  return toTitleCase(stripLeadingCommand(cleanupEntityTail(remainder)))
+  const cleanedRemainder = stripLeadingCommand(cleanupEntityTail(remainder))
+    .replace(/^(d[oa]s?|de|com)\s+/iu, "")
+    .trim()
+
+  if (!cleanedRemainder || /^(r\$\s*)?\d/i.test(cleanedRemainder)) {
+    return ""
+  }
+
+  return toTitleCase(cleanedRemainder)
 }
 
 export function extractLeadName(message: string) {
@@ -716,7 +743,7 @@ export function looksLikeCreateClient(message: string, context: OperationsEngine
 
 export function looksLikeCreateFinancial(message: string, context: OperationsEngineContext) {
   const normalized = normalizeEngineText(message)
-  if (/\b(gasto|despesa|ganho|receita|lancar|lance|registrar|registre|adicionar)\b/.test(normalized) && !!extractMoneyValue(message)) return true
+  if (/\b(recebi|recebimento|gastei|paguei|gasto|despesa|ganho|receita|entrada|saida|lancar|lance|registrar|registre|adicionar)\b/.test(normalized) && !!extractMoneyValue(message)) return true
   if (isFinancialContext(context) && !!extractMoneyValue(message)) return true
   return false
 }

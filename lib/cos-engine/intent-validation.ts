@@ -86,7 +86,9 @@ function buildMissingFieldMessage(
   }
 
   if ((intent === "create_financial_income" || intent === "create_financial_expense") && missingFields.includes("title")) {
-    return "Como voce quer descrever esse lancamento?"
+    return intent === "create_financial_income"
+      ? "Qual e a descricao desse recebimento?"
+      : "Qual e a descricao dessa despesa?"
   }
 
   if (intent === "create_operation" && missingFields.includes("title")) {
