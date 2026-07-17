@@ -57,6 +57,73 @@ function buildConversationHref(baseHref: string, prompt: string) {
   return `${baseHref}?prompt=${encodeURIComponent(prompt)}&autoSend=1`
 }
 
+const ADVISOR_PLAN_DIALOG = {
+  title: "Assinatura do Advisor",
+  eyebrow: "Plano premium",
+  description: "Conheca a frente premium do Advisor antes da assinatura. Esta e uma experiencia visual, sem pagamento real nesta etapa.",
+  capabilities: [
+    "Orientar analises estrategicas da agencia com foco em crescimento, atendimento e prioridades.",
+    "Abrir conversas contextualizadas para cenarios comerciais e operacionais mais sensiveis.",
+    "Centralizar o acesso ao Advisor dentro do Portal e do chat existente do TravelPro.",
+  ],
+  limitations: [
+    "Nao inclui cobranca real nem ativacao automatica do plano.",
+    "Nao altera o COS nem cria novos fluxos de IA nesta etapa.",
+  ],
+  planLabel: "Advisor Premium",
+  priceLabel: "R$ 0,00 / placeholder",
+  actionLabel: "Assinar Advisor",
+  helperText: "Botao visual de assinatura. A contratacao real ainda nao foi implementada.",
+} as const
+
+const AGENT_PLAN_DIALOG = {
+  title: "Ativacao premium do Agent",
+  eyebrow: "Plano premium",
+  description: "Veja como o Agent pode operar na agencia antes de seguir para uma ativacao real. Esta e apenas a base visual da experiencia.",
+  capabilities: [
+    "Organizar rotinas operacionais e abrir conversas contextualizadas para execucao assistida.",
+    "Preparar a frente operacional para futuras configuracoes de atendimento e canais.",
+    "Concentrar o acesso do Agent na mesma arquitetura do Portal e do chat atual.",
+  ],
+  limitations: [
+    "Nao ativa WhatsApp nem qualquer integracao externa neste momento.",
+    "Nao executa assinatura real, pagamento ou provisionamento automatico.",
+  ],
+  requirements: [
+    "Definir o escopo operacional desejado para o Agent no workspace.",
+    "Revisar os canais e processos que serao preparados futuramente.",
+    "Concluir a contratacao quando a camada comercial estiver disponivel.",
+  ],
+  planLabel: "Agent Premium",
+  priceLabel: "R$ 0,00 / placeholder",
+  actionLabel: "Assinar Agent",
+  helperText: "Botao visual de assinatura. Nenhuma ativacao real sera executada por enquanto.",
+} as const
+
+const AGENT_WHATSAPP_DIALOG = {
+  title: "Configuracao visual do Agent",
+  eyebrow: "WhatsApp e operacao",
+  description: "Esta area prepara o estado visual de configuracao do Agent para atendimento via WhatsApp, sem integracao real nesta etapa.",
+  capabilities: [
+    "Exibir o estado atual do canal antes da ativacao real.",
+    "Antecipar o checklist de preparo operacional do Agent.",
+    "Concentrar as informacoes minimas para a futura configuracao do canal.",
+  ],
+  limitations: [
+    "WhatsApp ainda nao esta conectado ao TravelPro.",
+    "Nenhuma mensagem sera enviada a clientes a partir desta tela.",
+  ],
+  requirements: [
+    "Canal ainda nao configurado.",
+    "Numero oficial e politicas de atendimento ainda pendentes.",
+    "Fluxos e mensagens padrao ainda serao definidos futuramente.",
+  ],
+  planLabel: "Configuração do Agent",
+  priceLabel: "Sem custo nesta etapa",
+  actionLabel: "Salvar configuracao visual",
+  helperText: "Somente estado visual de configuracao. Nenhum dado externo sera salvo.",
+} as const
+
 const PREMIUM_EXPANSION_META = {
   advisor: {
     title: "Advisor",
@@ -65,8 +132,16 @@ const PREMIUM_EXPANSION_META = {
     accentColor: "#4f46e5",
     accentBg: "#eef2ff",
     icon: BriefcaseBusiness,
-    secondaryHref: buildConversationHref("/app/conversas/advisor", "Quero uma analise estrategica da minha agencia e um plano de acao prioritario."),
-    secondaryLabel: "Conversar com o Advisor",
+    primaryAction: {
+      label: "Conhecer planos",
+      dialog: ADVISOR_PLAN_DIALOG,
+      style: "primary",
+    },
+    secondaryAction: {
+      label: "Conversar com o Advisor",
+      href: buildConversationHref("/app/conversas/advisor", "Quero uma analise estrategica da minha agencia e um plano de acao prioritario."),
+      style: "secondary",
+    },
     ctas: [
       {
         label: "Vender mais",
@@ -106,15 +181,22 @@ const PREMIUM_EXPANSION_META = {
     accentColor: "#2563eb",
     accentBg: "#eef6ff",
     icon: Bot,
-    primaryHref: buildConversationHref("/app/conversas/agent", "Quero ativar o Agent e entender como ele pode comecar a me apoiar na operacao."),
-    primaryLabel: "Ativar Agent",
-    secondaryHref: buildConversationHref("/app/conversas/agent", "Quero conversar com o Agent sobre a minha operacao atual."),
-    secondaryLabel: "Conversar com o Agent",
+    primaryAction: {
+      label: "Ativar Agent",
+      dialog: AGENT_PLAN_DIALOG,
+      style: "primary",
+    },
+    secondaryAction: {
+      label: "Conversar com o Agent",
+      href: buildConversationHref("/app/conversas/agent", "Quero conversar com o Agent sobre a minha operacao atual."),
+      style: "secondary",
+    },
     ctas: [
       {
         label: "Configurar WhatsApp",
-        href: buildConversationHref("/app/conversas/agent", "Quero preparar o Agent para uma futura operacao no WhatsApp. O que preciso organizar antes?"),
-        description: "Abrir uma conversa de preparacao operacional sem ativar integracoes ainda.",
+        dialog: AGENT_WHATSAPP_DIALOG,
+        description: "Abrir a configuracao visual do canal sem ativar integracoes reais.",
+        footerLabel: "Abrir configuracao",
       },
       {
         label: "Atender clientes",
@@ -141,6 +223,11 @@ const PREMIUM_EXPANSION_META = {
       title: "Status do Agent",
       badge: "Nao ativado",
       description: "O Agent ainda nao esta ativado neste workspace. Esta area prepara o estado visual e o ponto de partida sem implementar integracao com WhatsApp agora.",
+      items: [
+        "WhatsApp: nao configurado.",
+        "Fluxos operacionais: em preparacao visual.",
+        "Assinatura premium: pendente.",
+      ],
     },
   },
 } as const

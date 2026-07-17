@@ -6,6 +6,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import {
+  House,
   ChevronLeft,
   ChevronRight,
   ChevronDown,
@@ -123,6 +124,18 @@ function PortalShell({ children }: { children: React.ReactNode }) {
 
         <nav className="flex-1 px-3 py-2 overflow-y-auto">
           <ul className="space-y-1">
+            <li>
+              <Link
+                href="/portal"
+                onClick={() => setMobileMenuOpen(false)}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${
+                  pathname === "/portal" ? "bg-white shadow-sm text-foreground font-medium" : "text-muted-foreground hover:bg-white/60 hover:text-foreground"
+                }`}
+              >
+                <House className="w-5 h-5 flex-shrink-0" />
+                {!sidebarCollapsed && <span className="text-sm">Inicio</span>}
+              </Link>
+            </li>
             {moduleVisualSections.map((section) => {
               const hasChildren = Boolean(section.children?.length)
               const sectionIsActive = Boolean(section.portalHref && pathname === section.portalHref)
