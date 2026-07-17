@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import {
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   Headphones,
   Smartphone,
   Monitor,
@@ -19,6 +20,7 @@ import { useAuth } from "@/components/auth/auth-provider"
 import { ExpansionLaunchItem } from "@/components/expansions/expansion-launch-item"
 import { PortalUIProvider, usePortalUI } from "@/components/portal/portal-ui-context"
 import { PortalInteractionsProvider, usePortalInteractions } from "@/components/portal/portal-interactions"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { Toaster } from "@/components/ui/toaster"
 import { expansionItems } from "@/lib/expansion-configs"
 import { moduleVisualSections } from "@/lib/module-visual-structure"
@@ -38,6 +40,10 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
 
 function PortalShell({ children }: { children: React.ReactNode }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
+    comercial: false,
+    documentos: false,
+  })
   const { mobileMenuOpen, setMobileMenuOpen } = usePortalUI()
   const { openInstall } = usePortalInteractions()
   const { user, profile } = useAuth()
@@ -45,6 +51,28 @@ function PortalShell({ children }: { children: React.ReactNode }) {
   const displayName = profile?.full_name || profile?.email || user?.email || "Sua conta"
   const displayRole = profile?.global_role === "master" ? "Master" : "Administrador"
   const initials = displayName.trim().charAt(0).toUpperCase() || "S"
+
+  useEffect(() => {
+    setOpenGroups((current) => {
+      const next = { ...current }
+      let changed = false
+
+      moduleVisualSections.forEach((section) => {
+        if (!section.children?.length) {
+          return
+        }
+
+        const hasActiveChild = section.children.some((child) => child.portalHref === pathname)
+
+        if (hasActiveChild && !next[section.key]) {
+          next[section.key] = true
+          changed = true
+        }
+      })
+
+      return changed ? next : current
+    })
+  }, [pathname])
 
   return (
     <div className="flex h-screen bg-white">
@@ -126,74 +154,79 @@ function PortalShell({ children }: { children: React.ReactNode }) {
 
               return (
                 <li key={section.key} className="space-y-1">
-                  {section.portalHref && SectionIcon ? (
-                    <Link
-                      href={section.portalHref}
-                      onClick={() => setMobileMenuOpen(false)}
-                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${
-                        sectionIsActive ? "bg-white shadow-sm text-foreground font-medium" : "text-muted-foreground hover:bg-white/60 hover:text-foreground"
-                      }`}
-                    >
-                      <SectionIcon className="w-5 h-5 flex-shrink-0" />
-                      {!sidebarCollapsed && <span className="text-sm">{section.label}</span>}
-                    </Link>
-                  ) : (
-                    !sidebarCollapsed && (
-                      <div className="px-3 pt-2 text-[11px] font-semibold uppercase tracking-wide text-gray-400">
-                        {section.label}
-                      </div>
-                    )
-                  )}
+                  <Collapsible
+                    open={openGroups[section.key]}
+                    onOpenChange={(open) => setOpenGroups((current) => ({ ...current, [section.key]: open }))}
+                  >
+                    <CollapsibleTrigger asChild>
+                      <button
+                        type="button"
+                        className={`flex w-full items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${
+                          sectionIsActive ? "bg-white shadow-sm text-foreground font-medium" : "text-muted-foreground hover:bg-white/60 hover:text-foreground"
+                        }`}
+                      >
+                        {SectionIcon ? <SectionIcon className="w-5 h-5 flex-shrink-0" /> : null}
+                        {!sidebarCollapsed && <span className="flex-1 text-left text-sm">{section.label}</span>}
+                        {!sidebarCollapsed && (
+                          <ChevronDown
+                            className={`h-4 w-4 flex-shrink-0 transition-transform ${openGroups[section.key] ? "rotate-180" : ""}`}
+                          />
+                        )}
+                      </button>
+                    </CollapsibleTrigger>
 
-                  <ul className={`${sidebarCollapsed ? "space-y-1" : "ml-4 border-l border-gray-100 pl-3 space-y-1"}`}>
-                    {section.children?.map((item) => {
-                      const isActive = Boolean(item.portalHref && pathname === item.portalHref)
-                      const Icon = item.icon
+                    <CollapsibleContent>
+                      <ul className={`${sidebarCollapsed ? "space-y-1 pt-1" : "ml-4 border-l border-gray-100 pl-3 pt-1 space-y-1"}`}>
+                        {section.children?.map((item) => {
+                          const isActive = Boolean(item.portalHref && pathname === item.portalHref)
+                          const Icon = item.icon
 
-                      if (item.placeholder) {
-                        return (
-                          <li key={item.key}>
-                            <div className="flex items-center gap-3 rounded-xl px-3 py-2 text-gray-400">
-                              <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gray-100">
-                                <Icon className="h-4 w-4 text-gray-400" />
-                              </span>
-                              {!sidebarCollapsed && (
-                                <>
-                                  <span className="flex-1 text-sm">{item.label}</span>
-                                  {item.badgeLabel ? (
-                                    <span className="rounded-full border border-dashed border-gray-200 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-gray-400">
-                                      {item.badgeLabel}
-                                    </span>
-                                  ) : null}
-                                </>
-                              )}
-                            </div>
-                          </li>
-                        )
-                      }
+                          if (item.placeholder) {
+                            return (
+                              <li key={item.key}>
+                                <div className="flex items-center gap-3 rounded-xl px-3 py-2 text-gray-400">
+                                  <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gray-100">
+                                    <Icon className="h-4 w-4 text-gray-400" />
+                                  </span>
+                                  {!sidebarCollapsed && (
+                                    <>
+                                      <span className="flex-1 text-sm">{item.label}</span>
+                                      {item.badgeLabel ? (
+                                        <span className="rounded-full border border-dashed border-gray-200 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-gray-400">
+                                          {item.badgeLabel}
+                                        </span>
+                                      ) : null}
+                                    </>
+                                  )}
+                                </div>
+                              </li>
+                            )
+                          }
 
-                      if (!item.portalHref) {
-                        return null
-                      }
+                          if (!item.portalHref) {
+                            return null
+                          }
 
-                      return (
-                        <li key={item.key}>
-                          <Link
-                            href={item.portalHref}
-                            onClick={() => setMobileMenuOpen(false)}
-                            className={`flex items-center gap-3 rounded-xl px-3 py-2 transition-all ${
-                              isActive ? "bg-white shadow-sm text-foreground font-medium" : "text-muted-foreground hover:bg-white/60 hover:text-foreground"
-                            }`}
-                          >
-                            <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: item.bg }}>
-                              <Icon className="h-4 w-4" style={{ color: item.color }} />
-                            </span>
-                            {!sidebarCollapsed && <span className="text-sm">{item.label}</span>}
-                          </Link>
-                        </li>
-                      )
-                    })}
-                  </ul>
+                          return (
+                            <li key={item.key}>
+                              <Link
+                                href={item.portalHref}
+                                onClick={() => setMobileMenuOpen(false)}
+                                className={`flex items-center gap-3 rounded-xl px-3 py-2 transition-all ${
+                                  isActive ? "bg-white shadow-sm text-foreground font-medium" : "text-muted-foreground hover:bg-white/60 hover:text-foreground"
+                                }`}
+                              >
+                                <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: item.bg }}>
+                                  <Icon className="h-4 w-4" style={{ color: item.color }} />
+                                </span>
+                                {!sidebarCollapsed && <span className="text-sm">{item.label}</span>}
+                              </Link>
+                            </li>
+                          )
+                        })}
+                      </ul>
+                    </CollapsibleContent>
+                  </Collapsible>
                 </li>
               )
             })}
