@@ -30,24 +30,6 @@ export const expansionItems: ExpansionItem[] = [
     color: "#fe6708",
     imageSrc: "/expansions/travelmatch-symbol.png",
   },
-  {
-    slug: "advisor",
-    label: "Advisor",
-    href: "/app/expansoes/advisor",
-    description: "Em breve",
-    bg: "#eef2ff",
-    color: "#4f46e5",
-    icon: "headphones",
-  },
-  {
-    slug: "agent",
-    label: "Agent",
-    href: "/app/expansoes/agent",
-    description: "Em breve",
-    bg: "#eef6ff",
-    color: "#2563eb",
-    icon: "shield",
-  },
 ]
 
 export const expansionItemsBySlug = Object.fromEntries(expansionItems.map((item) => [item.slug, item])) as Record<string, ExpansionItem>

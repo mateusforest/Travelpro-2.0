@@ -5,9 +5,11 @@ import {
   DollarSign,
   FileText,
   FolderOpen,
+  Headphones,
   LifeBuoy,
   Link2,
   Settings,
+  Shield,
   TrendingUp,
   Users,
   UsersRound,
@@ -30,6 +32,8 @@ export type TravelProAreaKey =
   | "configuracoes"
   | "roteiros"
   | "atendimentos"
+  | "advisor"
+  | "agent"
 
 export type TravelProAreaStatus = "active" | "soon"
 
@@ -373,6 +377,50 @@ export const travelProAreas: TravelProArea[] = [
       emptyLabel: "Nenhum atendimento registrado ainda.",
       ctaLabel: "Novo atendimento",
       ctaDisabled: true,
+    },
+  },
+  {
+    key: "advisor",
+    label: "Advisor",
+    icon: Headphones,
+    color: "#4f46e5",
+    bg: "#eef2ff",
+    status: "active",
+    route: { app: "/app/conversas/advisor", portal: "/portal/advisor" },
+    destination: { app: "/app/conversas/advisor", portal: "/app/conversas/advisor" },
+    app: {
+      subtitle: "Conversa contextual do Advisor para orientar analises e proximos passos.",
+      emptyLabel: "Ainda nao ha mensagens nesta conversa. Use o campo abaixo para falar com o Advisor.",
+      ctaLabel: "Abrir conversa",
+    },
+    portal: {
+      description: "Modulo do Advisor com acesso direto a conversa contextual do workspace.",
+      emptyLabel: "Abra a conversa do Advisor para centralizar analises e orientacoes.",
+      ctaLabel: "Abrir conversa",
+      aliases: ["advisor"],
+      ctaDisabled: false,
+    },
+  },
+  {
+    key: "agent",
+    label: "Agent",
+    icon: Shield,
+    color: "#2563eb",
+    bg: "#eef6ff",
+    status: "active",
+    route: { app: "/app/conversas/agent", portal: "/portal/agent" },
+    destination: { app: "/app/conversas/agent", portal: "/app/conversas/agent" },
+    app: {
+      subtitle: "Conversa contextual do Agent para organizar atendimentos e operacoes assistidas.",
+      emptyLabel: "Ainda nao ha mensagens nesta conversa. Use o campo abaixo para falar com o Agent.",
+      ctaLabel: "Abrir conversa",
+    },
+    portal: {
+      description: "Modulo do Agent com acesso direto a conversa contextual do workspace.",
+      emptyLabel: "Abra a conversa do Agent para centralizar atendimentos e execucoes assistidas.",
+      ctaLabel: "Abrir conversa",
+      aliases: ["agent"],
+      ctaDisabled: false,
     },
   },
 ]

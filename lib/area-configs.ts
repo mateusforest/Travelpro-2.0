@@ -231,6 +231,30 @@ export const areaConfigs: Record<string, AreaConfig> = {
     emptyLabel: "Ainda nao ha mensagens nesta conversa. Use o campo abaixo para falar com o COS sobre atendimentos.",
     historyInputs: [{ area: "suporte" }],
   },
+  advisor: {
+    label: travelProAreasByKey.advisor.label,
+    icon: travelProAreasByKey.advisor.icon,
+    color: travelProAreasByKey.advisor.color,
+    bg: travelProAreasByKey.advisor.bg,
+    subsections: [],
+    quickActions: ["Quero falar com o Advisor", "Quero revisar prioridades da agencia", "Quero orientacao para o proximo passo"],
+    messages: [],
+    subtitle: "Conversa contextual do Advisor do seu workspace.",
+    emptyLabel: "Ainda nao ha mensagens nesta conversa. Use o campo abaixo para falar com o Advisor.",
+    historyInputs: [{ area: "advisor" }],
+  },
+  agent: {
+    label: travelProAreasByKey.agent.label,
+    icon: travelProAreasByKey.agent.icon,
+    color: travelProAreasByKey.agent.color,
+    bg: travelProAreasByKey.agent.bg,
+    subsections: [],
+    quickActions: ["Quero falar com o Agent", "Quero organizar um atendimento", "Quero acompanhar uma execucao assistida"],
+    messages: [],
+    subtitle: "Conversa contextual do Agent do seu workspace.",
+    emptyLabel: "Ainda nao ha mensagens nesta conversa. Use o campo abaixo para falar com o Agent.",
+    historyInputs: [{ area: "agent" }],
+  },
   cadastros: {
     label: travelProAreasByKey.clientes.label,
     icon: travelProAreasByKey.clientes.icon,
@@ -321,6 +345,8 @@ const conversationRouteMap: Record<string, keyof typeof travelProAreasByKey> = {
   reunioes: "agenda",
   sistema: "configuracoes",
   suporte: "atendimentos",
+  advisor: "advisor",
+  agent: "agent",
 }
 
 export function resolveAreaConversationInput(area: string) {
