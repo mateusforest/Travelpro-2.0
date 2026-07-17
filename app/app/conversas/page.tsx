@@ -8,7 +8,6 @@ import {
   Search,
   SlidersHorizontal,
   ChevronRight,
-  Users,
   Headphones,
   Shield,
 } from "lucide-react"
@@ -16,78 +15,97 @@ import { useOperationsDashboard } from "@/components/app/operations-dashboard-st
 import { useAppInteractions } from "@/components/app/app-interactions"
 import { ExpansionLaunchItem } from "@/components/expansions/expansion-launch-item"
 import { expansionItems } from "@/lib/expansion-configs"
-import { travelProAreas } from "@/lib/travelpro-areas"
+import { moduleVisualSections } from "@/lib/module-visual-structure"
 
-type Conversation = {
-  key: string
-  icon: typeof Users
-  label: string
-  href: string
+type ConversationMeta = {
+  count: number
   lastMessage: string
   time: string
-  count: number
-  color: string
-  bgColor: string
 }
 
-const baseConversations: Conversation[] = travelProAreas.filter((area) => !area.premiumExpansion).map((area) => ({
-  key: area.key,
-  icon: area.icon as typeof Users,
-  label: area.label,
-  href: area.route.app,
-  lastMessage: "Sem registros",
-  time: "-",
-  count: 0,
-  color: area.color,
-  bgColor: area.bg,
-}))
+function resolveConversationMeta(key: string, summary: ReturnType<typeof useOperationsDashboard>["summary"]): ConversationMeta {
+  if (key === "clientes") {
+    const count = summary?.clientsCount ?? 0
+    return { count, lastMessage: count === 1 ? "1 cliente" : count > 1 ? `${count} clientes` : "Sem registros", time: "-" }
+  }
+
+  if (key === "viagens") {
+    const count = summary?.operationsCount ?? 0
+    return { count, lastMessage: count === 1 ? "1 viagem" : count > 1 ? `${count} viagens` : "Sem registros", time: "-" }
+  }
+
+  if (key === "financeiro") {
+    const count = summary?.financial.entriesCount ?? 0
+    return { count, lastMessage: count === 1 ? "1 lancamento" : count > 1 ? `${count} lancamentos` : "Sem registros", time: "-" }
+  }
+
+  if (key === "documentos") {
+    const count = summary?.documentsCount ?? 0
+    return { count, lastMessage: count === 1 ? "1 documento" : count > 1 ? `${count} documentos` : "Sem registros", time: "-" }
+  }
+
+  if (key === "agenda") {
+    const count = summary?.meetingsCount ?? 0
+    return { count, lastMessage: count === 1 ? "1 atendimento" : count > 1 ? `${count} atendimentos` : "Sem registros", time: "-" }
+  }
+
+  return { count: 0, lastMessage: "Sem registros", time: "-" }
+}
 
 export default function ConversasPage() {
   const [searchQuery, setSearchQuery] = useState("")
+  const normalizedSearch = searchQuery.trim().toLowerCase()
   const { summary } = useOperationsDashboard()
   const { openFilters } = useAppInteractions()
 
-  const conversations = useMemo(
+  const sections = useMemo(
     () =>
-      baseConversations.map((conversation) => {
-        if (conversation.key === "clientes") {
-          const count = summary?.clientsCount ?? 0
-          return { ...conversation, count, lastMessage: count === 1 ? "1 cliente" : count > 1 ? `${count} clientes` : "Sem registros" }
-        }
+      moduleVisualSections
+        .map((section) => {
+          const sectionMatches = section.label.toLowerCase().includes(normalizedSearch)
 
-        if (conversation.key === "viagens") {
-          const count = summary?.operationsCount ?? 0
-          return { ...conversation, count, lastMessage: count === 1 ? "1 viagem" : count > 1 ? `${count} viagens` : "Sem registros" }
-        }
+          if (!section.children?.length) {
+            return {
+              ...section,
+              meta: resolveConversationMeta(section.key, summary),
+            }
+          }
 
-        if (conversation.key === "financeiro") {
-          const count = summary?.financial.entriesCount ?? 0
-          return { ...conversation, count, lastMessage: count === 1 ? "1 lancamento" : count > 1 ? `${count} lancamentos` : "Sem registros" }
-        }
+          const children = section.children
+            .map((child) => ({
+              ...child,
+              meta: child.placeholder ? { count: 0, lastMessage: "Placeholder visual", time: "-" } : resolveConversationMeta(child.key, summary),
+            }))
+            .filter((child) => {
+              if (!normalizedSearch) {
+                return true
+              }
 
-        if (conversation.key === "documentos") {
-          const count = summary?.documentsCount ?? 0
-          return { ...conversation, count, lastMessage: count === 1 ? "1 documento" : count > 1 ? `${count} documentos` : "Sem registros" }
-        }
+              return child.label.toLowerCase().includes(normalizedSearch) || child.meta.lastMessage.toLowerCase().includes(normalizedSearch)
+            })
 
-        if (conversation.key === "agenda") {
-          const count = summary?.meetingsCount ?? 0
-          return { ...conversation, count, lastMessage: count === 1 ? "1 atendimento" : count > 1 ? `${count} atendimentos` : "Sem registros" }
-        }
+          if (!normalizedSearch || sectionMatches || children.length > 0) {
+            return { ...section, children }
+          }
 
-        return conversation
-      }),
-    [summary],
-  )
+          return null
+        })
+        .filter((section): section is NonNullable<typeof section> => Boolean(section))
+        .filter((section) => {
+          if (!normalizedSearch) {
+            return true
+          }
 
-  const filtered = useMemo(
-    () =>
-      conversations.filter(
-        (conversation) =>
-          conversation.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          conversation.lastMessage.toLowerCase().includes(searchQuery.toLowerCase()),
-      ),
-    [conversations, searchQuery],
+          if (section.children?.length) {
+            return section.label.toLowerCase().includes(normalizedSearch) || section.children.length > 0
+          }
+
+          return (
+            section.label.toLowerCase().includes(normalizedSearch) ||
+            ("meta" in section && section.meta.lastMessage.toLowerCase().includes(normalizedSearch))
+          )
+        }),
+    [normalizedSearch, summary],
   )
 
   return (
@@ -114,39 +132,131 @@ export default function ConversasPage() {
         </button>
       </motion.div>
 
-      <div className="space-y-1">
-        {filtered.map((conversation, index) => (
-          <motion.div
-            key={conversation.key}
-            initial={{ x: -10, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ delay: 0.05 + index * 0.03 }}
-          >
-            <Link
-              href={conversation.href}
-              className="flex w-full items-center gap-3 rounded-xl border border-gray-100 bg-white p-3 text-left transition-colors hover:bg-gray-50 active:bg-gray-100"
+      <div className="space-y-3">
+        {sections.map((section, index) => {
+          if (!section.children?.length && section.appHref && section.icon && "meta" in section) {
+            const Icon = section.icon
+
+            return (
+              <motion.div
+                key={section.key}
+                initial={{ x: -10, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ delay: 0.05 + index * 0.03 }}
+              >
+                <Link
+                  href={section.appHref}
+                  className="flex w-full items-center gap-3 rounded-xl border border-gray-100 bg-white p-3 text-left transition-colors hover:bg-gray-50 active:bg-gray-100"
+                >
+                  <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: section.bg }}>
+                    <Icon className="h-5 w-5" style={{ color: section.color }} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="mb-0.5 flex items-center justify-between">
+                      <span className="text-sm font-semibold text-[#0a0a0a]">{section.label}</span>
+                      <span className="text-xs text-gray-400">{section.meta.time}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="truncate pr-2 text-xs text-gray-500">{section.meta.lastMessage}</span>
+                      {section.meta.count > 0 && (
+                        <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[#0a0a0a] px-1.5 text-[11px] text-white">
+                          {section.meta.count}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <ChevronRight className="h-4 w-4 flex-shrink-0 text-gray-300" />
+                </Link>
+              </motion.div>
+            )
+          }
+
+          const SectionIcon = section.icon
+
+          return (
+            <motion.div
+              key={section.key}
+              initial={{ x: -10, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 0.05 + index * 0.03 }}
+              className="overflow-hidden rounded-2xl border border-gray-100 bg-white"
             >
-              <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: conversation.bgColor }}>
-                <conversation.icon className="h-5 w-5" style={{ color: conversation.color }} />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="mb-0.5 flex items-center justify-between">
-                  <span className="text-sm font-semibold text-[#0a0a0a]">{conversation.label}</span>
-                  <span className="text-xs text-gray-400">{conversation.time}</span>
+              {section.appHref && SectionIcon ? (
+                <Link href={section.appHref} className="flex items-center gap-3 border-b border-gray-100 px-4 py-3 transition-colors hover:bg-gray-50">
+                  <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: section.bg }}>
+                    <SectionIcon className="h-5 w-5" style={{ color: section.color }} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <span className="block text-sm font-semibold text-[#0a0a0a]">{section.label}</span>
+                    <span className="block text-xs text-gray-500">Abrir conversa principal desta area.</span>
+                  </div>
+                  <ChevronRight className="h-4 w-4 flex-shrink-0 text-gray-300" />
+                </Link>
+              ) : (
+                <div className="border-b border-gray-100 px-4 py-3">
+                  <span className="block text-sm font-semibold text-[#0a0a0a]">{section.label}</span>
+                  <span className="block text-xs text-gray-500">Agrupamento visual dos modulos desta frente.</span>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="truncate pr-2 text-xs text-gray-500">{conversation.lastMessage}</span>
-                  {conversation.count > 0 && (
-                    <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[#0a0a0a] px-1.5 text-[11px] text-white">
-                      {conversation.count}
-                    </span>
-                  )}
-                </div>
+              )}
+
+              <div className="divide-y divide-gray-100">
+                {section.children?.map((item) => {
+                  const Icon = item.icon
+
+                  if (item.placeholder) {
+                    return (
+                      <div key={item.key} className="flex items-center gap-3 px-4 py-3">
+                        <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gray-100">
+                          <Icon className="h-4 w-4 text-gray-400" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <span className="block text-sm font-medium text-gray-500">{item.label}</span>
+                          <span className="block text-xs text-gray-400">Placeholder visual do modulo.</span>
+                        </div>
+                        {item.badgeLabel ? (
+                          <span className="rounded-full border border-dashed border-gray-200 px-2.5 py-1 text-[10px] font-medium uppercase tracking-wide text-gray-400">
+                            {item.badgeLabel}
+                          </span>
+                        ) : null}
+                      </div>
+                    )
+                  }
+
+                  if (!item.appHref || !("meta" in item)) {
+                    return null
+                  }
+
+                  return (
+                    <Link
+                      key={item.key}
+                      href={item.appHref}
+                      className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-gray-50 active:bg-gray-100"
+                    >
+                      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: item.bg }}>
+                        <Icon className="h-4 w-4" style={{ color: item.color }} />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="truncate text-sm font-medium text-[#0a0a0a]">{item.label}</span>
+                          <span className="text-xs text-gray-400">{item.meta.time}</span>
+                        </div>
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="truncate text-xs text-gray-500">{item.meta.lastMessage}</span>
+                          {item.meta.count > 0 && (
+                            <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[#0a0a0a] px-1.5 text-[11px] text-white">
+                              {item.meta.count}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <ChevronRight className="h-4 w-4 flex-shrink-0 text-gray-300" />
+                    </Link>
+                  )
+                })}
               </div>
-              <ChevronRight className="h-4 w-4 flex-shrink-0 text-gray-300" />
-            </Link>
-          </motion.div>
-        ))}
+            </motion.div>
+          )
+        })}
       </div>
 
       <div className="mt-6 space-y-1 lg:hidden">

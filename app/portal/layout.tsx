@@ -21,13 +21,7 @@ import { PortalUIProvider, usePortalUI } from "@/components/portal/portal-ui-con
 import { PortalInteractionsProvider, usePortalInteractions } from "@/components/portal/portal-interactions"
 import { Toaster } from "@/components/ui/toaster"
 import { expansionItems } from "@/lib/expansion-configs"
-import { travelProAreas } from "@/lib/travelpro-areas"
-
-const mainNavItems = travelProAreas.filter((area) => !area.premiumExpansion).map((area) => ({
-  icon: area.icon,
-  label: area.label,
-  href: area.route.portal,
-}))
+import { moduleVisualSections } from "@/lib/module-visual-structure"
 
 export default function PortalLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -101,20 +95,105 @@ function PortalShell({ children }: { children: React.ReactNode }) {
 
         <nav className="flex-1 px-3 py-2 overflow-y-auto">
           <ul className="space-y-1">
-            {mainNavItems.map((item) => {
-              const isActive = pathname === item.href
+            {moduleVisualSections.map((section) => {
+              const hasChildren = Boolean(section.children?.length)
+              const sectionIsActive = Boolean(section.portalHref && pathname === section.portalHref)
+
+              if (!hasChildren) {
+                const Icon = section.icon
+
+                if (!Icon || !section.portalHref) {
+                  return null
+                }
+
+                return (
+                  <li key={section.key}>
+                    <Link
+                      href={section.portalHref}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${
+                        sectionIsActive ? "bg-white shadow-sm text-foreground font-medium" : "text-muted-foreground hover:bg-white/60 hover:text-foreground"
+                      }`}
+                    >
+                      <Icon className="w-5 h-5 flex-shrink-0" />
+                      {!sidebarCollapsed && <span className="text-sm">{section.label}</span>}
+                    </Link>
+                  </li>
+                )
+              }
+
+              const SectionIcon = section.icon
+
               return (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${
-                      isActive ? "bg-white shadow-sm text-foreground font-medium" : "text-muted-foreground hover:bg-white/60 hover:text-foreground"
-                    }`}
-                  >
-                    <item.icon className="w-5 h-5 flex-shrink-0" />
-                    {!sidebarCollapsed && <span className="text-sm">{item.label}</span>}
-                  </Link>
+                <li key={section.key} className="space-y-1">
+                  {section.portalHref && SectionIcon ? (
+                    <Link
+                      href={section.portalHref}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${
+                        sectionIsActive ? "bg-white shadow-sm text-foreground font-medium" : "text-muted-foreground hover:bg-white/60 hover:text-foreground"
+                      }`}
+                    >
+                      <SectionIcon className="w-5 h-5 flex-shrink-0" />
+                      {!sidebarCollapsed && <span className="text-sm">{section.label}</span>}
+                    </Link>
+                  ) : (
+                    !sidebarCollapsed && (
+                      <div className="px-3 pt-2 text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+                        {section.label}
+                      </div>
+                    )
+                  )}
+
+                  <ul className={`${sidebarCollapsed ? "space-y-1" : "ml-4 border-l border-gray-100 pl-3 space-y-1"}`}>
+                    {section.children?.map((item) => {
+                      const isActive = Boolean(item.portalHref && pathname === item.portalHref)
+                      const Icon = item.icon
+
+                      if (item.placeholder) {
+                        return (
+                          <li key={item.key}>
+                            <div className="flex items-center gap-3 rounded-xl px-3 py-2 text-gray-400">
+                              <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gray-100">
+                                <Icon className="h-4 w-4 text-gray-400" />
+                              </span>
+                              {!sidebarCollapsed && (
+                                <>
+                                  <span className="flex-1 text-sm">{item.label}</span>
+                                  {item.badgeLabel ? (
+                                    <span className="rounded-full border border-dashed border-gray-200 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-gray-400">
+                                      {item.badgeLabel}
+                                    </span>
+                                  ) : null}
+                                </>
+                              )}
+                            </div>
+                          </li>
+                        )
+                      }
+
+                      if (!item.portalHref) {
+                        return null
+                      }
+
+                      return (
+                        <li key={item.key}>
+                          <Link
+                            href={item.portalHref}
+                            onClick={() => setMobileMenuOpen(false)}
+                            className={`flex items-center gap-3 rounded-xl px-3 py-2 transition-all ${
+                              isActive ? "bg-white shadow-sm text-foreground font-medium" : "text-muted-foreground hover:bg-white/60 hover:text-foreground"
+                            }`}
+                          >
+                            <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: item.bg }}>
+                              <Icon className="h-4 w-4" style={{ color: item.color }} />
+                            </span>
+                            {!sidebarCollapsed && <span className="text-sm">{item.label}</span>}
+                          </Link>
+                        </li>
+                      )
+                    })}
+                  </ul>
                 </li>
               )
             })}
