@@ -3,7 +3,7 @@
 import { use, useEffect, useState } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
-import { ChevronLeft, ChevronRight, MessageSquare } from "lucide-react"
+import { ChevronLeft, ChevronRight, Clapperboard, Image as ImageIcon, Megaphone, MessageSquare, Sparkles } from "lucide-react"
 import {
   getOperationsConversationMessagesAction,
   runOperationsEngineAction,
@@ -11,6 +11,25 @@ import {
 import { AreaChat, type ChatMessage } from "@/components/app/area-chat"
 import { useOperationsDashboard } from "@/components/app/operations-dashboard-store"
 import { areaConfigs, resolveAreaConversationInput, resolveAreaHistoryInputs, slug } from "@/lib/area-configs"
+
+const STUDIO_SECTION_CARDS = {
+  Criativos: {
+    icon: Sparkles,
+    description: "Organize conceitos, pecas e direcionamentos criativos da agencia.",
+  },
+  Imagens: {
+    icon: ImageIcon,
+    description: "Centralize referencias visuais, necessidades e prioridades de imagens.",
+  },
+  Videos: {
+    icon: Clapperboard,
+    description: "Estruture roteiros, ideias e frentes de videos no Studio IA.",
+  },
+  Campanhas: {
+    icon: Megaphone,
+    description: "Conecte criacao e planejamento de campanhas em uma conversa contextual.",
+  },
+} as const
 
 export default function AreaPage({ params }: { params: Promise<{ area: string }> }) {
   const { area } = use(params)
@@ -161,18 +180,50 @@ export default function AreaPage({ params }: { params: Promise<{ area: string }>
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 divide-y divide-gray-50 mb-6">
-        {config.subsections.map((sub) => (
-          <Link
-            key={sub}
-            href={`/app/conversas/${area}/${slug(sub)}`}
-            className="flex items-center justify-between py-3 px-4 hover:bg-gray-50 transition-colors first:rounded-t-2xl last:rounded-b-2xl"
-          >
-            <span className="text-sm text-[#0a0a0a]">{sub}</span>
-            <ChevronRight className="w-4 h-4 text-gray-300" />
-          </Link>
-        ))}
-      </div>
+      {area === "studio-ia" ? (
+        <div className="mb-6 grid gap-4 sm:grid-cols-2">
+          {config.subsections.map((sub) => {
+            const cardMeta = STUDIO_SECTION_CARDS[sub as keyof typeof STUDIO_SECTION_CARDS]
+            const CardIcon = cardMeta?.icon ?? Icon
+
+            return (
+              <Link
+                key={sub}
+                href={`/app/conversas/${area}/${slug(sub)}`}
+                className="rounded-[1.75rem] border border-gray-100 bg-white p-5 shadow-sm transition-colors hover:bg-gray-50"
+              >
+                <div className="mb-4 inline-flex rounded-full px-3 py-1 text-xs font-medium" style={{ backgroundColor: config.bg, color: config.color }}>
+                  Studio IA
+                </div>
+                <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl" style={{ backgroundColor: config.bg }}>
+                  <CardIcon className="h-5 w-5" style={{ color: config.color }} />
+                </div>
+                <h2 className="text-lg font-semibold text-[#0a0a0a]">{sub}</h2>
+                <p className="mt-2 text-sm text-gray-500">
+                  {cardMeta?.description ?? "Abrir conversa contextual desta area no Studio IA."}
+                </p>
+                <div className="mt-5 inline-flex items-center gap-2 text-sm font-medium" style={{ color: config.color }}>
+                  Abrir conversa
+                  <ChevronRight className="h-4 w-4" />
+                </div>
+              </Link>
+            )
+          })}
+        </div>
+      ) : (
+        <div className="bg-white rounded-2xl border border-gray-100 divide-y divide-gray-50 mb-6">
+          {config.subsections.map((sub) => (
+            <Link
+              key={sub}
+              href={`/app/conversas/${area}/${slug(sub)}`}
+              className="flex items-center justify-between py-3 px-4 hover:bg-gray-50 transition-colors first:rounded-t-2xl last:rounded-b-2xl"
+            >
+              <span className="text-sm text-[#0a0a0a]">{sub}</span>
+              <ChevronRight className="w-4 h-4 text-gray-300" />
+            </Link>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

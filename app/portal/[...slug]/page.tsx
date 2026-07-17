@@ -1,7 +1,7 @@
 "use client"
 
 import { use } from "react"
-import { Bot, BriefcaseBusiness } from "lucide-react"
+import { Bot, BriefcaseBusiness, Clapperboard, Image as ImageIcon, Megaphone, Sparkles } from "lucide-react"
 import { PortalHeader } from "@/components/portal/portal-header"
 import { PortalModulePage } from "@/components/portal/portal-module-page"
 import { PremiumExpansionHome } from "@/components/portal/premium-expansion-home"
@@ -124,6 +124,55 @@ const AGENT_WHATSAPP_DIALOG = {
   helperText: "Somente estado visual de configuracao. Nenhum dado externo sera salvo.",
 } as const
 
+const STUDIO_MODULE_META = {
+  title: "Studio IA",
+  eyebrow: "Conteudo e campanhas",
+  description: "Use o Studio IA como base nativa do TravelPro para organizar criativos, imagens, videos e campanhas em uma experiencia visual unica.",
+  accentColor: "#7c3aed",
+  accentBg: "#f3e8ff",
+  icon: Sparkles,
+  primaryAction: {
+    label: "Abrir Studio IA",
+    href: buildConversationHref("/app/conversas/studio-ia", "Quero usar o Studio IA para organizar os ativos e campanhas da minha agencia."),
+    style: "primary",
+  },
+  secondaryAction: {
+    label: "Conversar com o Studio IA",
+    href: buildConversationHref("/app/conversas/studio-ia/criativos", "Quero comecar pelo planejamento de criativos para a minha agencia."),
+    style: "secondary",
+  },
+  ctas: [
+    {
+      label: "Criativos",
+      href: buildConversationHref("/app/conversas/studio-ia/criativos", "Quero organizar criativos para a agencia e entender quais pecas devo priorizar agora."),
+      description: "Planejar pecas, mensagens e direcao criativa do Studio IA.",
+      icon: Sparkles,
+    },
+    {
+      label: "Imagens",
+      href: buildConversationHref("/app/conversas/studio-ia/imagens", "Quero estruturar as imagens da agencia e definir o que preciso produzir ou revisar."),
+      description: "Centralizar imagens, referencias e necessidades visuais da agencia.",
+      icon: ImageIcon,
+    },
+    {
+      label: "Videos",
+      href: buildConversationHref("/app/conversas/studio-ia/videos", "Quero organizar a frente de videos da agencia e definir os proximos conteudos."),
+      description: "Abrir uma conversa contextual sobre roteiros e uso de videos no Studio IA.",
+      icon: Clapperboard,
+    },
+    {
+      label: "Campanhas",
+      href: buildConversationHref("/app/conversas/studio-ia/campanhas", "Quero estruturar campanhas da agencia com apoio do Studio IA."),
+      description: "Conectar criacao, distribuicao e contexto comercial em uma mesma conversa.",
+      icon: Megaphone,
+    },
+  ],
+  placeholderCard: {
+    title: "Operacoes do Studio IA",
+    description: "Base visual criada para organizar frentes de criacao. Geracao, publicacao e integracoes continuarao fora do escopo por enquanto.",
+  },
+} as const
+
 const PREMIUM_EXPANSION_META = {
   advisor: {
     title: "Advisor",
@@ -244,6 +293,10 @@ export default function PortalSectionPage({ params }: { params: Promise<{ slug: 
 
   if (premiumExpansion) {
     return <PremiumExpansionHome {...premiumExpansion} />
+  }
+
+  if (key === "studio-ia") {
+    return <PremiumExpansionHome {...STUDIO_MODULE_META} />
   }
 
   if (area?.portal.manager === "clients") {

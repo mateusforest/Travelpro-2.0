@@ -10,6 +10,7 @@ import {
   Link2,
   Settings,
   Shield,
+  Sparkles,
   TrendingUp,
   Users,
   UsersRound,
@@ -30,6 +31,7 @@ export type TravelProAreaKey =
   | "relatorios"
   | "integracoes"
   | "configuracoes"
+  | "studio-ia"
   | "roteiros"
   | "atendimentos"
   | "advisor"
@@ -315,6 +317,28 @@ export const travelProAreas: TravelProArea[] = [
       emptyLabel: "Nenhuma integracao disponivel ainda.",
       ctaLabel: "Nova integracao",
       ctaDisabled: true,
+    },
+  },
+  {
+    key: "studio-ia",
+    label: "Studio IA",
+    icon: Sparkles,
+    color: "#7c3aed",
+    bg: "#f3e8ff",
+    status: "active",
+    route: { app: "/app/conversas/studio-ia", portal: "/portal/studio-ia" },
+    destination: { app: "/app/conversas/studio-ia", portal: "/portal/studio-ia" },
+    app: {
+      subtitle: "Organize criativos, imagens, videos e campanhas em uma conversa contextual unica.",
+      emptyLabel: "Nenhuma conversa do Studio IA disponivel nesta sessao por enquanto.",
+      ctaLabel: "Abrir Studio IA",
+    },
+    portal: {
+      description: "Centralize criativos, imagens, videos e campanhas em uma base visual do Studio IA.",
+      emptyLabel: "Nenhum item do Studio IA disponivel ainda.",
+      ctaLabel: "Abrir Studio IA",
+      aliases: ["studio-ia"],
+      ctaDisabled: false,
     },
   },
   {

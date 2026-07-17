@@ -88,6 +88,7 @@ export const moduleVisualSections: VisualModuleSection[] = [
   },
   areaLeaf("agenda"),
   areaLeaf("atendimentos"),
+  areaLeaf("studio-ia"),
   areaLeaf("relatorios"),
   areaLeaf("integracoes"),
   areaLeaf("configuracoes"),

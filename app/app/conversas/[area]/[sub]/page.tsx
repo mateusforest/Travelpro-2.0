@@ -9,6 +9,20 @@ import { AreaChat, type ChatMessage } from "@/components/app/area-chat"
 import { useOperationsDashboard } from "@/components/app/operations-dashboard-store"
 import { areaConfigs, slug } from "@/lib/area-configs"
 
+function resolveSubAreaConversationInput(area: string, sub: string) {
+  if (area === "studio-ia") {
+    return {
+      area: "sistema",
+      subArea: `studio-ia-${sub}`,
+    }
+  }
+
+  return {
+    area,
+    subArea: sub,
+  }
+}
+
 function resolveChatCopy(area: string, subLabel: string) {
   if (area === "cadastros") {
     return {
@@ -58,6 +72,18 @@ function resolveChatCopy(area: string, subLabel: string) {
     }
   }
 
+  if (area === "studio-ia") {
+    return {
+      subtitle: `Conversa contextual do Studio IA sobre ${subLabel.toLowerCase()}.`,
+      emptyLabel: `Ainda nao ha mensagens nesta conversa. Use o campo abaixo para falar sobre ${subLabel.toLowerCase()} no Studio IA.`,
+      quickActions: [
+        `Quero planejar ${subLabel.toLowerCase()}`,
+        `Quero organizar ${subLabel.toLowerCase()} da agencia`,
+        `Quero revisar prioridades de ${subLabel.toLowerCase()}`,
+      ],
+    }
+  }
+
   return {
     subtitle: `${subLabel} · COS Operacoes`,
     emptyLabel: `Ainda nao ha mensagens nesta conversa. Use o campo abaixo para falar com o COS sobre ${subLabel.toLowerCase()}.`,
@@ -77,16 +103,14 @@ export default function SubAreaPage({ params }: { params: Promise<{ area: string
     sub.charAt(0).toUpperCase() + sub.slice(1).replace(/-/g, " ")
 
   const chatCopy = resolveChatCopy(area, subLabel)
+  const conversationInput = resolveSubAreaConversationInput(area, sub)
 
   useEffect(() => {
     let isMounted = true
 
     const loadMessages = async () => {
       setIsLoadingMessages(true)
-      const result = await getOperationsConversationMessagesAction({
-        area,
-        subArea: sub,
-      })
+      const result = await getOperationsConversationMessagesAction(conversationInput)
 
       if (!isMounted) {
         return
@@ -106,7 +130,7 @@ export default function SubAreaPage({ params }: { params: Promise<{ area: string
     return () => {
       isMounted = false
     }
-  }, [area, sub, config])
+  }, [area, sub, config, conversationInput.area, conversationInput.subArea])
 
   return (
     <AreaChat
@@ -123,8 +147,8 @@ export default function SubAreaPage({ params }: { params: Promise<{ area: string
         try {
           const result = await runOperationsEngineAction({
             message: input,
-            area,
-            subArea: sub,
+            area: conversationInput.area,
+            subArea: conversationInput.subArea,
           })
           const responseText =
             typeof result.message === "string" && result.message.trim()

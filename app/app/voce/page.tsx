@@ -450,7 +450,7 @@ export default function VocePage() {
                 <>
                   <SheetHeader title="Alterar foto" onClose={closeSheet} />
                   <div className="space-y-4">
-                    <InfoCard text="Selecione uma imagem do seu dispositivo. Upload de imagem via storage sera usado quando estiver configurado." />
+                    <InfoCard text="Selecione uma imagem do seu dispositivo. Voce pode enviar arquivos maiores, com ate 20 MB, e o TravelPro otimiza automaticamente a foto para uso como avatar." />
                     <input
                       ref={avatarInputRef}
                       type="file"

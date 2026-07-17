@@ -43,6 +43,7 @@ type PremiumExpansionHomeProps = {
     description?: string
     dialog?: PremiumDialogConfig
     footerLabel?: string
+    icon?: LucideIcon
   }>
   statusCard?: {
     title: string
@@ -153,11 +154,20 @@ export function PremiumExpansionHome({
 
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {ctas.map((cta) => {
+              const CardIcon = cta.icon
               const content = (
                 <>
                   <div className="mb-4 inline-flex rounded-full px-3 py-1 text-xs font-medium" style={{ backgroundColor: accentBg, color: accentColor }}>
                     Acao recomendada
                   </div>
+                  {CardIcon ? (
+                    <div
+                      className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl"
+                      style={{ backgroundColor: accentBg }}
+                    >
+                      <CardIcon className="h-5 w-5" style={{ color: accentColor }} />
+                    </div>
+                  ) : null}
                   <h3 className="text-lg font-semibold text-[#0a0a0a]">{cta.label}</h3>
                   <p className="mt-2 text-sm text-gray-500">{cta.description ?? "Abrir conversa contextual para seguir por este caminho no TravelPro."}</p>
                   <div className="mt-5 inline-flex items-center gap-2 text-sm font-medium" style={{ color: accentColor }}>
