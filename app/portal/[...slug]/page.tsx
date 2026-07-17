@@ -53,6 +53,10 @@ const DOCUMENT_MANAGER_META: Record<string, { title: string; description: string
   },
 }
 
+function buildConversationHref(baseHref: string, prompt: string) {
+  return `${baseHref}?prompt=${encodeURIComponent(prompt)}&autoSend=1`
+}
+
 const PREMIUM_EXPANSION_META = {
   advisor: {
     title: "Advisor",
@@ -61,17 +65,39 @@ const PREMIUM_EXPANSION_META = {
     accentColor: "#4f46e5",
     accentBg: "#eef2ff",
     icon: BriefcaseBusiness,
-    primaryHref: "/portal/advisor",
-    primaryLabel: "Abrir Advisor",
-    secondaryHref: "/app/conversas/advisor",
-    secondaryLabel: "Abrir conversa",
+    secondaryHref: buildConversationHref("/app/conversas/advisor", "Quero uma analise estrategica da minha agencia e um plano de acao prioritario."),
+    secondaryLabel: "Conversar com o Advisor",
     ctas: [
-      { label: "Vender mais", href: "/app/conversas/advisor" },
-      { label: "Resolver problemas com clientes", href: "/app/conversas/advisor" },
-      { label: "Melhorar atendimento", href: "/app/conversas/advisor" },
-      { label: "Analisar a agencia", href: "/app/conversas/advisor" },
-      { label: "Crescer no internacional", href: "/app/conversas/advisor" },
+      {
+        label: "Vender mais",
+        href: buildConversationHref("/app/conversas/advisor", "Quero vender mais. Analise minha agencia e sugira as prioridades comerciais mais importantes agora."),
+        description: "Iniciar conversa com foco em crescimento comercial e prioridades de venda.",
+      },
+      {
+        label: "Resolver problemas com clientes",
+        href: buildConversationHref("/app/conversas/advisor", "Preciso resolver problemas com clientes. Me ajude a organizar a situacao e definir a melhor abordagem."),
+        description: "Abrir uma conversa para destravar conflitos, pendencias e recuperacao de relacionamento.",
+      },
+      {
+        label: "Melhorar atendimento",
+        href: buildConversationHref("/app/conversas/advisor", "Quero melhorar o atendimento da minha agencia. Me mostre por onde comecar."),
+        description: "Levar o Advisor direto para uma analise de atendimento e experiencia do cliente.",
+      },
+      {
+        label: "Analisar a agencia",
+        href: buildConversationHref("/app/conversas/advisor", "Quero analisar minha agencia como um todo e identificar gargalos, riscos e oportunidades."),
+        description: "Comecar uma leitura mais ampla da operacao com foco em diagnostico estrategico.",
+      },
+      {
+        label: "Crescer no internacional",
+        href: buildConversationHref("/app/conversas/advisor", "Quero crescer no internacional. Me ajude a estruturar os proximos passos da agencia."),
+        description: "Abrir uma conversa contextual sobre expansao internacional e posicionamento.",
+      },
     ],
+    placeholderCard: {
+      title: "Insights da agencia",
+      description: "Area preparada para concentrar sinais e leituras estrategicas da agencia. Por enquanto, permanece como placeholder visual.",
+    },
   },
   agent: {
     title: "Agent",
@@ -80,17 +106,42 @@ const PREMIUM_EXPANSION_META = {
     accentColor: "#2563eb",
     accentBg: "#eef6ff",
     icon: Bot,
-    primaryHref: "/portal/agent",
-    primaryLabel: "Abrir Agent",
-    secondaryHref: "/app/conversas/agent",
-    secondaryLabel: "Abrir conversa",
+    primaryHref: buildConversationHref("/app/conversas/agent", "Quero ativar o Agent e entender como ele pode comecar a me apoiar na operacao."),
+    primaryLabel: "Ativar Agent",
+    secondaryHref: buildConversationHref("/app/conversas/agent", "Quero conversar com o Agent sobre a minha operacao atual."),
+    secondaryLabel: "Conversar com o Agent",
     ctas: [
-      { label: "Configurar WhatsApp", href: "/app/conversas/agent" },
-      { label: "Atender clientes", href: "/app/conversas/agent" },
-      { label: "Cadastrar clientes", href: "/app/conversas/agent" },
-      { label: "Executar tarefas", href: "/app/conversas/agent" },
-      { label: "Organizar operacoes", href: "/app/conversas/agent" },
+      {
+        label: "Configurar WhatsApp",
+        href: buildConversationHref("/app/conversas/agent", "Quero preparar o Agent para uma futura operacao no WhatsApp. O que preciso organizar antes?"),
+        description: "Abrir uma conversa de preparacao operacional sem ativar integracoes ainda.",
+      },
+      {
+        label: "Atender clientes",
+        href: buildConversationHref("/app/conversas/agent", "Quero organizar o Agent para apoiar atendimentos a clientes com mais continuidade."),
+        description: "Iniciar uma conversa com foco em rotina de atendimento e acompanhamento.",
+      },
+      {
+        label: "Cadastrar clientes",
+        href: buildConversationHref("/app/conversas/agent", "Quero usar o Agent para ajudar no cadastro e organizacao de clientes."),
+        description: "Comecar pelo fluxo operacional de cadastros e atualizacao de base.",
+      },
+      {
+        label: "Executar tarefas",
+        href: buildConversationHref("/app/conversas/agent", "Quero usar o Agent para executar tarefas operacionais com mais consistencia."),
+        description: "Levar o Agent direto para um contexto de execucao assistida.",
+      },
+      {
+        label: "Organizar operacoes",
+        href: buildConversationHref("/app/conversas/agent", "Quero organizar melhor minhas operacoes e entender como o Agent pode apoiar esse fluxo."),
+        description: "Abrir uma conversa contextual sobre organizacao operacional da agencia.",
+      },
     ],
+    statusCard: {
+      title: "Status do Agent",
+      badge: "Nao ativado",
+      description: "O Agent ainda nao esta ativado neste workspace. Esta area prepara o estado visual e o ponto de partida sem implementar integracao com WhatsApp agora.",
+    },
   },
 } as const
 

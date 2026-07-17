@@ -12,14 +12,24 @@ type PremiumExpansionHomeProps = {
   accentColor: string
   accentBg: string
   icon: LucideIcon
-  primaryHref: string
-  primaryLabel: string
+  primaryHref?: string
+  primaryLabel?: string
   secondaryHref: string
   secondaryLabel: string
   ctas: ReadonlyArray<{
     label: string
     href: string
+    description?: string
   }>
+  statusCard?: {
+    title: string
+    badge?: string
+    description: string
+  }
+  placeholderCard?: {
+    title: string
+    description: string
+  }
 }
 
 export function PremiumExpansionHome({
@@ -34,6 +44,8 @@ export function PremiumExpansionHome({
   secondaryHref,
   secondaryLabel,
   ctas,
+  statusCard,
+  placeholderCard,
 }: PremiumExpansionHomeProps) {
   return (
     <div className="flex flex-1 flex-col h-full">
@@ -69,13 +81,15 @@ export function PremiumExpansionHome({
                 </div>
 
                 <div className="flex flex-col gap-3 sm:flex-row">
-                  <Link
-                    href={primaryHref}
-                    className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#0a0a0a] px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-[#1a1a1a]"
-                  >
-                    {primaryLabel}
-                    <ArrowRight className="h-4 w-4" />
-                  </Link>
+                  {primaryHref && primaryLabel ? (
+                    <Link
+                      href={primaryHref}
+                      className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#0a0a0a] px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-[#1a1a1a]"
+                    >
+                      {primaryLabel}
+                      <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  ) : null}
                   <Link
                     href={secondaryHref}
                     className="inline-flex items-center justify-center gap-2 rounded-2xl border border-gray-200 bg-white px-5 py-3 text-sm font-medium text-[#0a0a0a] transition-colors hover:bg-gray-50"
@@ -98,7 +112,7 @@ export function PremiumExpansionHome({
                   Acao recomendada
                 </div>
                 <h3 className="text-lg font-semibold text-[#0a0a0a]">{cta.label}</h3>
-                <p className="mt-2 text-sm text-gray-500">Abrir conversa contextual para seguir por este caminho no TravelPro.</p>
+                <p className="mt-2 text-sm text-gray-500">{cta.description ?? "Abrir conversa contextual para seguir por este caminho no TravelPro."}</p>
                 <div className="mt-5 inline-flex items-center gap-2 text-sm font-medium" style={{ color: accentColor }}>
                   Abrir no app
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
@@ -106,6 +120,37 @@ export function PremiumExpansionHome({
               </Link>
             ))}
           </div>
+
+          {statusCard || placeholderCard ? (
+            <div className="mt-6 grid gap-4 lg:grid-cols-2">
+              {statusCard ? (
+                <div className="rounded-[1.75rem] border border-gray-100 bg-white p-5 shadow-sm">
+                  <div className="flex items-center justify-between gap-3">
+                    <h3 className="text-lg font-semibold text-[#0a0a0a]">{statusCard.title}</h3>
+                    {statusCard.badge ? (
+                      <span
+                        className="inline-flex rounded-full px-3 py-1 text-xs font-medium"
+                        style={{ backgroundColor: accentBg, color: accentColor }}
+                      >
+                        {statusCard.badge}
+                      </span>
+                    ) : null}
+                  </div>
+                  <p className="mt-3 text-sm text-gray-500">{statusCard.description}</p>
+                </div>
+              ) : null}
+
+              {placeholderCard ? (
+                <div className="rounded-[1.75rem] border border-dashed border-gray-200 bg-white/80 p-5 shadow-sm">
+                  <div className="inline-flex rounded-full px-3 py-1 text-xs font-medium" style={{ backgroundColor: accentBg, color: accentColor }}>
+                    Placeholder
+                  </div>
+                  <h3 className="mt-4 text-lg font-semibold text-[#0a0a0a]">{placeholderCard.title}</h3>
+                  <p className="mt-3 text-sm text-gray-500">{placeholderCard.description}</p>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
         </div>
       </div>
     </div>

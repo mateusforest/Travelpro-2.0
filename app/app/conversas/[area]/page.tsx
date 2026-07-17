@@ -2,7 +2,7 @@
 
 import { use, useEffect, useState } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { ChevronLeft, ChevronRight, MessageSquare } from "lucide-react"
 import {
   getOperationsConversationMessagesAction,
@@ -15,10 +15,13 @@ import { areaConfigs, resolveAreaConversationInput, resolveAreaHistoryInputs, sl
 export default function AreaPage({ params }: { params: Promise<{ area: string }> }) {
   const { area } = use(params)
   const router = useRouter()
+  const searchParams = useSearchParams()
   const config = areaConfigs[area]
   const conversationInput = resolveAreaConversationInput(area)
   const historyInputs = resolveAreaHistoryInputs(area)
   const isChatArea = Boolean(config) && config.subsections.length === 0
+  const initialPrompt = searchParams.get("prompt") ?? undefined
+  const autoSendInitialPrompt = searchParams.get("autoSend") === "1"
   const { refreshSummary } = useOperationsDashboard()
   const [messages, setMessages] = useState<ChatMessage[]>(config?.messages ?? [])
   const [isLoadingMessages, setIsLoadingMessages] = useState(isChatArea)
@@ -90,6 +93,8 @@ export default function AreaPage({ params }: { params: Promise<{ area: string }>
         messages={messages}
         isLoadingHistory={isLoadingMessages}
         quickActions={config.quickActions.map((label) => ({ label }))}
+        initialInput={initialPrompt}
+        autoSendInitialInput={autoSendInitialPrompt}
         onSendMessage={async (input, now) => {
           try {
             const result = await runOperationsEngineAction({

@@ -46,6 +46,8 @@ export function AreaChat({
   placeholder = "Escreva uma mensagem...",
   onSendMessage,
   isLoadingHistory = false,
+  initialInput,
+  autoSendInitialInput = false,
 }: {
   title: string
   subtitle?: string
@@ -59,6 +61,8 @@ export function AreaChat({
   placeholder?: string
   onSendMessage?: (input: string, now: string) => SendMessageResult
   isLoadingHistory?: boolean
+  initialInput?: string
+  autoSendInitialInput?: boolean
 }) {
   const router = useRouter()
   const [input, setInput] = useState("")
@@ -67,6 +71,7 @@ export function AreaChat({
   const inputRef = useRef<HTMLInputElement>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
   const conversationKeyRef = useRef(conversationKey)
+  const initialInputKeyRef = useRef<string | null>(null)
   const latestMessagesSignature = useMemo(
     () => messages.map((message) => message.id ?? `${message.from}:${message.time}:${message.text}`).join("|"),
     [messages],
@@ -93,10 +98,41 @@ export function AreaChat({
     return () => window.cancelAnimationFrame(frame)
   }, [chat, isSending, isLoadingHistory])
 
-  const send = async () => {
-    if (!input.trim() || isSending) return
+  useEffect(() => {
+    const normalizedInitialInput = initialInput?.trim()
+
+    if (!normalizedInitialInput) {
+      return
+    }
+
+    const initialInputKey = `${conversationKey}:${normalizedInitialInput}:${autoSendInitialInput ? "send" : "draft"}`
+    setInput(normalizedInitialInput)
+
+    if (!autoSendInitialInput) {
+      if (initialInputKeyRef.current !== initialInputKey) {
+        initialInputKeyRef.current = initialInputKey
+      }
+      return
+    }
+
+    if (isLoadingHistory || isSending) {
+      return
+    }
+
+    if (initialInputKeyRef.current === initialInputKey) {
+      return
+    }
+
+    initialInputKeyRef.current = initialInputKey
+    void send(normalizedInitialInput)
+  }, [autoSendInitialInput, conversationKey, initialInput, isLoadingHistory, isSending])
+
+  const send = async (overrideInput?: string) => {
+    const nextInput = (overrideInput ?? input).trim()
+
+    if (!nextInput || isSending) return
+
     const now = new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
-    const nextInput = input.trim()
     setChat((prev) => [...prev, { id: `local-user-${Date.now()}`, from: "user", text: nextInput, time: now }])
     setInput("")
 
