@@ -4,7 +4,7 @@ import { canManageWorkspace, getUserAccessForUser } from "@/lib/auth"
 import { createSupabaseAdminClient, createSupabaseServerClient } from "@/lib/supabase/server"
 
 export type DocumentStatus = "draft" | "sent" | "signed" | "archived"
-export type DocumentType = "contrato" | "arquivo" | "relatorio" | "proposta" | "outro"
+export type DocumentType = "contrato" | "arquivo" | "relatorio" | "proposta" | "recibo" | "nota_fiscal" | "outro"
 
 type DocumentRow = {
   id: string
@@ -81,6 +81,8 @@ function normalizeDocumentType(type: string): DocumentType {
   if (normalized === "arquivo" || normalized === "documento") return "arquivo"
   if (normalized === "relatorio") return "relatorio"
   if (normalized === "proposta") return "proposta"
+  if (normalized === "recibo") return "recibo"
+  if (normalized === "nota fiscal" || normalized === "nota-fiscal" || normalized === "nota_fiscal") return "nota_fiscal"
   return "outro"
 }
 

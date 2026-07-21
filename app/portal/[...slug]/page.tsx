@@ -41,6 +41,11 @@ const DOCUMENT_MANAGER_META: Record<string, { title: string; description: string
     description: "Centralize documentos reais do seu workspace.",
     filterType: "arquivos",
   },
+  arquivos: {
+    title: "Arquivos",
+    description: "Centralize arquivos reais do seu workspace.",
+    filterType: "arquivos",
+  },
   propostas: {
     title: "Propostas",
     description: "Centralize propostas reais e acompanhe seus rascunhos e envios.",
@@ -50,6 +55,16 @@ const DOCUMENT_MANAGER_META: Record<string, { title: string; description: string
     title: "Relatorios",
     description: "Acompanhe relatorios reais salvos no seu workspace.",
     filterType: "relatorios",
+  },
+  recibos: {
+    title: "Recibos",
+    description: "Centralize recibos reais do seu workspace.",
+    filterType: "recibos",
+  },
+  "notas-fiscais": {
+    title: "Notas fiscais",
+    description: "Centralize notas fiscais reais do seu workspace.",
+    filterType: "notas-fiscais",
   },
 }
 

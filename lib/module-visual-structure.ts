@@ -1,4 +1,4 @@
-import { Briefcase, FileText, FolderOpen, type LucideIcon } from "lucide-react"
+import { Briefcase, type LucideIcon } from "lucide-react"
 import type { TravelProAreaKey } from "@/lib/travelpro-areas"
 import { travelProAreasByKey } from "@/lib/travelpro-areas"
 
@@ -11,8 +11,6 @@ export type VisualModuleLeaf = {
   appHref?: string
   portalHref?: string
   areaKey?: TravelProAreaKey
-  placeholder?: boolean
-  badgeLabel?: string
 }
 
 export type VisualModuleSection = {
@@ -42,18 +40,6 @@ function areaLeaf(areaKey: TravelProAreaKey): VisualModuleLeaf {
   }
 }
 
-function placeholderLeaf(key: string, label: string, icon: LucideIcon): VisualModuleLeaf {
-  return {
-    key,
-    label,
-    icon,
-    color: "#9ca3af",
-    bg: "#f3f4f6",
-    placeholder: true,
-    badgeLabel: "Em breve",
-  }
-}
-
 const documentosArea = travelProAreasByKey.documentos
 
 export const moduleVisualSections: VisualModuleSection[] = [
@@ -79,11 +65,11 @@ export const moduleVisualSections: VisualModuleSection[] = [
     areaKey: documentosArea.key,
     children: [
       areaLeaf("contratos"),
-      placeholderLeaf("arquivos", "Arquivos", FolderOpen),
+      areaLeaf("arquivos"),
       areaLeaf("roteiros"),
       areaLeaf("relatorios"),
-      placeholderLeaf("recibos", "Recibos", FileText),
-      placeholderLeaf("notas-fiscais", "Notas fiscais", FileText),
+      areaLeaf("recibos"),
+      areaLeaf("notas-fiscais"),
     ],
   },
   areaLeaf("agenda"),

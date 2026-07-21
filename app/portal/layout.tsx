@@ -194,28 +194,6 @@ function PortalShell({ children }: { children: React.ReactNode }) {
                           const isActive = Boolean(item.portalHref && pathname === item.portalHref)
                           const Icon = item.icon
 
-                          if (item.placeholder) {
-                            return (
-                              <li key={item.key}>
-                                <div className="flex items-center gap-3 rounded-xl px-3 py-2 text-gray-400">
-                                  <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gray-100">
-                                    <Icon className="h-4 w-4 text-gray-400" />
-                                  </span>
-                                  {!sidebarCollapsed && (
-                                    <>
-                                      <span className="flex-1 text-sm">{item.label}</span>
-                                      {item.badgeLabel ? (
-                                        <span className="rounded-full border border-dashed border-gray-200 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-gray-400">
-                                          {item.badgeLabel}
-                                        </span>
-                                      ) : null}
-                                    </>
-                                  )}
-                                </div>
-                              </li>
-                            )
-                          }
-
                           if (!item.portalHref) {
                             return null
                           }

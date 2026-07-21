@@ -98,6 +98,8 @@ function statusLabel(status: DocumentStatus) {
 
 function typeLabel(type: DocumentType) {
   if (type === "relatorio") return "Relatorio"
+  if (type === "recibo") return "Recibo"
+  if (type === "nota_fiscal") return "Nota fiscal"
   return type.charAt(0).toUpperCase() + type.slice(1)
 }
 
@@ -108,7 +110,107 @@ function normalizeFilterType(filterType?: string | null): DocumentType | null {
   if (normalized === "arquivo" || normalized === "arquivos" || normalized === "documento" || normalized === "documentos") return "arquivo"
   if (normalized === "relatorio" || normalized === "relatorios") return "relatorio"
   if (normalized === "proposta" || normalized === "propostas") return "proposta"
+  if (normalized === "recibo" || normalized === "recibos") return "recibo"
+  if (normalized === "nota fiscal" || normalized === "notas fiscais" || normalized === "nota-fiscal" || normalized === "notas-fiscais") return "nota_fiscal"
   return null
+}
+
+function resolveModuleCopy(type: DocumentType | null) {
+  if (type === "arquivo") {
+    return {
+      singular: "arquivo",
+      singularCapitalized: "Arquivo",
+      plural: "arquivos",
+      loading: "Carregando arquivos...",
+      empty: "Nenhum arquivo criado ainda.",
+      save: "Salvar arquivo",
+      create: "Novo arquivo",
+      edit: "Editar arquivo",
+      helper: "Salve metadados reais e vincule o arquivo aos registros da operacao.",
+    }
+  }
+
+  if (type === "relatorio") {
+    return {
+      singular: "relatorio",
+      singularCapitalized: "Relatorio",
+      plural: "relatorios",
+      loading: "Carregando relatorios...",
+      empty: "Nenhum relatorio criado ainda.",
+      save: "Salvar relatorio",
+      create: "Novo relatorio",
+      edit: "Editar relatorio",
+      helper: "Salve metadados reais e vincule o relatorio aos registros da operacao.",
+    }
+  }
+
+  if (type === "recibo") {
+    return {
+      singular: "recibo",
+      singularCapitalized: "Recibo",
+      plural: "recibos",
+      loading: "Carregando recibos...",
+      empty: "Nenhum recibo criado ainda.",
+      save: "Salvar recibo",
+      create: "Novo recibo",
+      edit: "Editar recibo",
+      helper: "Salve metadados reais e vincule o recibo aos registros da operacao.",
+    }
+  }
+
+  if (type === "nota_fiscal") {
+    return {
+      singular: "nota fiscal",
+      singularCapitalized: "Nota fiscal",
+      plural: "notas fiscais",
+      loading: "Carregando notas fiscais...",
+      empty: "Nenhuma nota fiscal criada ainda.",
+      save: "Salvar nota fiscal",
+      create: "Nova nota fiscal",
+      edit: "Editar nota fiscal",
+      helper: "Salve metadados reais e vincule a nota fiscal aos registros da operacao.",
+    }
+  }
+
+  if (type === "contrato") {
+    return {
+      singular: "contrato",
+      singularCapitalized: "Contrato",
+      plural: "contratos",
+      loading: "Carregando contratos...",
+      empty: "Nenhum contrato criado ainda.",
+      save: "Salvar contrato",
+      create: "Novo contrato",
+      edit: "Editar contrato",
+      helper: "Salve metadados reais e vincule o contrato aos registros da operacao.",
+    }
+  }
+
+  if (type === "proposta") {
+    return {
+      singular: "proposta",
+      singularCapitalized: "Proposta",
+      plural: "propostas",
+      loading: "Carregando propostas...",
+      empty: "Nenhuma proposta criada ainda.",
+      save: "Salvar proposta",
+      create: "Nova proposta",
+      edit: "Editar proposta",
+      helper: "Salve metadados reais e vincule a proposta aos registros da operacao.",
+    }
+  }
+
+  return {
+    singular: "documento",
+    singularCapitalized: "Documento",
+    plural: "documentos",
+    loading: "Carregando documentos...",
+    empty: "Nenhum documento criado ainda.",
+    save: "Salvar documento",
+    create: "Novo documento",
+    edit: "Editar documento",
+    helper: "Salve metadados reais e vincule o documento aos registros da operacao.",
+  }
 }
 
 export function DocumentsManager({
@@ -142,6 +244,7 @@ export function DocumentsManager({
   })
 
   const currentTypeFilter = normalizeFilterType(filterType)
+  const moduleCopy = resolveModuleCopy(currentTypeFilter)
   const clientsMap = useMemo(() => new Map(clients.map((client) => [client.id, client.name])), [clients])
   const tripsMap = useMemo(() => new Map(trips.map((trip) => [trip.id, trip.title])), [trips])
   const quotesMap = useMemo(() => new Map(quotes.map((quote) => [quote.id, quote.title])), [quotes])
@@ -292,7 +395,7 @@ export function DocumentsManager({
             className="inline-flex items-center gap-2 rounded-xl bg-[#0a0a0a] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#1a1a1a] disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Plus className="h-4 w-4" />
-            Novo documento
+            {moduleCopy.create}
           </button>
         </div>
 
@@ -307,7 +410,7 @@ export function DocumentsManager({
                 type="text"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder="Buscar por titulo, tipo, cliente, viagem ou conteudo..."
+                placeholder={`Buscar por titulo, tipo, cliente, viagem ou conteudo de ${moduleCopy.plural}...`}
                 className="w-full rounded-xl bg-gray-50 px-10 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-200"
               />
             </div>
@@ -335,11 +438,11 @@ export function DocumentsManager({
           {isLoading ? (
             <div className="flex items-center justify-center py-16 text-sm text-gray-500">
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Carregando documentos...
+              {moduleCopy.loading}
             </div>
           ) : filteredDocuments.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-gray-200 px-6 py-16 text-center">
-              <p className="text-sm text-gray-500">Nenhum documento criado ainda.</p>
+              <p className="text-sm text-gray-500">{moduleCopy.empty}</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -418,8 +521,8 @@ export function DocumentsManager({
                 <FileText className="h-5 w-5 text-blue-500" />
               </span>
               <div>
-                <h2 className="text-lg font-semibold text-[#0a0a0a]">{editingDocumentId ? "Editar documento" : "Novo documento"}</h2>
-                <p className="text-sm text-gray-500">Salve metadados reais e vincule o documento aos registros da operacao.</p>
+                <h2 className="text-lg font-semibold text-[#0a0a0a]">{editingDocumentId ? moduleCopy.edit : moduleCopy.create}</h2>
+                <p className="text-sm text-gray-500">{moduleCopy.helper}</p>
               </div>
             </div>
 
@@ -489,6 +592,8 @@ export function DocumentsManager({
                     <option value="arquivo">Arquivo</option>
                     <option value="relatorio">Relatorio</option>
                     <option value="proposta">Proposta</option>
+                    <option value="recibo">Recibo</option>
+                    <option value="nota_fiscal">Nota fiscal</option>
                     <option value="outro">Outro</option>
                   </select>
                 </FormField>
@@ -527,7 +632,7 @@ export function DocumentsManager({
                 disabled={isSaving || (Boolean(editingDocumentId) && !canManageWorkspace)}
                 className="flex-1 rounded-2xl bg-[#0a0a0a] px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-[#1a1a1a] disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {isSaving ? "Salvando..." : editingDocumentId ? "Salvar alteracoes" : "Salvar documento"}
+                {isSaving ? "Salvando..." : editingDocumentId ? "Salvar alteracoes" : moduleCopy.save}
               </button>
             </div>
           </div>

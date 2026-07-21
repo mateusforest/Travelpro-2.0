@@ -104,7 +104,7 @@ export default function ConversasPage() {
           const children = section.children
             .map((child) => ({
               ...child,
-              meta: child.placeholder ? { count: 0, lastMessage: "Placeholder visual", time: "-" } : resolveConversationMeta(child.key, summary),
+              meta: resolveConversationMeta(child.key, summary),
             }))
             .filter((child) => {
               if (!normalizedSearch) {
@@ -234,25 +234,6 @@ export default function ConversasPage() {
                   <div className="divide-y divide-gray-100">
                     {section.children?.map((item) => {
                       const Icon = item.icon
-
-                      if (item.placeholder) {
-                        return (
-                          <div key={item.key} className="flex items-center gap-3 px-4 py-3">
-                            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gray-100">
-                              <Icon className="h-4 w-4 text-gray-400" />
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <span className="block text-sm font-medium text-gray-500">{item.label}</span>
-                              <span className="block text-xs text-gray-400">Placeholder visual do modulo.</span>
-                            </div>
-                            {item.badgeLabel ? (
-                              <span className="rounded-full border border-dashed border-gray-200 px-2.5 py-1 text-[10px] font-medium uppercase tracking-wide text-gray-400">
-                                {item.badgeLabel}
-                              </span>
-                            ) : null}
-                          </div>
-                        )
-                      }
 
                       if (!item.appHref || !("meta" in item)) {
                         return null

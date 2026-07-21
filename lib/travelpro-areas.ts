@@ -23,12 +23,15 @@ export type TravelProAreaKey =
   | "viagens"
   | "cotacoes"
   | "contratos"
+  | "arquivos"
   | "reservas"
   | "financeiro"
   | "documentos"
   | "fornecedores"
   | "agenda"
   | "relatorios"
+  | "recibos"
+  | "notas-fiscais"
   | "integracoes"
   | "configuracoes"
   | "studio-ia"
@@ -231,6 +234,29 @@ export const travelProAreas: TravelProArea[] = [
     },
   },
   {
+    key: "arquivos",
+    label: "Arquivos",
+    icon: FolderOpen,
+    color: "#f97316",
+    bg: "#ffedd5",
+    status: "active",
+    route: { app: "/app/conversas/arquivos", portal: "/portal/arquivos" },
+    destination: { app: "/app/novo/documento", portal: "/portal/arquivos" },
+    app: {
+      subtitle: "Centralize arquivos e referencias da agencia.",
+      emptyLabel: "Nenhum arquivo disponivel nesta sessao por enquanto.",
+      ctaLabel: "Novo arquivo",
+    },
+    portal: {
+      description: "Centralize arquivos reais do seu workspace.",
+      emptyLabel: "Nenhum arquivo disponivel ainda.",
+      ctaLabel: "Novo arquivo",
+      aliases: ["arquivos"],
+      manager: "documents",
+      documentFilterType: "arquivos",
+    },
+  },
+  {
     key: "fornecedores",
     label: "Fornecedores",
     icon: UsersRound,
@@ -296,6 +322,52 @@ export const travelProAreas: TravelProArea[] = [
       aliases: ["relatorios"],
       manager: "documents",
       documentFilterType: "relatorios",
+    },
+  },
+  {
+    key: "recibos",
+    label: "Recibos",
+    icon: FileText,
+    color: "#f97316",
+    bg: "#ffedd5",
+    status: "active",
+    route: { app: "/app/conversas/recibos", portal: "/portal/recibos" },
+    destination: { app: "/app/novo/documento", portal: "/portal/recibos" },
+    app: {
+      subtitle: "Organize recibos e comprovantes da agencia.",
+      emptyLabel: "Nenhum recibo disponivel nesta sessao por enquanto.",
+      ctaLabel: "Novo recibo",
+    },
+    portal: {
+      description: "Centralize recibos reais do seu workspace.",
+      emptyLabel: "Nenhum recibo disponivel ainda.",
+      ctaLabel: "Novo recibo",
+      aliases: ["recibos"],
+      manager: "documents",
+      documentFilterType: "recibos",
+    },
+  },
+  {
+    key: "notas-fiscais",
+    label: "Notas fiscais",
+    icon: FileText,
+    color: "#f97316",
+    bg: "#ffedd5",
+    status: "active",
+    route: { app: "/app/conversas/notas-fiscais", portal: "/portal/notas-fiscais" },
+    destination: { app: "/app/novo/documento", portal: "/portal/notas-fiscais" },
+    app: {
+      subtitle: "Organize notas fiscais e referencias de cobranca da agencia.",
+      emptyLabel: "Nenhuma nota fiscal disponivel nesta sessao por enquanto.",
+      ctaLabel: "Nova nota fiscal",
+    },
+    portal: {
+      description: "Centralize notas fiscais reais do seu workspace.",
+      emptyLabel: "Nenhuma nota fiscal disponivel ainda.",
+      ctaLabel: "Nova nota fiscal",
+      aliases: ["notas-fiscais"],
+      manager: "documents",
+      documentFilterType: "notas-fiscais",
     },
   },
   {

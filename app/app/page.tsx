@@ -251,7 +251,7 @@ export default function AppHomePage() {
     { icon: ArrowRight, label: "Proximo passo", onClick: () => setModal("passo") },
     {
       icon: Video,
-      label: "Atendimento",
+      label: "Meet",
       onClick: () => {
         setMeetingForm(defaultMeetingForm)
         setMeetingFeedback(null)
@@ -826,7 +826,7 @@ export default function AppHomePage() {
                 <h2 className="text-lg font-semibold text-[#0a0a0a]">
                   {modal === "sugerir" && "Sugestoes do COS"}
                   {modal === "passo" && "Proximos passos"}
-                  {modal === "meet" && "Atendimento"}
+                  {modal === "meet" && "Meet"}
                   {modal === "editar" && "Editar atalhos"}
                 </h2>
                 <button onClick={closeModal} className="rounded-full p-1.5 transition-colors hover:bg-gray-100" aria-label="Fechar">
