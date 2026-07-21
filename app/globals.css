@@ -207,3 +207,37 @@
 .animate-tp-fade-soft {
   animation: tp-fade-soft 1s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
+
+@keyframes tp-hero-line {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+    filter: blur(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes tp-hero-impact {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+.animate-tp-hero-line {
+  animation: tp-hero-line 0.58s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-tp-hero-impact {
+  animation: tp-hero-impact 0.62s cubic-bezier(0.22, 1, 0.36, 1) both;
+}

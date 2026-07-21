@@ -1,4 +1,7 @@
+"use client"
+
 import Link from "next/link"
+import { useState } from "react"
 import {
   ArrowRight,
   BarChart3,
@@ -76,15 +79,35 @@ function TravelProMark({ className = "" }: { className?: string }) {
   )
 }
 
-function HeroSymbol() {
+function HeroSymbol({ offsetX, offsetY }: { offsetX: number; offsetY: number }) {
   return (
-    <div className="relative mx-auto flex aspect-[0.95/1] w-full max-w-[560px] items-end justify-center">
-      <div className="absolute inset-x-[12%] bottom-[2%] h-14 rounded-full bg-[radial-gradient(circle,rgba(254,103,8,0.14)_0%,rgba(254,103,8,0.06)_36%,rgba(254,103,8,0)_76%)] blur-2xl" />
-      <div className="absolute left-[22%] top-[10%] h-[18%] w-[20%] rounded-full bg-white/40 blur-2xl" />
-      <div className="absolute inset-y-[6%] right-[10%] w-[68%] rounded-t-[38%] rounded-b-[14%] bg-[#ffc08f] opacity-28 blur-[2px]" />
-      <div className="relative flex h-full w-[72%] min-w-[280px] items-center justify-center rounded-t-[42%] rounded-b-[14%] border border-white/30 bg-[linear-gradient(180deg,#ff941f_0%,#fe6708_100%)] shadow-[0_24px_60px_rgba(254,103,8,0.14),inset_-10px_0_24px_rgba(201,79,0,0.12),inset_0_1px_0_rgba(255,255,255,0.34)]">
-        <div className="absolute inset-x-[18%] top-[4%] h-[10%] rounded-full bg-white/16 blur-xl" />
-        <div className="absolute bottom-0 left-1/2 h-[46%] w-[30%] -translate-x-1/2 rounded-t-full bg-[linear-gradient(180deg,#fff7ee_0%,#ffffff_100%)] shadow-[0_-4px_14px_rgba(255,255,255,0.16)]" />
+    <div className="relative mx-auto flex aspect-[0.95/1] w-full max-w-[468px] items-end justify-center">
+      <div
+        className="absolute inset-x-[14%] bottom-[3%] h-12 rounded-full bg-[radial-gradient(circle,rgba(254,103,8,0.1)_0%,rgba(254,103,8,0.04)_38%,rgba(254,103,8,0)_76%)] blur-2xl transition-all duration-500 ease-out"
+        style={{
+          transform: `translate(${offsetX * 6}px, ${offsetY * 2}px) scale(${1 + Math.abs(offsetX) * 0.03})`,
+        }}
+      />
+      <div
+        className="absolute top-[12%] h-[16%] w-[19%] rounded-full bg-white/35 blur-2xl transition-all duration-500 ease-out"
+        style={{
+          left: `calc(22% + ${offsetX * 18}px)`,
+          transform: `translateY(${offsetY * -6}px)`,
+        }}
+      />
+      <div className="absolute inset-y-[7%] right-[11%] w-[67%] rounded-t-[38%] rounded-b-[14%] bg-[#ffc08f] opacity-20 blur-[2px]" />
+      <div
+        className="relative flex h-full w-[72%] min-w-[240px] items-center justify-center rounded-t-[42%] rounded-b-[14%] border border-white/28 bg-[linear-gradient(180deg,#ff941f_0%,#fe6708_100%)] transition-transform duration-500 ease-out"
+        style={{
+          transform: `translate3d(${offsetX * 10}px, ${offsetY * 8}px, 0)`,
+          boxShadow: `${offsetX * 4}px ${22 + offsetY * 6}px ${52 + Math.abs(offsetX) * 10}px rgba(254,103,8,0.13), inset ${-10 + offsetX * 3}px 0 22px rgba(201,79,0,0.12), inset 0 1px 0 rgba(255,255,255,0.34)`,
+        }}
+      >
+        <div
+          className="absolute inset-x-[18%] top-[4%] h-[10%] rounded-full bg-white/16 blur-xl transition-all duration-500 ease-out"
+          style={{ transform: `translate(${offsetX * 8}px, ${offsetY * -4}px)` }}
+        />
+        <div className="absolute bottom-0 left-1/2 h-[46%] w-[30%] -translate-x-1/2 rounded-t-full bg-[linear-gradient(180deg,#fff7ee_0%,#ffffff_100%)] shadow-[0_-4px_14px_rgba(255,255,255,0.14)]" />
         <svg
           viewBox="0 0 96 96"
           aria-hidden="true"
@@ -94,6 +117,78 @@ function HeroSymbol() {
         </svg>
       </div>
     </div>
+  )
+}
+
+function HeroExperience() {
+  const [pointer, setPointer] = useState({ x: 0, y: 0 })
+
+  const handleMove = (event: React.MouseEvent<HTMLDivElement>) => {
+    const rect = event.currentTarget.getBoundingClientRect()
+    const x = ((event.clientX - rect.left) / rect.width - 0.5) * 2
+    const y = ((event.clientY - rect.top) / rect.height - 0.5) * 2
+    setPointer({
+      x: Math.max(-1, Math.min(1, x)),
+      y: Math.max(-1, Math.min(1, y)),
+    })
+  }
+
+  return (
+    <section className="grid min-h-[840px] items-center gap-20 pb-20 pt-16 lg:grid-cols-[0.96fr_1.04fr] lg:pb-24 lg:pt-20">
+      <div className="max-w-[650px]">
+        <div className="space-y-2">
+          <span
+            className="animate-tp-hero-line block text-[3.95rem] font-medium leading-[0.92] tracking-[-0.1em] text-[#0a0a0a] sm:text-[5.2rem] lg:text-[6.45rem]"
+            style={{ animationDelay: "40ms" }}
+          >
+            A operacao
+          </span>
+          <span
+            className="animate-tp-hero-line block text-[3.95rem] font-medium leading-[0.92] tracking-[-0.1em] text-[#0a0a0a] sm:text-[5.2rem] lg:text-[6.45rem]"
+            style={{ animationDelay: "230ms" }}
+          >
+            da sua agencia.
+          </span>
+          <span
+            className="animate-tp-hero-impact block pt-2 text-[3.95rem] font-medium leading-[0.92] tracking-[-0.105em] text-[#fe6708] sm:text-[5.2rem] lg:text-[6.45rem]"
+            style={{ animationDelay: "470ms" }}
+          >
+            Reinventada.
+          </span>
+        </div>
+
+        <div
+          className="animate-tp-fade-soft mt-16 flex items-start gap-5 text-[1.5rem] font-normal leading-[1.48] tracking-[-0.045em] text-[#707070]"
+          style={{ animationDelay: "540ms" }}
+        >
+          <span className="mt-1 h-16 w-px bg-[#ff8d4a]/80" />
+          <div>
+            <p>Converse.</p>
+            <p>Nos executamos.</p>
+          </div>
+        </div>
+
+        <div className="animate-tp-fade-soft mt-16" style={{ animationDelay: "610ms" }}>
+          <Link
+            href="/login"
+            className="inline-flex items-center gap-3 rounded-full bg-[#080a0d] px-7 py-3.5 text-sm font-medium text-white shadow-[0_12px_28px_rgba(0,0,0,0.11)] transition-all duration-300 hover:-translate-y-[1px] hover:bg-black hover:shadow-[0_16px_30px_rgba(0,0,0,0.13)]"
+          >
+            Experimentar gratuitamente
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+          <p className="mt-5 pl-7 text-sm text-[#8e8e8e]">7 dias gratis. Sem cartao.</p>
+        </div>
+      </div>
+
+      <div
+        className="animate-tp-fade-soft lg:pl-10"
+        style={{ animationDelay: "260ms" }}
+        onMouseMove={handleMove}
+        onMouseLeave={() => setPointer({ x: 0, y: 0 })}
+      >
+        <HeroSymbol offsetX={pointer.x} offsetY={pointer.y} />
+      </div>
+    </section>
   )
 }
 
@@ -343,23 +438,24 @@ export function TravelProHomepage() {
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#f8f6f2] text-[#0a0a0a]">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute left-1/2 top-0 h-[760px] w-[1180px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.98)_0%,rgba(255,255,255,0.82)_34%,rgba(248,246,242,0)_72%)]" />
-        <div className="absolute right-[-120px] top-[220px] h-[420px] w-[420px] rounded-full bg-[radial-gradient(circle,rgba(254,103,8,0.07)_0%,rgba(254,103,8,0)_72%)] blur-3xl" />
+        <div className="absolute left-1/2 top-0 h-[760px] w-[1180px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.985)_0%,rgba(255,255,255,0.86)_32%,rgba(248,246,242,0)_72%)]" />
+        <div className="absolute left-1/2 top-[120px] h-[540px] w-[840px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(0,0,0,0.022)_0%,rgba(0,0,0,0.01)_26%,rgba(248,246,242,0)_72%)] blur-3xl" />
+        <div className="absolute right-[-120px] top-[220px] h-[420px] w-[420px] rounded-full bg-[radial-gradient(circle,rgba(254,103,8,0.055)_0%,rgba(254,103,8,0)_72%)] blur-3xl" />
         <div className="absolute left-[-120px] top-[980px] h-[460px] w-[460px] rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.94)_0%,rgba(248,246,242,0)_72%)] blur-3xl" />
       </div>
 
       <div className="relative mx-auto max-w-[1480px] px-6 pb-28 pt-5 sm:px-10 lg:px-16">
-        <header className="animate-tp-fade flex items-center justify-between py-3">
+        <header className="animate-tp-fade flex items-center justify-between py-2.5">
           <Link href="/" className="flex items-center gap-3">
             <TravelProMark />
-            <span className="text-[1.85rem] font-medium tracking-[-0.06em] text-[#111111] sm:text-[1.95rem]">
+            <span className="text-[1.8rem] font-medium tracking-[-0.065em] text-[#171717] sm:text-[1.9rem]">
               TravelPro
             </span>
           </Link>
 
-          <nav className="hidden items-center gap-12 text-[14px] text-[#454545] lg:flex">
+          <nav className="hidden items-center gap-12 text-[14px] text-[#555555] lg:flex">
             {mainNav.map((item) => (
-              <a key={item.label} href={item.href} className="transition-opacity duration-300 hover:opacity-60">
+              <a key={item.label} href={item.href} className="transition-opacity duration-300 hover:opacity-58">
                 {item.label}
               </a>
             ))}
@@ -367,52 +463,14 @@ export function TravelProHomepage() {
 
           <Link
             href="/login"
-            className="inline-flex items-center gap-3 rounded-full bg-[#090b0f] px-5 py-2.5 text-sm font-medium text-white shadow-[0_10px_24px_rgba(0,0,0,0.10)] transition-all duration-300 hover:scale-[1.01] hover:bg-black"
+            className="inline-flex items-center gap-3 rounded-full bg-[#0a0c10] px-5 py-2.5 text-sm font-medium text-white shadow-[0_8px_18px_rgba(0,0,0,0.08)] transition-all duration-300 hover:-translate-y-[1px] hover:bg-black hover:shadow-[0_10px_22px_rgba(0,0,0,0.1)]"
           >
             Comecar agora
             <ArrowRight className="h-4 w-4" />
           </Link>
         </header>
 
-        <section className="grid min-h-[820px] items-center gap-20 pb-20 pt-14 lg:grid-cols-[0.94fr_1.06fr] lg:pb-24 lg:pt-18">
-          <div className="max-w-[640px]">
-            <div className="animate-tp-fade-soft" style={{ animationDelay: "80ms" }}>
-              <h1 className="text-[3.8rem] font-medium leading-[0.92] tracking-[-0.09em] text-[#0a0a0a] sm:text-[5.15rem] lg:text-[6.25rem]">
-                A operacao
-                <br />
-                da sua agencia.
-                <br />
-                <span className="text-[#fe6708]">Reinventada.</span>
-              </h1>
-            </div>
-
-            <div
-              className="animate-tp-fade-soft mt-14 flex items-start gap-5 text-[1.55rem] font-normal leading-[1.46] tracking-[-0.045em] text-[#6e6e6e]"
-              style={{ animationDelay: "160ms" }}
-            >
-              <span className="mt-1 h-16 w-px bg-[#ff8d4a]" />
-              <div>
-                <p>Converse.</p>
-                <p>Nos executamos.</p>
-              </div>
-            </div>
-
-            <div className="animate-tp-fade-soft mt-14" style={{ animationDelay: "240ms" }}>
-              <Link
-                href="/login"
-                className="inline-flex items-center gap-3 rounded-full bg-[#06070a] px-7 py-3.5 text-sm font-medium text-white shadow-[0_14px_34px_rgba(0,0,0,0.12)] transition-all duration-300 hover:scale-[1.01] hover:shadow-[0_16px_38px_rgba(0,0,0,0.14)]"
-              >
-                Experimentar gratuitamente
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-              <p className="mt-5 pl-7 text-sm text-[#8e8e8e]">7 dias gratis. Sem cartao.</p>
-            </div>
-          </div>
-
-          <div className="animate-tp-fade-soft lg:pl-8" style={{ animationDelay: "220ms" }}>
-            <HeroSymbol />
-          </div>
-        </section>
+        <HeroExperience />
 
         <section id="como-funciona" className="pb-28">
           <div className="animate-tp-fade-soft" style={{ animationDelay: "120ms" }}>
