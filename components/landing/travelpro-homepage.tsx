@@ -194,12 +194,13 @@ function HeroExperience() {
 
 function VideoPlaceholder() {
   return (
-    <div className="flex h-full flex-col justify-between rounded-[26px] bg-[linear-gradient(180deg,#06070a_0%,#0b0d12_100%)] px-7 py-8 text-white shadow-[0_20px_60px_rgba(0,0,0,0.10)]">
-      <div>
+    <div className="relative flex h-full min-h-[560px] flex-col justify-between overflow-hidden rounded-[22px] bg-[linear-gradient(180deg,#06070a_0%,#0a0c11_100%)] px-9 py-10 text-white shadow-[0_14px_38px_rgba(0,0,0,0.07)]">
+      <div className="pointer-events-none absolute inset-x-[10%] top-[8%] h-24 rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.09)_0%,rgba(255,255,255,0)_72%)] blur-2xl" />
+      <div className="relative">
         <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ff7a1a]">
           Veja na pratica
         </span>
-        <h2 className="mt-6 max-w-[240px] text-[2.9rem] font-medium leading-[1.02] tracking-[-0.07em] text-white">
+        <h2 className="mt-7 max-w-[280px] text-[3.25rem] font-medium leading-[0.98] tracking-[-0.08em] text-white">
           Converse.
           <br />
           O TravelPro
@@ -207,13 +208,13 @@ function VideoPlaceholder() {
           executa.
         </h2>
       </div>
-      <div className="flex items-center gap-4 pt-10">
-        <div className="flex h-12 w-12 items-center justify-center rounded-full border border-white/8 bg-white/[0.06]">
-          <CirclePlay className="h-5 w-5 text-white" />
+      <div className="relative flex items-center gap-4 pt-12">
+        <div className="flex h-11 w-11 items-center justify-center rounded-full border border-white/[0.07] bg-white/[0.045] transition-all duration-300 hover:bg-white/[0.07]">
+          <CirclePlay className="h-4.5 w-4.5 text-white" />
         </div>
         <div>
-          <p className="text-sm font-medium text-white">Assistir video</p>
-          <p className="text-xs text-white/50">01:32</p>
+          <p className="text-[13px] font-medium text-white/96">Assistir video</p>
+          <p className="text-[11px] text-white/46">01:32</p>
         </div>
       </div>
     </div>
@@ -222,7 +223,7 @@ function VideoPlaceholder() {
 
 function ChatShowcase() {
   return (
-    <div className="grid gap-4 rounded-[34px] bg-[#101318] p-3.5 shadow-[0_24px_70px_rgba(0,0,0,0.12)] md:grid-cols-[0.82fr_1.55fr_0.72fr] md:p-4">
+    <div className="grid gap-3 rounded-[28px] bg-[#101318] p-2.5 shadow-[0_18px_48px_rgba(0,0,0,0.08)] md:grid-cols-[0.82fr_1.55fr_0.72fr] md:p-3">
       <div className="rounded-[24px] border border-white/[0.05] bg-[linear-gradient(180deg,#181c22_0%,#13171d_100%)] p-6 text-white/74">
         <div className="flex items-center gap-3">
           <TravelProMark className="h-7 w-7 rounded-[8px]" />
@@ -472,9 +473,9 @@ export function TravelProHomepage() {
 
         <HeroExperience />
 
-        <section id="como-funciona" className="pb-28">
+        <section id="como-funciona" className="pb-32 pt-4">
           <div className="animate-tp-fade-soft" style={{ animationDelay: "120ms" }}>
-            <div className="grid gap-4 lg:grid-cols-[0.6fr_2fr]">
+            <div className="grid gap-2 lg:-mx-3 lg:grid-cols-[0.72fr_2.28fr] lg:items-stretch">
               <VideoPlaceholder />
               <ChatShowcase />
             </div>
