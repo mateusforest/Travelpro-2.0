@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useEffect, useRef, useState, useTransition } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Search, Bell, X, User, SlidersHorizontal, Shield, LogOut, ExternalLink } from "lucide-react"
@@ -34,12 +34,77 @@ export function HeaderActions({ variant = "mobile" }: { variant?: "mobile" | "de
   const [searchOpen, setSearchOpen] = useState(false)
   const [notifOpen, setNotifOpen] = useState(false)
   const [avatarOpen, setAvatarOpen] = useState(false)
+  const [avatarPlacement, setAvatarPlacement] = useState<"top" | "bottom">("bottom")
+  const [avatarMenuStyle, setAvatarMenuStyle] = useState<Record<string, string | number>>({})
   const [query, setQuery] = useState("")
   const [isPending, startTransition] = useTransition()
+  const avatarButtonRef = useRef<HTMLButtonElement | null>(null)
 
   const unreadCount = notifications.filter((item) => item.unread).length
   const displayName = profile?.full_name || user?.email || "Seu perfil"
   const displayEmail = profile?.email || user?.email || "Nenhum e-mail cadastrado"
+
+  useEffect(() => {
+    if (!avatarOpen) {
+      return
+    }
+
+    const updateAvatarMenuPosition = () => {
+      const trigger = avatarButtonRef.current
+      if (!trigger) {
+        return
+      }
+
+      const rect = trigger.getBoundingClientRect()
+      const viewportHeight = window.innerHeight
+      const viewportWidth = window.innerWidth
+      const viewportPadding = 16
+      const menuGap = 8
+      const maxHeight = Math.max(160, viewportHeight - 32)
+      const spaceBelow = viewportHeight - rect.bottom - viewportPadding
+      const spaceAbove = rect.top - viewportPadding
+      const openUp = spaceBelow < 240 && spaceAbove > spaceBelow
+
+      setAvatarPlacement(openUp ? "top" : "bottom")
+
+      if (variant === "desktop") {
+        const width = Math.min(240, viewportWidth - viewportPadding * 2)
+        const left = Math.min(
+          Math.max(viewportPadding, rect.right - width),
+          viewportWidth - viewportPadding - width,
+        )
+
+        setAvatarMenuStyle({
+          position: "fixed",
+          left: `${left}px`,
+          top: openUp ? "auto" : `${rect.bottom + menuGap}px`,
+          bottom: openUp ? `${viewportHeight - rect.top + menuGap}px` : "auto",
+          width: `${width}px`,
+          maxHeight: `${maxHeight}px`,
+        })
+        return
+      }
+
+      setAvatarMenuStyle({
+        position: "fixed",
+        left: "8px",
+        right: "8px",
+        top: openUp ? "auto" : `${rect.bottom + menuGap}px`,
+        bottom: openUp ? `${viewportHeight - rect.top + menuGap}px` : "auto",
+        maxHeight: `${maxHeight}px`,
+      })
+    }
+
+    updateAvatarMenuPosition()
+
+    window.addEventListener("resize", updateAvatarMenuPosition)
+    window.addEventListener("scroll", updateAvatarMenuPosition, true)
+
+    return () => {
+      window.removeEventListener("resize", updateAvatarMenuPosition)
+      window.removeEventListener("scroll", updateAvatarMenuPosition, true)
+    }
+  }, [avatarOpen, variant])
 
   const handleLogout = () => {
     startTransition(async () => {
@@ -64,7 +129,7 @@ export function HeaderActions({ variant = "mobile" }: { variant?: "mobile" | "de
           {unreadCount > 0 && <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-orange-500 rounded-full" />}
         </button>
         <div className="relative">
-          <button onClick={() => setAvatarOpen((value) => !value)} className="w-8 h-8 rounded-full overflow-hidden border border-gray-200 block" aria-label="Menu do perfil">
+          <button ref={avatarButtonRef} onClick={() => setAvatarOpen((value) => !value)} className="w-8 h-8 rounded-full overflow-hidden border border-gray-200 block" aria-label="Menu do perfil">
             <UserAvatar fullName={profile?.full_name} email={profile?.email || user?.email} avatarUrl={profile?.avatar_url} size={32} />
           </button>
 
@@ -73,15 +138,17 @@ export function HeaderActions({ variant = "mobile" }: { variant?: "mobile" | "de
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setAvatarOpen(false)} />
                 <motion.div
-                  initial={{ opacity: 0, y: -8, scale: 0.97 }}
+                  initial={{ opacity: 0, y: avatarPlacement === "top" ? 8 : -8, scale: 0.97 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -8, scale: 0.97 }}
+                  exit={{ opacity: 0, y: avatarPlacement === "top" ? 8 : -8, scale: 0.97 }}
                   transition={{ duration: 0.15 }}
-                  className={`z-50 rounded-2xl border border-gray-100 bg-white shadow-xl ${
-                    variant === "desktop"
-                      ? "absolute right-0 top-full mt-2 w-60 max-w-[calc(100vw-1rem)] max-h-[calc(100vh-5rem)] origin-top-right overflow-y-auto"
-                      : "fixed left-2 right-2 top-14 max-h-[calc(100vh-4.5rem)] origin-top-right overflow-y-auto"
+                  className={`z-50 rounded-2xl border border-gray-100 bg-white shadow-xl overflow-x-hidden overflow-y-auto ${
+                    avatarPlacement === "top" ? "origin-bottom-right" : "origin-top-right"
                   }`}
+                  style={{
+                    ...avatarMenuStyle,
+                    scrollbarWidth: "thin",
+                  }}
                 >
                   <div className="flex items-center gap-3 p-4 border-b border-gray-100">
                     <UserAvatar fullName={profile?.full_name} email={profile?.email || user?.email} avatarUrl={profile?.avatar_url} size={40} />
