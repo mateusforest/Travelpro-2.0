@@ -11,6 +11,7 @@ import {
   type ReactNode,
 } from "react"
 import { getOperationsHomeContextAction } from "@/actions/operations-home"
+import { subscribeOperationSync } from "@/lib/operation-sync"
 
 type OperationsDashboardSummary = {
   clientsCount: number
@@ -136,6 +137,12 @@ export function OperationsDashboardProvider({
   useEffect(() => {
     void refreshSummary({ silent: Boolean(cachedSummary) })
   }, [cachedSummary, refreshSummary, workspaceId])
+
+  useEffect(() => {
+    return subscribeOperationSync(() => {
+      void refreshSummary({ silent: true, force: true })
+    })
+  }, [refreshSummary])
 
   const value = useMemo(
     () => ({

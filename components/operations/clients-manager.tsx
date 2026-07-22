@@ -11,6 +11,7 @@ import {
   type ClientStatus,
 } from "@/actions/clients"
 import { useAuth } from "@/components/auth/auth-provider"
+import { publishOperationSync, subscribeOperationSync } from "@/lib/operation-sync"
 
 type ClientRecord = {
   id: string
@@ -98,6 +99,12 @@ export function ClientsManager({
     void loadClients()
   }, [])
 
+  useEffect(() => {
+    return subscribeOperationSync(() => {
+      void loadClients()
+    })
+  }, [])
+
   const filteredClients = useMemo(() => {
     return clients.filter((client) => {
       const matchesFilter = filter === "all" ? true : client.status === filter
@@ -154,6 +161,7 @@ export function ClientsManager({
 
     setFeedback(editingClientId ? "Cliente atualizado com sucesso." : "Cliente criado com sucesso.")
     setModalOpen(false)
+    publishOperationSync({ source: "portal" })
     await loadClients()
   }
 
@@ -173,6 +181,7 @@ export function ClientsManager({
     }
 
     setFeedback("Cliente arquivado com sucesso.")
+    publishOperationSync({ source: "portal" })
     await loadClients()
   }
 
@@ -195,6 +204,7 @@ export function ClientsManager({
     }
 
     setFeedback("Cliente excluido permanentemente com sucesso.")
+    publishOperationSync({ source: "portal" })
     await loadClients()
   }
 

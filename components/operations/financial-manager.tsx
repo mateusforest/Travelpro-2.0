@@ -22,6 +22,7 @@ import {
   type FinancialEntryType,
 } from "@/actions/financial"
 import { useAuth } from "@/components/auth/auth-provider"
+import { publishOperationSync, subscribeOperationSync } from "@/lib/operation-sync"
 
 type FinancialEntry = {
   id: string
@@ -136,6 +137,12 @@ export function FinancialManager({
     void loadData()
   }, [])
 
+  useEffect(() => {
+    return subscribeOperationSync(() => {
+      void loadData()
+    })
+  }, [])
+
   const filteredEntries = useMemo(() => {
     const now = new Date()
     const start = new Date(now.getFullYear(), now.getMonth(), 1)
@@ -211,6 +218,7 @@ export function FinancialManager({
 
     setFeedback(editingEntryId ? "Lançamento atualizado com sucesso." : "Lançamento criado com sucesso.")
     setModalOpen(false)
+    publishOperationSync({ source: "portal" })
     await loadData()
   }
 
@@ -226,6 +234,7 @@ export function FinancialManager({
     }
 
     setFeedback("Lançamento removido com sucesso.")
+    publishOperationSync({ source: "portal" })
     await loadData()
   }
 

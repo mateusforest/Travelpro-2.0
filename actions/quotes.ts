@@ -1,6 +1,7 @@
 "use server"
 
 import { canManageWorkspace, getUserAccessForUser } from "@/lib/auth"
+import { logWorkspaceActivity } from "@/lib/activity/log"
 import { createSupabaseAdminClient, createSupabaseServerClient } from "@/lib/supabase/server"
 
 export type QuoteStatus = "draft" | "sent" | "approved" | "rejected" | "expired" | "archived"
@@ -229,6 +230,15 @@ export async function createQuoteAction({
     return { error: error?.message ?? "Nao foi possivel criar a cotacao." }
   }
 
+  await logWorkspaceActivity({
+    adminClient: actor.adminClient,
+    workspaceId: actor.workspaceId,
+    userId: actor.actorId,
+    area: "vendas",
+    action: "quote_created",
+    description: "cotacao criada",
+  })
+
   return { success: true, quoteId: data.id }
 }
 
@@ -305,6 +315,15 @@ export async function updateQuoteAction({
   if (error) {
     return { error: error.message }
   }
+
+  await logWorkspaceActivity({
+    adminClient: actor.adminClient,
+    workspaceId: actor.workspaceId,
+    userId: actor.actorId,
+    area: "vendas",
+    action: "quote_updated",
+    description: "cotacao atualizada",
+  })
 
   return { success: true, quoteId: resolvedQuote.quote.id }
 }

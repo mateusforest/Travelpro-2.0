@@ -1,6 +1,7 @@
 "use server"
 
 import { canManageWorkspace, getUserAccessForUser } from "@/lib/auth"
+import { logWorkspaceActivity } from "@/lib/activity/log"
 import { createSupabaseAdminClient, createSupabaseServerClient } from "@/lib/supabase/server"
 
 export type SupplierStatus = "active" | "inactive" | "archived"
@@ -184,6 +185,15 @@ export async function createSupplierAction({
     return { error: error?.message ?? "Nao foi possivel criar o fornecedor." }
   }
 
+  await logWorkspaceActivity({
+    adminClient: actor.adminClient,
+    workspaceId: actor.workspaceId,
+    userId: actor.actorId,
+    area: "equipe",
+    action: "supplier_created",
+    description: "fornecedor criado",
+  })
+
   return { success: true, supplierId: data.id }
 }
 
@@ -245,6 +255,15 @@ export async function updateSupplierAction({
   if (error) {
     return { error: error.message }
   }
+
+  await logWorkspaceActivity({
+    adminClient: actor.adminClient,
+    workspaceId: actor.workspaceId,
+    userId: actor.actorId,
+    area: "equipe",
+    action: "supplier_updated",
+    description: "fornecedor atualizado",
+  })
 
   return { success: true, supplierId: resolvedSupplier.supplier.id }
 }

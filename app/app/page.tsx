@@ -30,6 +30,7 @@ import { useAuth } from "@/components/auth/auth-provider"
 import type { ChatMessage } from "@/components/app/area-chat"
 import { useSupport } from "@/components/support/support-context"
 import { toast } from "@/hooks/use-toast"
+import { publishOperationSync } from "@/lib/operation-sync"
 import {
   appSessionHrefs,
   areaConfigs,
@@ -377,6 +378,7 @@ export default function AppHomePage() {
       const sessionHref = resolveConversationSessionHref(conversationArea)
 
       if (result.ok) {
+        publishOperationSync({ source: "chat" })
         void refreshSummary({ silent: true, force: true })
       }
 
@@ -560,6 +562,7 @@ export default function AppHomePage() {
     }
 
     setMeetingFeedback({ tone: "success", text: "Atendimento criado com sucesso." })
+    publishOperationSync({ source: "app" })
     await refreshSummary({ silent: true, force: true })
 
     toast({

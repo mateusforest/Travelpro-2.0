@@ -24,6 +24,7 @@ import { PortalHeader } from "@/components/portal/portal-header"
 import { usePortalInteractions } from "@/components/portal/portal-interactions"
 import { toast } from "@/hooks/use-toast"
 import { getPortalHomeOverviewAction } from "@/actions/activity"
+import { subscribeOperationSync } from "@/lib/operation-sync"
 
 type Insight = {
   id: string
@@ -144,6 +145,31 @@ export default function PortalHomePage() {
   const finalTranscriptRef = useRef("")
   const micActionRef = useRef<"finalize" | "cancel">("finalize")
 
+  const loadPortalData = async () => {
+    const overviewResult = await getPortalHomeOverviewAction()
+
+    if (overviewResult.success && overviewResult.overview) {
+      setStats((prev) =>
+        prev.map((stat) => {
+          if (stat.label === "Faturamento do mÃªs") {
+            return {
+              ...stat,
+              value: overviewResult.overview.financial.monthIncome.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
+              sublabel:
+                overviewResult.overview.financial.monthIncome > 0 ? "Entradas reais registradas" : "Nenhum faturamento registrado",
+            }
+          }
+
+          return stat
+        }),
+      )
+
+      setRecentActivities(
+        overviewResult.overview.logs as Array<{ id: string; action: string; actionLabel?: string; description: string }>,
+      )
+    }
+  }
+
   useEffect(() => {
     return () => {
       recognitionRef.current?.stop()
@@ -175,6 +201,12 @@ export default function PortalHomePage() {
     }
 
     void loadPortalData()
+  }, [])
+
+  useEffect(() => {
+    return subscribeOperationSync(() => {
+      void loadPortalData()
+    })
   }, [])
 
   const getGreeting = () => {
@@ -580,4 +612,3 @@ export default function PortalHomePage() {
     </div>
   )
 }
-

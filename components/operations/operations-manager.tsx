@@ -11,6 +11,7 @@ import {
   type OperationStatus,
 } from "@/actions/operations"
 import { useAuth } from "@/components/auth/auth-provider"
+import { publishOperationSync, subscribeOperationSync } from "@/lib/operation-sync"
 
 type OperationRecord = {
   id: string
@@ -106,6 +107,12 @@ export function OperationsManager({
     void loadOperations()
   }, [])
 
+  useEffect(() => {
+    return subscribeOperationSync(() => {
+      void loadOperations()
+    })
+  }, [])
+
   const filteredOperations = useMemo(() => {
     return operations.filter((operation) => {
       const matchesFilter = filter === "all" ? true : operation.status === filter
@@ -163,6 +170,7 @@ export function OperationsManager({
 
     setFeedback(editingOperationId ? "Operação atualizada com sucesso." : "Operação criada com sucesso.")
     setModalOpen(false)
+    publishOperationSync({ source: "portal" })
     await loadOperations()
   }
 
@@ -178,6 +186,7 @@ export function OperationsManager({
     }
 
     setFeedback("Operação arquivada com sucesso.")
+    publishOperationSync({ source: "portal" })
     await loadOperations()
   }
 

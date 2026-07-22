@@ -1,6 +1,7 @@
 "use server"
 
 import { canManageWorkspace, getUserAccessForUser } from "@/lib/auth"
+import { logWorkspaceActivity } from "@/lib/activity/log"
 import { createSupabaseAdminClient, createSupabaseServerClient } from "@/lib/supabase/server"
 
 export type ContractStatus = "draft" | "sent" | "signed" | "cancelled" | "archived"
@@ -223,6 +224,15 @@ export async function createContractAction({
     return { error: error?.message ?? "Nao foi possivel criar o contrato." }
   }
 
+  await logWorkspaceActivity({
+    adminClient: actor.adminClient,
+    workspaceId: actor.workspaceId,
+    userId: actor.actorId,
+    area: "documents",
+    action: "contract_created",
+    description: "contrato criado",
+  })
+
   return { success: true, contractId: data.id }
 }
 
@@ -299,6 +309,15 @@ export async function updateContractAction({
   if (error) {
     return { error: error.message }
   }
+
+  await logWorkspaceActivity({
+    adminClient: actor.adminClient,
+    workspaceId: actor.workspaceId,
+    userId: actor.actorId,
+    area: "documents",
+    action: "contract_updated",
+    description: "contrato atualizado",
+  })
 
   return { success: true, contractId: resolvedContract.contract.id }
 }

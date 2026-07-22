@@ -1,6 +1,7 @@
 "use server"
 
 import { canManageWorkspace, getUserAccessForUser } from "@/lib/auth"
+import { logWorkspaceActivity } from "@/lib/activity/log"
 import { createSupabaseAdminClient, createSupabaseServerClient } from "@/lib/supabase/server"
 
 export type BookingStatus = "draft" | "requested" | "confirmed" | "ticketed" | "cancelled" | "completed"
@@ -303,6 +304,15 @@ export async function createBookingAction({
     return { error: error?.message ?? "Nao foi possivel criar a reserva." }
   }
 
+  await logWorkspaceActivity({
+    adminClient: actor.adminClient,
+    workspaceId: actor.workspaceId,
+    userId: actor.actorId,
+    area: "vendas",
+    action: "booking_created",
+    description: "reserva criada",
+  })
+
   return { success: true, bookingId: data.id }
 }
 
@@ -396,6 +406,15 @@ export async function updateBookingAction({
   if (error) {
     return { error: error.message }
   }
+
+  await logWorkspaceActivity({
+    adminClient: actor.adminClient,
+    workspaceId: actor.workspaceId,
+    userId: actor.actorId,
+    area: "vendas",
+    action: "booking_updated",
+    description: "reserva atualizada",
+  })
 
   return { success: true, bookingId: resolvedBooking.booking.id }
 }

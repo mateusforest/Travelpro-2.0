@@ -24,6 +24,14 @@ const activityLabels: Record<string, string> = {
   meeting_created: "Reuniao criada",
   meeting_updated: "Reuniao atualizada",
   meeting_archived: "Reuniao arquivada",
+  quote_created: "Cotacao criada",
+  quote_updated: "Cotacao atualizada",
+  booking_created: "Reserva criada",
+  booking_updated: "Reserva atualizada",
+  contract_created: "Contrato criado",
+  contract_updated: "Contrato atualizado",
+  supplier_created: "Fornecedor criado",
+  supplier_updated: "Fornecedor atualizado",
 }
 
 function detectFinancialLabel(description: string | null | undefined, labels: { income: string; expense: string; fallback: string }) {

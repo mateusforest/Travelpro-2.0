@@ -11,6 +11,7 @@ import {
 import { AreaChat, type ChatMessage } from "@/components/app/area-chat"
 import { useOperationsDashboard } from "@/components/app/operations-dashboard-store"
 import { areaConfigs, resolveAreaConversationInput, resolveAreaHistoryInputs, slug } from "@/lib/area-configs"
+import { publishOperationSync } from "@/lib/operation-sync"
 
 const STUDIO_SECTION_CARDS = {
   Criativos: {
@@ -131,6 +132,7 @@ export default function AreaPage({ params }: { params: Promise<{ area: string }>
               "suggestedHref" in result && typeof result.suggestedHref === "string" ? result.suggestedHref : undefined
 
             if (result.ok) {
+              publishOperationSync({ source: "chat" })
               void refreshSummary({ silent: true, force: true })
             }
 

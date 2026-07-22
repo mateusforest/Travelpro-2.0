@@ -11,6 +11,7 @@ import {
 } from "@/actions/trips"
 import { useOptionalOperationsDashboard } from "@/components/app/operations-dashboard-store"
 import { useAuth } from "@/components/auth/auth-provider"
+import { publishOperationSync, subscribeOperationSync } from "@/lib/operation-sync"
 
 type TripRecord = {
   id: string
@@ -132,6 +133,12 @@ export function TripsManager({
     void loadTrips()
   }, [])
 
+  useEffect(() => {
+    return subscribeOperationSync(() => {
+      void loadTrips()
+    })
+  }, [])
+
   const filteredTrips = useMemo(() => {
     return trips.filter((trip) => {
       const matchesFilter = filter === "all" ? true : trip.status === filter
@@ -196,6 +203,7 @@ export function TripsManager({
 
     setFeedback(editingTripId ? "Viagem atualizada com sucesso." : "Viagem criada com sucesso.")
     setModalOpen(false)
+    publishOperationSync({ source: "portal" })
     await operationsDashboard?.refreshSummary({ silent: true, force: true })
     await loadTrips()
   }

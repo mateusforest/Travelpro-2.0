@@ -24,6 +24,7 @@ import {
 import { getWorkspaceActivityLogsAction } from "@/actions/activity"
 import { useAppInteractions } from "@/components/app/app-interactions"
 import { humanizeActivityAction } from "@/lib/activity/humanize"
+import { subscribeOperationSync } from "@/lib/operation-sync"
 
 type ActivityItem = {
   id: string
@@ -87,6 +88,8 @@ function iconForArea(area: string) {
   if (area === "financial") return DollarSign
   if (area === "support") return LifeBuoy
   if (area === "operations") return Briefcase
+  if (area === "vendas") return TrendingUp
+  if (area === "equipe") return UsersRound
   if (area === "documents") return FolderOpen
   if (area === "meetings") return Video
   return Settings
@@ -97,6 +100,8 @@ function colorForArea(area: string) {
   if (area === "financial") return { color: "#22c55e", bgColor: "#dcfce7" }
   if (area === "support") return { color: "#6b7280", bgColor: "#f3f4f6" }
   if (area === "operations") return { color: "#8b5cf6", bgColor: "#ede9fe" }
+  if (area === "vendas") return { color: "#f97316", bgColor: "#ffedd5" }
+  if (area === "equipe") return { color: "#0f766e", bgColor: "#ccfbf1" }
   if (area === "documents") return { color: "#3b82f6", bgColor: "#dbeafe" }
   if (area === "meetings") return { color: "#ef4444", bgColor: "#fee2e2" }
   return { color: "#6b7280", bgColor: "#f3f4f6" }
@@ -107,6 +112,8 @@ function humanizeArea(area: string) {
   if (area === "financial") return "Financeiro"
   if (area === "support") return "Atendimentos"
   if (area === "operations") return "Viagens"
+  if (area === "vendas") return "Comercial"
+  if (area === "equipe") return "Fornecedores"
   if (area === "documents") return "Documentos"
   if (area === "meetings") return "Agenda"
   return "Configurações"
@@ -121,24 +128,30 @@ export default function HistoricoPage() {
   const [error, setError] = useState<string | null>(null)
   const { openFilters } = useAppInteractions()
 
-  useEffect(() => {
-    const load = async () => {
-      setIsLoading(true)
-      setError(null)
-      const result = await getWorkspaceActivityLogsAction()
+  const load = async () => {
+    setIsLoading(true)
+    setError(null)
+    const result = await getWorkspaceActivityLogsAction()
 
-      if (result.error) {
-        setError(result.error)
-        setLogs([])
-        setIsLoading(false)
-        return
-      }
-
-      setLogs((result.logs ?? []) as ActivityItem[])
+    if (result.error) {
+      setError(result.error)
+      setLogs([])
       setIsLoading(false)
+      return
     }
 
+    setLogs((result.logs ?? []) as ActivityItem[])
+    setIsLoading(false)
+  }
+
+  useEffect(() => {
     void load()
+  }, [])
+
+  useEffect(() => {
+    return subscribeOperationSync(() => {
+      void load()
+    })
   }, [])
 
   const filteredLogs = useMemo(() => {

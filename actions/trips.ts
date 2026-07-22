@@ -1,6 +1,7 @@
 "use server"
 
 import { canManageWorkspace, getUserAccessForUser } from "@/lib/auth"
+import { logWorkspaceActivity } from "@/lib/activity/log"
 import { createSupabaseAdminClient, createSupabaseServerClient } from "@/lib/supabase/server"
 
 export type TripStatus = "draft" | "planning" | "confirmed" | "in_progress" | "completed" | "cancelled" | "archived"
@@ -31,32 +32,6 @@ type TripActor = {
   canManage: boolean
   isMaster: boolean
   adminClient: NonNullable<ReturnType<typeof createSupabaseAdminClient>>
-}
-
-async function logTripActivity({
-  adminClient,
-  workspaceId,
-  userId,
-  action,
-  description,
-}: {
-  adminClient: TripActor["adminClient"]
-  workspaceId: string
-  userId: string
-  action: string
-  description: string
-}) {
-  const { error } = await adminClient.from("activity_logs").insert({
-    workspace_id: workspaceId,
-    user_id: userId,
-    area: "operations",
-    action,
-    description,
-  })
-
-  if (error) {
-    console.error("[trips] activity-log:", error.message)
-  }
 }
 
 async function getTripActor() {
@@ -237,10 +212,11 @@ export async function createTripAction({
     return { error: error?.message ?? "Nao foi possivel criar a viagem." }
   }
 
-  await logTripActivity({
+  await logWorkspaceActivity({
     adminClient: actor.adminClient,
     workspaceId: actor.workspaceId,
     userId: actor.actorId,
+    area: "operations",
     action: "operation_created",
     description: "viagem criada",
   })
@@ -311,6 +287,15 @@ export async function updateTripAction({
   if (error) {
     return { error: error.message }
   }
+
+  await logWorkspaceActivity({
+    adminClient: actor.adminClient,
+    workspaceId: actor.workspaceId,
+    userId: actor.actorId,
+    area: "operations",
+    action: "operation_updated",
+    description: "viagem atualizada",
+  })
 
   return { success: true, tripId: resolvedTrip.trip.id }
 }
