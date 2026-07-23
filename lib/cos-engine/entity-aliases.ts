@@ -1,6 +1,6 @@
 export const operationalAreaAliases = {
   cadastros: ["cadastro", "cadastros", "clientes", "leads", "produtos", "servicos", "serviços"],
-  operacoes: ["operacoes", "operações", "projetos", "ordens", "processos", "viagem", "viagens"],
+  operacoes: ["operacoes", "operações", "projetos", "ordens", "processos"],
   vendas: ["vendas", "propostas", "negociacoes", "negociações", "funil"],
   financeiro: ["financeiro", "ganhos", "gastos", "despesas", "receitas", "fluxo de caixa", "caixa"],
   equipe: ["equipe", "comercial", "operacional", "administrativo", "financeiro", "membros"],
@@ -15,7 +15,7 @@ export const operationalEntityAliases = {
   lead: ["lead", "leads"],
   product: ["produto", "produtos"],
   service: ["servico", "serviço", "servicos", "serviços"],
-  project: ["projeto", "projetos", "viagem", "viagens"],
+  project: ["projeto", "projetos"],
   order: ["ordem", "ordem de servico", "ordem de serviço", "ordens"],
   process: ["processo", "processos", "onboarding"],
   proposal: ["proposta", "propostas"],

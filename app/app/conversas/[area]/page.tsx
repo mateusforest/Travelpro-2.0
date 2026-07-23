@@ -2,47 +2,24 @@
 
 import { use, useEffect, useState } from "react"
 import Link from "next/link"
-import { useRouter, useSearchParams } from "next/navigation"
-import { ChevronLeft, ChevronRight, Clapperboard, Image as ImageIcon, Megaphone, MessageSquare, Sparkles } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { ChevronLeft, ChevronRight, MessageSquare } from "lucide-react"
 import {
   getOperationsConversationMessagesAction,
   runOperationsEngineAction,
 } from "@/actions/operations-engine"
 import { AreaChat, type ChatMessage } from "@/components/app/area-chat"
-import { useOperationsDashboard } from "@/components/app/operations-dashboard-store"
-import { areaConfigs, resolveAreaConversationInput, resolveAreaHistoryInputs, slug } from "@/lib/area-configs"
+import { SupportWorkspaceCenter } from "@/components/support/support-workspace-center"
+import { useSupport } from "@/components/support/support-context"
+import { areaConfigs, slug } from "@/lib/area-configs"
 import { publishOperationSync } from "@/lib/operation-sync"
-
-const STUDIO_SECTION_CARDS = {
-  Criativos: {
-    icon: Sparkles,
-    description: "Organize conceitos, pecas e direcionamentos criativos da agencia.",
-  },
-  Imagens: {
-    icon: ImageIcon,
-    description: "Centralize referencias visuais, necessidades e prioridades de imagens.",
-  },
-  Videos: {
-    icon: Clapperboard,
-    description: "Estruture roteiros, ideias e frentes de videos no Studio IA.",
-  },
-  Campanhas: {
-    icon: Megaphone,
-    description: "Conecte criacao e planejamento de campanhas em uma conversa contextual.",
-  },
-} as const
 
 export default function AreaPage({ params }: { params: Promise<{ area: string }> }) {
   const { area } = use(params)
   const router = useRouter()
-  const searchParams = useSearchParams()
+  const { openSupport } = useSupport()
   const config = areaConfigs[area]
-  const conversationInput = resolveAreaConversationInput(area)
-  const historyInputs = resolveAreaHistoryInputs(area)
-  const isChatArea = Boolean(config) && config.subsections.length === 0
-  const initialPrompt = searchParams.get("prompt") ?? undefined
-  const autoSendInitialPrompt = searchParams.get("autoSend") === "1"
-  const { refreshSummary } = useOperationsDashboard()
+  const isChatArea = Boolean(config) && config.subsections.length === 0 && area !== "suporte"
   const [messages, setMessages] = useState<ChatMessage[]>(config?.messages ?? [])
   const [isLoadingMessages, setIsLoadingMessages] = useState(isChatArea)
 
@@ -55,19 +32,14 @@ export default function AreaPage({ params }: { params: Promise<{ area: string }>
 
     const loadMessages = async () => {
       setIsLoadingMessages(true)
-      const results = await Promise.all(historyInputs.map((input) => getOperationsConversationMessagesAction(input)))
+      const result = await getOperationsConversationMessagesAction({ area })
 
       if (!isMounted) {
         return
       }
 
-      const loadedMessages = results.flatMap((result) => (result.success ? result.messages : []))
-
-      if (loadedMessages.length > 0) {
-        const uniqueMessages = Array.from(
-          new Map(loadedMessages.map((message) => [message.id ?? `${message.from}:${message.time}:${message.text}`, message])).values(),
-        )
-        setMessages(uniqueMessages)
+      if (result.success) {
+        setMessages(result.messages)
       } else {
         setMessages(config.messages ?? [])
       }
@@ -101,27 +73,43 @@ export default function AreaPage({ params }: { params: Promise<{ area: string }>
 
   const Icon = config.icon
 
+  if (area === "suporte") {
+    return <SupportWorkspaceCenter backHref="/app/conversas" compact />
+  }
+
   if (config.subsections.length === 0) {
     return (
       <AreaChat
         conversationKey={area}
         title={config.label}
-        subtitle={config.subtitle ?? `Conversa contextual de ${config.label.toLowerCase()} do seu workspace.`}
+        subtitle={
+          area === "sistema"
+            ? "Configurações, integrações e logs do workspace."
+            : `Conversa contextual de ${config.label.toLowerCase()} do seu workspace.`
+        }
         icon={Icon}
         color={config.color}
         bg={config.bg}
         messages={messages}
         isLoadingHistory={isLoadingMessages}
-        quickActions={config.quickActions.map((label) => ({ label }))}
-        initialInput={initialPrompt}
-        autoSendInitialInput={autoSendInitialPrompt}
+        quickActions={config.quickActions.map((label) => ({
+          label,
+          onClick:
+            label === "Iniciar atendimento"
+              ? () => openSupport()
+              : label === "Acessar Portal"
+                ? () => router.push("/portal")
+                : undefined,
+        }))}
         onSendMessage={async (input, now) => {
           try {
             const result = await runOperationsEngineAction({
               message: input,
-              area: conversationInput.area,
-              subArea: conversationInput.subArea,
+              area,
             })
+            if (result.ok) {
+              publishOperationSync({ source: "chat" })
+            }
             const responseText =
               typeof result.message === "string" && result.message.trim()
                 ? result.message
@@ -130,11 +118,6 @@ export default function AreaPage({ params }: { params: Promise<{ area: string }>
               "suggestedLabel" in result && typeof result.suggestedLabel === "string" ? result.suggestedLabel : undefined
             const ctaHref =
               "suggestedHref" in result && typeof result.suggestedHref === "string" ? result.suggestedHref : undefined
-
-            if (result.ok) {
-              publishOperationSync({ source: "chat" })
-              void refreshSummary({ silent: true, force: true })
-            }
 
             return {
               messages: [
@@ -161,7 +144,11 @@ export default function AreaPage({ params }: { params: Promise<{ area: string }>
             }
           }
         }}
-        emptyLabel={config.emptyLabel ?? `Ainda nao ha mensagens nesta conversa. Use o campo abaixo para falar com o COS sobre ${config.label.toLowerCase()}.`}
+        emptyLabel={
+          area === "sistema"
+            ? "Ainda nao ha mensagens nesta conversa. Use o campo abaixo para falar com o COS sobre sistema, alertas e logs."
+            : `Ainda nao ha mensagens nesta conversa. Use o campo abaixo para falar com o COS sobre ${config.label.toLowerCase()}.`
+        }
       />
     )
   }
@@ -182,50 +169,18 @@ export default function AreaPage({ params }: { params: Promise<{ area: string }>
         </div>
       </div>
 
-      {area === "studio-ia" ? (
-        <div className="mb-6 grid gap-4 sm:grid-cols-2">
-          {config.subsections.map((sub) => {
-            const cardMeta = STUDIO_SECTION_CARDS[sub as keyof typeof STUDIO_SECTION_CARDS]
-            const CardIcon = cardMeta?.icon ?? Icon
-
-            return (
-              <Link
-                key={sub}
-                href={`/app/conversas/${area}/${slug(sub)}`}
-                className="rounded-[1.75rem] border border-gray-100 bg-white p-5 shadow-sm transition-colors hover:bg-gray-50"
-              >
-                <div className="mb-4 inline-flex rounded-full px-3 py-1 text-xs font-medium" style={{ backgroundColor: config.bg, color: config.color }}>
-                  Studio IA
-                </div>
-                <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl" style={{ backgroundColor: config.bg }}>
-                  <CardIcon className="h-5 w-5" style={{ color: config.color }} />
-                </div>
-                <h2 className="text-lg font-semibold text-[#0a0a0a]">{sub}</h2>
-                <p className="mt-2 text-sm text-gray-500">
-                  {cardMeta?.description ?? "Abrir conversa contextual desta area no Studio IA."}
-                </p>
-                <div className="mt-5 inline-flex items-center gap-2 text-sm font-medium" style={{ color: config.color }}>
-                  Abrir conversa
-                  <ChevronRight className="h-4 w-4" />
-                </div>
-              </Link>
-            )
-          })}
-        </div>
-      ) : (
-        <div className="bg-white rounded-2xl border border-gray-100 divide-y divide-gray-50 mb-6">
-          {config.subsections.map((sub) => (
-            <Link
-              key={sub}
-              href={`/app/conversas/${area}/${slug(sub)}`}
-              className="flex items-center justify-between py-3 px-4 hover:bg-gray-50 transition-colors first:rounded-t-2xl last:rounded-b-2xl"
-            >
-              <span className="text-sm text-[#0a0a0a]">{sub}</span>
-              <ChevronRight className="w-4 h-4 text-gray-300" />
-            </Link>
-          ))}
-        </div>
-      )}
+      <div className="bg-white rounded-2xl border border-gray-100 divide-y divide-gray-50 mb-6">
+        {config.subsections.map((sub) => (
+          <Link
+            key={sub}
+            href={`/app/conversas/${area}/${slug(sub)}`}
+            className="flex items-center justify-between py-3 px-4 hover:bg-gray-50 transition-colors first:rounded-t-2xl last:rounded-b-2xl"
+          >
+            <span className="text-sm text-[#0a0a0a]">{sub}</span>
+            <ChevronRight className="w-4 h-4 text-gray-300" />
+          </Link>
+        ))}
+      </div>
     </div>
   )
 }

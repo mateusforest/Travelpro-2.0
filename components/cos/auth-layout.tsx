@@ -44,7 +44,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
               <span className="italic">conversa.</span>
             </h1>
             <h2 className="text-5xl xl:text-6xl font-medium tracking-tight text-[#0a0a0a] leading-[1.1]">
-              O COS executa.
+              TravelPro executa.
             </h2>
             <p className="text-lg text-[#737373] max-w-md leading-relaxed pt-4">
               Uma nova forma de operar negócios, criar softwares e conectar sistemas.
@@ -68,7 +68,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
                     </svg>
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm text-[#0a0a0a] font-medium">Bem-vindo ao COS</p>
+                    <p className="text-sm text-[#0a0a0a] font-medium">Bem-vindo ao TravelPro</p>
                     <p className="text-sm text-[#737373] mt-1">Sua operação começa com uma conversa.</p>
                   </div>
                 </div>

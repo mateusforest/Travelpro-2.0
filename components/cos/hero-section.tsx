@@ -50,7 +50,7 @@ export function HeroSection() {
             <br />
             <span className="italic">conversa.</span>
             <br />
-            <span className="font-semibold not-italic">O COS executa.</span>
+            <span className="font-semibold not-italic">TravelPro executa.</span>
           </h1>
           
           <p className="text-[15px] text-muted-foreground leading-relaxed mb-6 max-w-[280px] mx-auto">
@@ -61,14 +61,14 @@ export function HeroSection() {
           <div className="flex flex-col gap-3 items-center">
             <Link
               href="/cadastro"
-              className="inline-flex items-center gap-2 rounded-full bg-foreground px-6 py-3 text-sm font-medium text-white"
+              className="tp-gradient-btn inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-medium"
             >
               Começar agora
               <ArrowRight className="h-4 w-4" />
             </Link>
             <button onClick={scrollToProducts} className="inline-flex items-center gap-2 text-sm text-foreground/70 py-2">
               <Play className="h-4 w-4" />
-              Conhecer o COS
+              Conhecer o TravelPro
             </button>
           </div>
         </motion.div>
@@ -99,7 +99,7 @@ export function HeroSection() {
           transition={{ duration: 0.6, delay: 0.4 }}
           className="bg-white rounded-b-2xl -mx-4 px-4 py-4 shadow-sm"
         >
-          <p className="text-xs text-muted-foreground mb-3">O COS atende os principais setores.</p>
+          <p className="text-xs text-muted-foreground mb-3">O TravelPro atende os principais setores.</p>
           <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
             {sectors.map((sector, index) => (
               <div

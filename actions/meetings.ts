@@ -1,6 +1,7 @@
 "use server"
 
 import { canManageWorkspace, getUserAccessForUser } from "@/lib/auth"
+import { logWorkspaceActivity } from "@/lib/activity/log"
 import { createSupabaseAdminClient, createSupabaseServerClient } from "@/lib/supabase/server"
 
 export type MeetingStatus = "draft" | "recorded" | "transcribed" | "archived"
@@ -61,32 +62,6 @@ function normalizeMeetingStatus(status: string): MeetingStatus {
   if (normalized === "transcribed" || normalized === "transcrita" || normalized === "transcrito") return "transcribed"
   if (normalized === "archived" || normalized === "arquivada" || normalized === "arquivado") return "archived"
   return "draft"
-}
-
-async function logMeetingActivity({
-  adminClient,
-  workspaceId,
-  userId,
-  action,
-  description,
-}: {
-  adminClient: MeetingActor["adminClient"]
-  workspaceId: string
-  userId: string
-  action: string
-  description: string
-}) {
-  const { error } = await adminClient.from("activity_logs").insert({
-    workspace_id: workspaceId,
-    user_id: userId,
-    area: "meetings",
-    action,
-    description,
-  })
-
-  if (error) {
-    console.error("[meetings] activity-log:", error.message)
-  }
 }
 
 async function resolveMeetingForActor(actor: MeetingActor, meetingId: string) {
@@ -218,10 +193,11 @@ export async function createMeetingAction({
     return { error: error?.message ?? "Não foi possível criar a reunião." }
   }
 
-  await logMeetingActivity({
+  await logWorkspaceActivity({
     adminClient: actor.adminClient,
     workspaceId: actor.workspaceId,
     userId: actor.actorId,
+    area: "meetings",
     action: "meeting_created",
     description: "reunião criada",
   })
@@ -285,10 +261,11 @@ export async function updateMeetingAction({
     return { error: error.message }
   }
 
-  await logMeetingActivity({
+  await logWorkspaceActivity({
     adminClient: actor.adminClient,
     workspaceId: actor.workspaceId,
     userId: actor.actorId,
+    area: "meetings",
     action: "meeting_updated",
     description: "reunião atualizada",
   })
@@ -323,10 +300,11 @@ export async function deleteMeetingAction({ meetingId }: { meetingId: string }) 
     return { error: error.message }
   }
 
-  await logMeetingActivity({
+  await logWorkspaceActivity({
     adminClient: actor.adminClient,
     workspaceId: actor.workspaceId,
     userId: actor.actorId,
+    area: "meetings",
     action: "meeting_archived",
     description: "reunião arquivada",
   })

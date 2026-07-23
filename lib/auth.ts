@@ -6,7 +6,7 @@ import {
   resolvePostAuthPath,
 } from "@/lib/auth-routing"
 
-export type WorkspaceType = "operations"
+export type WorkspaceType = "operations" | "connect"
 export type GlobalRole = "master" | string | null
 export type WorkspaceRole = "owner" | "admin" | "member" | string | null
 

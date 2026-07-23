@@ -8,14 +8,14 @@ import { toast } from "@/hooks/use-toast"
 const integrations = [
   {
     name: "WhatsApp",
-    description: "Centralize mensagens e atendimentos da agência quando a conexão real estiver disponível.",
+    description: "Centralize mensagens e atendimentos quando a conexão real estiver disponível.",
     icon: "W",
     color: "bg-green-500",
     status: "Não configurado",
   },
   {
     name: "E-mail",
-    description: "Sincronize sua caixa de entrada e acompanhe contatos da TravelPro.",
+    description: "Sincronize sua caixa de entrada e acompanhe contatos pelo portal.",
     icon: "@",
     color: "bg-blue-500",
     status: "Em preparação",
@@ -49,7 +49,7 @@ export default function IntegracoesPage() {
       <PortalHeader />
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-7xl mx-auto px-6 py-8">
-          <PortalPageHeader title="Integrações" description="Conecte canais e ferramentas da TravelPro quando o backend estiver disponível." />
+          <PortalPageHeader title="Integrações" description="Conecte canais e ferramentas quando o backend estiver disponível." />
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
             <div className="flex items-center justify-between gap-3 mb-4">
@@ -59,7 +59,7 @@ export default function IntegracoesPage() {
               </div>
               <button
                 onClick={() => toast({ title: "Integração preparada", description: "As conexões reais serão ativadas em uma próxima etapa." })}
-                className="inline-flex items-center gap-2 rounded-xl bg-[#FE6708] px-4 py-2.5 text-sm text-white transition-colors hover:bg-[#FE8414]"
+                className="inline-flex items-center gap-2 rounded-xl bg-[#0a0a0a] px-4 py-2.5 text-sm text-white hover:bg-gray-800 transition-colors"
               >
                 <Plus className="w-4 h-4" />
                 Nova integração
@@ -92,7 +92,7 @@ export default function IntegracoesPage() {
                     onClick={() => handleAction(item.name)}
                     className="w-full mt-4 rounded-xl border border-gray-200 px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors"
                   >
-                    Conectar
+                    Configurar
                   </button>
                 </div>
               ))}

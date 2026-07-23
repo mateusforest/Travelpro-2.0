@@ -99,12 +99,12 @@ export default function MasterOverviewPage() {
 
   const kpis = [
     { label: "Clientes ativos", value: String(stats?.activeClients ?? 0), sublabel: "Workspaces da plataforma", icon: Building2 },
-    { label: "Workspaces ativos", value: String(stats?.activeWorkspaces ?? 0), sublabel: "Ambientes operacionais", icon: Boxes },
+    { label: "Workspaces ativos", value: String(stats?.activeWorkspaces ?? 0), sublabel: "Operacoes e Connect", icon: Boxes },
     { label: "Usuarios totais", value: String(stats?.totalUsers ?? 0), sublabel: "Perfis cadastrados", icon: Users },
     { label: "Receita mensal", value: stats?.monthlyRevenueLabel ?? "R$ 0,00", sublabel: "Invoices pagas do mes", icon: DollarSign },
     { label: "Uso de IA", value: String(stats?.aiUsageTokens ?? 0), sublabel: "tokens registrados", icon: Sparkles },
     { label: "Chamados abertos", value: String(stats?.openSupportTickets ?? 0), sublabel: "open, in_progress e waiting", icon: LifeBuoy },
-    { label: "Integracoes ativas", value: String(stats?.activeIntegrations ?? 0), sublabel: "Recursos configurados", icon: Plug },
+    { label: "Integracoes ativas", value: String(stats?.activeIntegrations ?? 0), sublabel: "connect_sources conectadas", icon: Plug },
   ]
 
   return (
@@ -223,4 +223,3 @@ export default function MasterOverviewPage() {
     </div>
   )
 }
-

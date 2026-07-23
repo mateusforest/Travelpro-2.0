@@ -42,7 +42,6 @@ type CompanyState = {
 type InviteState = {
   name: string
   email: string
-  password: string
   role: "owner" | "admin" | "member"
 }
 
@@ -104,7 +103,6 @@ const defaultCompany: CompanyState = {
 const defaultInvite: InviteState = {
   name: "",
   email: "",
-  password: "",
   role: "member",
 }
 
@@ -240,20 +238,18 @@ export function AppInteractionsProvider({ children }: { children: ReactNode }) {
 
     await refresh()
     toast({
-      title: "Agência atualizada",
-      description: "Os dados da agência foram salvos com sucesso.",
+      title: "Empresa atualizada",
+      description: "Os dados da empresa foram salvos com sucesso.",
     })
     closeModal()
   }
 
-  const createTeamMember = async () => {
+  const sendInvite = async () => {
     setInvitingMember(true)
     setInviteError("")
 
     const result = await addWorkspaceMemberAction({
-      name: invite.name,
       email: invite.email,
-      password: invite.password,
       role: invite.role,
     })
 
@@ -271,7 +267,7 @@ export function AppInteractionsProvider({ children }: { children: ReactNode }) {
 
     toast({
       title: "Membro adicionado",
-      description: "A conta foi criada e vinculada ao workspace com sucesso.",
+      description: "O usuário foi vinculado ao workspace com sucesso.",
     })
     setInvite(defaultInvite)
     setInviteOpen(false)
@@ -364,17 +360,17 @@ export function AppInteractionsProvider({ children }: { children: ReactNode }) {
               )}
 
               {modal === "company" && (
-                <ModalShell icon={Building2} title="Minha agência" onClose={closeModal}>
+                <ModalShell icon={Building2} title="Minha empresa" onClose={closeModal}>
                   <div className="space-y-4">
                     {!workspace?.name && !company.segment && !company.cnpj && <EmptyHint text="Sem dados cadastrados ainda." />}
                     {!canManageWorkspace && (
-                      <EmptyHint text="Você pode visualizar os dados da agência, mas apenas owner, admin ou master podem editar." />
+                      <EmptyHint text="Você pode visualizar os dados da empresa, mas apenas owner, admin ou master podem editar." />
                     )}
                     <InputField
-                      label="Nome da agência"
+                      label="Nome da empresa"
                       value={company.companyName}
                       onChange={(companyName) => setCompany((prev) => ({ ...prev, companyName }))}
-                      placeholder="Nome da agência"
+                      placeholder="Nome da empresa"
                       disabled={!canManageWorkspace}
                     />
                     <InputField
@@ -457,7 +453,7 @@ export function AppInteractionsProvider({ children }: { children: ReactNode }) {
                           </div>
                         )}
 
-                        {hasOnlyOwner && <EmptyHint text="Nenhum outro membro cadastrado ainda." />}
+                        {hasOnlyOwner && <EmptyHint text="Nenhum outro membro convidado ainda." />}
                       </>
                     )}
 
@@ -473,7 +469,7 @@ export function AppInteractionsProvider({ children }: { children: ReactNode }) {
                         className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#0a0a0a] px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-[#1a1a1a]"
                       >
                         <UserPlus className="h-4 w-4" />
-                        Novo membro
+                        Convidar membro
                       </button>
                       <button
                         type="button"
@@ -507,13 +503,6 @@ export function AppInteractionsProvider({ children }: { children: ReactNode }) {
                               onChange={(email) => setInvite((prev) => ({ ...prev, email }))}
                               placeholder="E-mail"
                             />
-                            <InputField
-                              label="Senha"
-                              type="password"
-                              value={invite.password}
-                              onChange={(password) => setInvite((prev) => ({ ...prev, password }))}
-                              placeholder="Senha"
-                            />
                             <ChoiceField
                               label="Papel"
                               value={formatRole(invite.role)}
@@ -530,14 +519,15 @@ export function AppInteractionsProvider({ children }: { children: ReactNode }) {
                               }
                               options={["Proprietário", "Admin", "Membro"]}
                             />
+                            <EmptyHint text="Se o e-mail já existir em profiles, o usuário será adicionado ao workspace. Caso contrário, o convite por e-mail será ativado posteriormente." />
                             {inviteError && <InlineMessage tone="error" text={inviteError} />}
                             <button
                               type="button"
-                              onClick={createTeamMember}
-                              disabled={invitingMember || !invite.name.trim() || !invite.email.trim() || !invite.password.trim()}
+                              onClick={sendInvite}
+                              disabled={invitingMember || !invite.email.trim()}
                               className="w-full rounded-2xl bg-[#0a0a0a] px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-[#1a1a1a] disabled:cursor-not-allowed disabled:opacity-50"
                             >
-                              {invitingMember ? "Criando..." : "Criar membro"}
+                              {invitingMember ? "Enviando..." : "Enviar convite"}
                             </button>
                           </div>
                         </motion.div>
@@ -650,14 +640,12 @@ function ModalShell({
 
 function InputField({
   label,
-  type = "text",
   value,
   onChange,
   placeholder,
   disabled = false,
 }: {
   label: string
-  type?: string
   value: string
   onChange: (value: string) => void
   placeholder: string
@@ -667,7 +655,7 @@ function InputField({
     <label className="block space-y-1.5">
       <span className="text-sm font-medium text-[#0a0a0a]">{label}</span>
       <input
-        type={type}
+        type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}

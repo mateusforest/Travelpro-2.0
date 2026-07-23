@@ -10,6 +10,7 @@ import {
   type MeetingStatus,
 } from "@/actions/meetings"
 import { useAuth } from "@/components/auth/auth-provider"
+import { publishOperationSync, subscribeOperationSync } from "@/lib/operation-sync"
 
 type MeetingRecord = {
   id: string
@@ -101,6 +102,12 @@ export function MeetingsManager({
     void loadMeetings()
   }, [])
 
+  useEffect(() => {
+    return subscribeOperationSync(() => {
+      void loadMeetings()
+    })
+  }, [])
+
   const filteredMeetings = useMemo(() => {
     return meetings.filter((meeting) => {
       const matchesFilter = filter === "all" ? true : meeting.status === filter
@@ -160,6 +167,7 @@ export function MeetingsManager({
 
     setFeedback(editingMeetingId ? "Reunião atualizada com sucesso." : "Reunião criada com sucesso.")
     setModalOpen(false)
+    publishOperationSync({ source: "portal" })
     await loadMeetings()
   }
 
@@ -175,6 +183,7 @@ export function MeetingsManager({
     }
 
     setFeedback("Reunião arquivada com sucesso.")
+    publishOperationSync({ source: "portal" })
     await loadMeetings()
   }
 

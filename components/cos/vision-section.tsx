@@ -54,8 +54,8 @@ export function VisionSection() {
           >
             <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center shadow-inner">
               <Image
-                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/COS%20LOGO%20%281%29-mBU7xqdIZoWP3indGVxJrDFLu8urZH.png"
-                alt="COS"
+                src="/travelpro-logo-mark.png"
+                alt="TravelPro"
                 width={48}
                 height={48}
                 className="w-12 h-12 opacity-30"

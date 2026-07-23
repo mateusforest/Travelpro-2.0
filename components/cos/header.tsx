@@ -102,7 +102,7 @@ export function Header() {
           <div className="hidden md:block">
             <Link
               href="/cadastro"
-              className="tp-gradient-btn inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition-colors"
+              className="tp-gradient-btn inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium"
             >
               Começar agora
               <ArrowRight className="h-4 w-4" />

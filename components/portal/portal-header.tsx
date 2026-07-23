@@ -12,7 +12,7 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/client"
 
 const notifications: { id: number; title: string; desc: string; time: string; unread: boolean }[] = []
 
-export function PortalHeader({ placeholder = "Pergunte ao TravelPro..." }: { placeholder?: string }) {
+export function PortalHeader({ placeholder = "Pergunte ao COS..." }: { placeholder?: string }) {
   const router = useRouter()
   const { toggleMobileMenu } = usePortalUI()
   const { user, profile, clearAuth } = useAuth()

@@ -1,66 +1,67 @@
 "use client"
 
-export type OperationSyncEvent = {
-  source: "chat" | "portal" | "app"
+type OperationSyncDetail = {
+  source?: "chat" | "portal" | "support" | "master" | "app"
   timestamp: number
 }
 
-const OPERATION_SYNC_EVENT = "travelpro:operation-sync"
-const OPERATION_SYNC_CHANNEL = "travelpro-operation-sync"
+const EVENT_NAME = "travelpro:operation-sync"
+const CHANNEL_NAME = "travelpro-operation-sync"
 
-let operationSyncChannel: BroadcastChannel | null = null
-
-function getOperationSyncChannel() {
-  if (typeof window === "undefined" || typeof window.BroadcastChannel === "undefined") {
-    return null
+function buildDetail(source?: OperationSyncDetail["source"]): OperationSyncDetail {
+  return {
+    source,
+    timestamp: Date.now(),
   }
-
-  if (!operationSyncChannel) {
-    operationSyncChannel = new window.BroadcastChannel(OPERATION_SYNC_CHANNEL)
-  }
-
-  return operationSyncChannel
 }
 
-export function publishOperationSync(input: Omit<OperationSyncEvent, "timestamp">) {
+export function publishOperationSync({
+  source,
+}: {
+  source?: OperationSyncDetail["source"]
+} = {}) {
   if (typeof window === "undefined") {
     return
   }
 
-  const event: OperationSyncEvent = {
-    ...input,
-    timestamp: Date.now(),
-  }
+  const detail = buildDetail(source)
+  window.dispatchEvent(new CustomEvent(EVENT_NAME, { detail }))
 
-  window.dispatchEvent(new CustomEvent<OperationSyncEvent>(OPERATION_SYNC_EVENT, { detail: event }))
-  getOperationSyncChannel()?.postMessage(event)
+  if (typeof BroadcastChannel !== "undefined") {
+    const channel = new BroadcastChannel(CHANNEL_NAME)
+    channel.postMessage(detail)
+    channel.close()
+  }
 }
 
-export function subscribeOperationSync(listener: (event: OperationSyncEvent) => void) {
+export function subscribeOperationSync(listener: (detail: OperationSyncDetail) => void) {
   if (typeof window === "undefined") {
     return () => undefined
   }
 
   const handleWindowEvent = (event: Event) => {
-    const syncEvent = (event as CustomEvent<OperationSyncEvent>).detail
-
-    if (syncEvent) {
-      listener(syncEvent)
-    }
+    const customEvent = event as CustomEvent<OperationSyncDetail>
+    listener(customEvent.detail ?? buildDetail())
   }
 
-  const channel = getOperationSyncChannel()
-  const handleChannelEvent = (event: MessageEvent<OperationSyncEvent>) => {
-    if (event.data) {
-      listener(event.data)
-    }
-  }
+  window.addEventListener(EVENT_NAME, handleWindowEvent)
 
-  window.addEventListener(OPERATION_SYNC_EVENT, handleWindowEvent as EventListener)
-  channel?.addEventListener("message", handleChannelEvent as EventListener)
+  let channel: BroadcastChannel | null = null
+  let handleMessage: ((event: MessageEvent<OperationSyncDetail>) => void) | null = null
+
+  if (typeof BroadcastChannel !== "undefined") {
+    channel = new BroadcastChannel(CHANNEL_NAME)
+    handleMessage = (event: MessageEvent<OperationSyncDetail>) => {
+      listener(event.data ?? buildDetail())
+    }
+    channel.addEventListener("message", handleMessage)
+  }
 
   return () => {
-    window.removeEventListener(OPERATION_SYNC_EVENT, handleWindowEvent as EventListener)
-    channel?.removeEventListener("message", handleChannelEvent as EventListener)
+    window.removeEventListener(EVENT_NAME, handleWindowEvent)
+    if (channel && handleMessage) {
+      channel.removeEventListener("message", handleMessage)
+      channel.close()
+    }
   }
 }

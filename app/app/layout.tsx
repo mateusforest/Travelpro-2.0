@@ -45,11 +45,8 @@ import { OperationsDashboardProvider, useOperationsDashboard } from "@/component
 import { AppInteractionsProvider } from "@/components/app/app-interactions"
 import { useAuth } from "@/components/auth/auth-provider"
 import { ProtectedRouteGuard } from "@/components/auth/auth-route-guard"
-import { ExpansionLaunchItem } from "@/components/expansions/expansion-launch-item"
 import { SupportProvider, useSupport } from "@/components/support/support-context"
 import { Toaster } from "@/components/ui/toaster"
-import { expansionItems } from "@/lib/expansion-configs"
-import { travelProAreas } from "@/lib/travelpro-areas"
 
 type MenuLevel = "main" | "more" | "equipe" | "foto"
 
@@ -77,14 +74,20 @@ type SessionItem = {
   href: string
 }
 
-const sessions = travelProAreas.filter((area) => !area.premiumExpansion).map((area) => ({
-  icon: area.icon as typeof Users,
-  label: area.label,
-  time: "Em preparacao",
-  count: 0,
-  color: area.color,
-  bg: area.bg,
-}))
+const sessions = [
+  { icon: Users, label: "Clientes", time: "Em preparação", count: 0, color: "#ec4899", bg: "#fce7f3" },
+  { icon: Briefcase, label: "Viagens", time: "Em preparação", count: 0, color: "#8b5cf6", bg: "#ede9fe" },
+  { icon: TrendingUp, label: "Cotações", time: "Em preparação", count: 0, color: "#3b82f6", bg: "#dbeafe" },
+  { icon: FileText, label: "Contratos", time: "Em preparação", count: 0, color: "#ef4444", bg: "#fee2e2" },
+  { icon: Calendar, label: "Reservas", time: "Em preparação", count: 0, color: "#0ea5e9", bg: "#e0f2fe" },
+  { icon: DollarSign, label: "Financeiro", time: "Em preparação", count: 0, color: "#22c55e", bg: "#dcfce7" },
+  { icon: FolderOpen, label: "Documentos", time: "Em preparação", count: 0, color: "#f97316", bg: "#ffedd5" },
+  { icon: UsersRound, label: "Fornecedores", time: "Em preparação", count: 0, color: "#0ea5e9", bg: "#e0f2fe" },
+  { icon: Video, label: "Agenda", time: "Em preparação", count: 0, color: "#ef4444", bg: "#fee2e2" },
+  { icon: BarChart3, label: "Relatórios", time: "Em preparação", count: 0, color: "#f97316", bg: "#ffedd5" },
+  { icon: Link2, label: "Integrações", time: "Em preparação", count: 0, color: "#6b7280", bg: "#f3f4f6" },
+  { icon: Settings, label: "Configurações", time: "Em preparação", count: 0, color: "#6b7280", bg: "#f3f4f6" },
+]
 
 function ActionSheetMenu() {
   const { isOpen, setIsOpen, level, setLevel } = useFAB()
@@ -99,14 +102,14 @@ function ActionSheetMenu() {
 
   const mainActions = [
     { icon: UserPlus, label: "Cliente", href: "/app/novo/cliente", color: "#3b82f6", bg: "#dbeafe" },
-    { icon: Briefcase, label: "Viagem", href: "/app/novo/viagem", color: "#8b5cf6", bg: "#ede9fe" },
+    { icon: Briefcase, label: "Viagem", href: "/app/novo/operacao", color: "#8b5cf6", bg: "#ede9fe" },
     { icon: TrendingUp, label: "Cotação", href: "/app/novo/cotacao", color: "#3b82f6", bg: "#dbeafe" },
     { icon: FileText, label: "Contrato", href: "/app/novo/contrato", color: "#ef4444", bg: "#fee2e2" },
     { icon: Calendar, label: "Reserva", href: "/app/novo/reserva", color: "#0ea5e9", bg: "#e0f2fe" },
     { icon: DollarSign, label: "Financeiro", href: "/app/novo/financeiro", color: "#22c55e", bg: "#dcfce7" },
     { icon: FileEdit, label: "Documento", href: "/app/novo/documento", color: "#f97316", bg: "#ffedd5" },
     { icon: UsersRound, label: "Fornecedor", href: "/app/novo/fornecedor", color: "#0ea5e9", bg: "#e0f2fe" },
-    { icon: LifeBuoy, label: "Atendimento", href: "/app/novo/atendimento", color: "#6b7280", bg: "#f3f4f6" },
+    { icon: LifeBuoy, label: "Atendimento", href: "/app/conversas/suporte", color: "#6b7280", bg: "#f3f4f6" },
   ]
 
   const moreActions = [
@@ -350,84 +353,60 @@ function DesktopSidebar() {
   const pathname = usePathname()
   const { setIsOpen, setLevel } = useFAB()
   const { summary } = useOperationsDashboard()
-  const sessionsData: SessionItem[] = travelProAreas.filter((area) => !area.premiumExpansion).map((area) => {
-    if (area.key === "clientes") {
-      const count = summary?.clientsCount ?? 0
-      return {
-        icon: area.icon as typeof Users,
-        label: area.label,
-        time: count === 1 ? "1 cliente" : count > 1 ? `${count} clientes` : "Sem registros",
-        count,
-        color: area.color,
-        bg: area.bg,
-        href: area.route.app,
-      }
-    }
-
-    if (area.key === "viagens") {
-      const count = summary?.operationsCount ?? 0
-      return {
-        icon: area.icon as typeof Users,
-        label: area.label,
-        time: count === 1 ? "1 viagem" : count > 1 ? `${count} viagens` : "Sem registros",
-        count,
-        color: area.color,
-        bg: area.bg,
-        href: area.route.app,
-      }
-    }
-
-    if (area.key === "financeiro") {
-      const count = summary?.financial.entriesCount ?? 0
-      return {
-        icon: area.icon as typeof Users,
-        label: area.label,
-        time: count === 1 ? "1 lancamento" : count > 1 ? `${count} lancamentos` : "Sem registros",
-        count,
-        color: area.color,
-        bg: area.bg,
-        href: area.route.app,
-      }
-    }
-
-    if (area.key === "documentos") {
-      const count = summary?.documentsCount ?? 0
-      return {
-        icon: area.icon as typeof Users,
-        label: area.label,
-        time: count === 1 ? "1 documento" : count > 1 ? `${count} documentos` : "Sem registros",
-        count,
-        color: area.color,
-        bg: area.bg,
-        href: area.route.app,
-      }
-    }
-
-    if (area.key === "agenda") {
-      const count = summary?.meetingsCount ?? 0
-      return {
-        icon: area.icon as typeof Users,
-        label: area.label,
-        time: count === 1 ? "1 atendimento" : count > 1 ? `${count} atendimentos` : "Sem registros",
-        count,
-        color: area.color,
-        bg: area.bg,
-        href: area.route.app,
-      }
-    }
-
-    const statusLabel = area.status === "active" ? "Sem registros" : "Chat contextual"
-
-    return {
-      icon: area.icon as typeof Users,
-      label: area.label,
-      time: statusLabel,
-      count: 0,
-      color: area.color,
-      bg: area.bg,
-      href: area.route.app,
-    }
-  })
+  const sessionsData: SessionItem[] = [
+    {
+      icon: Users,
+      label: "Clientes",
+      time: summary?.clientsCount === 1 ? "1 cliente" : (summary?.clientsCount ?? 0) > 1 ? `${summary?.clientsCount ?? 0} clientes` : "Sem registros",
+      count: summary?.clientsCount ?? 0,
+      color: "#ec4899",
+      bg: "#fce7f3",
+      href: "/app/conversas/cadastros",
+    },
+    {
+      icon: Briefcase,
+      label: "Viagens",
+      time: summary?.operationsCount === 1 ? "1 viagem" : (summary?.operationsCount ?? 0) > 1 ? `${summary?.operationsCount ?? 0} viagens` : "Sem registros",
+      count: summary?.operationsCount ?? 0,
+      color: "#8b5cf6",
+      bg: "#ede9fe",
+      href: "/app/conversas/operacoes",
+    },
+    { icon: TrendingUp, label: "Cotações", time: "Chat contextual", count: 0, color: "#3b82f6", bg: "#dbeafe", href: "/app/conversas/vendas" },
+    { icon: FileText, label: "Contratos", time: "Documentos de viagem", count: 0, color: "#ef4444", bg: "#fee2e2", href: "/app/conversas/documentos/contratos" },
+    { icon: Calendar, label: "Reservas", time: "Chat contextual", count: 0, color: "#0ea5e9", bg: "#e0f2fe", href: "/app/conversas/operacoes/reservas" },
+    {
+      icon: DollarSign,
+      label: "Financeiro",
+      time: summary?.financial.entriesCount === 1 ? "1 lançamento" : (summary?.financial.entriesCount ?? 0) > 1 ? `${summary?.financial.entriesCount ?? 0} lançamentos` : "Sem registros",
+      count: summary?.financial.entriesCount ?? 0,
+      color: "#22c55e",
+      bg: "#dcfce7",
+      href: "/app/conversas/financeiro",
+    },
+    {
+      icon: FolderOpen,
+      label: "Documentos",
+      time: summary?.documentsCount === 1 ? "1 documento" : (summary?.documentsCount ?? 0) > 1 ? `${summary?.documentsCount ?? 0} documentos` : "Sem registros",
+      count: summary?.documentsCount ?? 0,
+      color: "#f97316",
+      bg: "#ffedd5",
+      href: "/app/conversas/documentos",
+    },
+    { icon: UsersRound, label: "Fornecedores", time: "Parceiros e operadoras", count: 0, color: "#0ea5e9", bg: "#e0f2fe", href: "/app/conversas/cadastros/fornecedores" },
+    {
+      icon: Video,
+      label: "Agenda",
+      time: summary?.meetingsCount === 1 ? "1 atendimento" : (summary?.meetingsCount ?? 0) > 1 ? `${summary?.meetingsCount ?? 0} atendimentos` : "Sem registros",
+      count: summary?.meetingsCount ?? 0,
+      color: "#ef4444",
+      bg: "#fee2e2",
+      href: "/app/conversas/reunioes",
+    },
+    { icon: BarChart3, label: "Relatórios", time: "Indicadores e análises", count: 0, color: "#f97316", bg: "#ffedd5", href: "/app/conversas/documentos/relatorios" },
+    { icon: Link2, label: "Integrações", time: "Conexões externas", count: 0, color: "#6b7280", bg: "#f3f4f6", href: "/app/conversas/sistema/integracoes" },
+    { icon: Settings, label: "Configurações", time: "Configurações e logs", count: 0, color: "#6b7280", bg: "#f3f4f6", href: "/app/conversas/sistema" },
+  ]
 
   const navItems = [
     { icon: Home, label: "Início", href: "/app", exact: true },
@@ -436,13 +415,18 @@ function DesktopSidebar() {
     { icon: User, label: "Perfil", href: "/app/voce" },
   ]
 
+  const favoriteItems = [
+    { icon: TrendingUp, label: "Roteiros", href: "/app/conversas/vendas/roteiros", color: "#3b82f6", bg: "#dbeafe" },
+    { icon: LifeBuoy, label: "Atendimentos", href: "/app/conversas/cadastros/atendimentos", color: "#6b7280", bg: "#f3f4f6" },
+  ]
+
   const isActive = (href: string, exact?: boolean) => (exact ? pathname === href : pathname.startsWith(href))
 
   return (
     <aside className="hidden lg:flex lg:flex-col w-[280px] flex-shrink-0 border-r border-gray-200 bg-white h-screen">
       <div className="px-5 h-16 flex items-center justify-between flex-shrink-0 border-b border-gray-100">
         <Image
-            src="/travelpro-logo-horizontal.png"
+          src="/travelpro-logo-horizontal.png"
           alt="TravelPro"
           width={140}
           height={38}
@@ -462,7 +446,7 @@ function DesktopSidebar() {
             setLevel("main")
             setIsOpen(true)
           }}
-          className="tp-gradient-btn flex w-full items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-medium transition-colors"
+          className="tp-gradient-btn flex w-full items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-medium"
         >
           <Plus className="w-4 h-4" />
           Nova conversa
@@ -490,26 +474,18 @@ function DesktopSidebar() {
           </Link>
         ))}
         <div className="px-2 pb-2 pt-4">
-          <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">Expansões</span>
+          <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">Favoritos</span>
         </div>
-        {expansionItems.map((item) => (
-          <ExpansionLaunchItem key={item.label} item={item} className="flex items-center gap-3 px-2.5 py-2 rounded-lg hover:bg-gray-50 transition-colors group">
+        {favoriteItems.map((item) => (
+          <Link key={item.label} href={item.href} className="flex items-center gap-3 px-2.5 py-2 rounded-lg hover:bg-gray-50 transition-colors group">
             <span className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: item.bg }}>
-              {item.imageSrc ? (
-                <div className="relative h-5 w-5 overflow-hidden rounded-md">
-                  <Image src={item.imageSrc} alt={item.label} fill className="object-contain" sizes="20px" />
-                </div>
-              ) : item.icon === "headphones" ? (
-                <Headphones className="w-4 h-4" style={{ color: item.color }} />
-              ) : (
-                <Shield className="w-4 h-4" style={{ color: item.color }} />
-              )}
+              <item.icon className="w-4 h-4" style={{ color: item.color }} />
             </span>
             <span className="flex-1 min-w-0">
               <span className="block text-sm font-medium text-[#0a0a0a] truncate">{item.label}</span>
-              <span className="block text-xs text-gray-400">{item.description}</span>
+              <span className="block text-xs text-gray-400">Acesso rápido</span>
             </span>
-          </ExpansionLaunchItem>
+          </Link>
         ))}
       </div>
 
@@ -521,82 +497,6 @@ function DesktopSidebar() {
               <Link key={item.href} href={item.href} className={`flex flex-col items-center gap-1 py-2 rounded-lg transition-colors ${active ? "bg-gray-100 text-[#0a0a0a]" : "text-gray-400 hover:bg-gray-50"}`}>
                 <item.icon className="w-4 h-4" />
                 <span className="text-[10px] font-medium">{item.label}</span>
-              </Link>
-            )
-          })}
-        </div>
-      </div>
-    </aside>
-  )
-}
-
-function DesktopChatSidebar() {
-  const pathname = usePathname()
-  const { setIsOpen, setLevel } = useFAB()
-  const { summary } = useOperationsDashboard()
-
-  const navItems = [
-    { icon: Home, label: "Inicio", href: "/app", exact: true },
-    { icon: MessageSquare, label: "Conversas", href: "/app/conversas" },
-    { icon: Clock, label: "Historico", href: "/app/historico" },
-    { icon: User, label: "Voce", href: "/app/voce" },
-  ]
-
-  const conversationsBadgeCount =
-    (summary?.clientsCount ?? 0) +
-    (summary?.operationsCount ?? 0) +
-    (summary?.financial.entriesCount ?? 0) +
-    (summary?.documentsCount ?? 0) +
-    (summary?.meetingsCount ?? 0)
-
-  const isActive = (href: string, exact?: boolean) => (exact ? pathname === href : pathname.startsWith(href))
-
-  return (
-    <aside className="hidden lg:flex lg:flex-col w-[220px] flex-shrink-0 border-r border-gray-200 bg-white h-screen">
-      <div className="px-4 h-16 flex items-center justify-between flex-shrink-0 border-b border-gray-100">
-        <Image
-          src="/travelpro-logo-horizontal.png"
-          alt="TravelPro"
-          width={128}
-          height={34}
-          priority
-          className="h-7 w-auto object-contain"
-        />
-        <HeaderActions variant="desktop" />
-      </div>
-
-      <div className="p-3 flex-shrink-0">
-        <button
-          onClick={() => {
-            setLevel("main")
-            setIsOpen(true)
-          }}
-          aria-label="Nova conversa"
-          className="tp-gradient-btn flex h-10 w-10 items-center justify-center rounded-xl transition-colors"
-        >
-          <Plus className="h-4 w-4" />
-        </button>
-      </div>
-
-      <div className="flex-1 overflow-y-auto px-2 pb-3">
-        <div className="space-y-1">
-          {navItems.map((item) => {
-            const active = isActive(item.href, item.exact)
-            const badgeCount = item.label === "Conversas" ? conversationsBadgeCount : 0
-
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors ${active ? "bg-gray-100 text-[#0a0a0a]" : "text-gray-500 hover:bg-gray-50"}`}
-              >
-                <item.icon className="h-4 w-4 flex-shrink-0" />
-                <span className="flex-1 text-sm font-medium">{item.label}</span>
-                {badgeCount > 0 && (
-                  <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[#0a0a0a] px-1.5 text-[11px] text-white">
-                    {badgeCount}
-                  </span>
-                )}
               </Link>
             )
           })}
@@ -752,7 +652,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <FABContext.Provider value={{ isOpen, setIsOpen, level, setLevel }}>
       <div className="min-h-screen bg-[#f5f5f3] lg:flex lg:h-screen lg:overflow-hidden">
-        <DesktopChatSidebar />
+        <DesktopSidebar />
         <div className="flex flex-col flex-1 min-w-0 lg:h-screen lg:overflow-hidden">
           <GlobalHeader />
           <main className="pb-20 lg:pb-0 lg:flex-1 lg:overflow-y-auto">{children}</main>

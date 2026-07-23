@@ -1,6 +1,7 @@
 "use server"
 
 import { canManageWorkspace, getUserAccessForUser } from "@/lib/auth"
+import { logWorkspaceActivity } from "@/lib/activity/log"
 import { createSupabaseAdminClient, createSupabaseServerClient } from "@/lib/supabase/server"
 
 export type ClientStatus = "active" | "archived"
@@ -53,32 +54,6 @@ async function getClientActor() {
     isMaster: access.profile?.global_role === "master",
     adminClient,
   } satisfies ClientActor
-}
-
-async function logClientActivity({
-  adminClient,
-  workspaceId,
-  userId,
-  action,
-  description,
-}: {
-  adminClient: ClientActor["adminClient"]
-  workspaceId: string
-  userId: string
-  action: string
-  description: string
-}) {
-  const { error } = await adminClient.from("activity_logs").insert({
-    workspace_id: workspaceId,
-    user_id: userId,
-    area: "clients",
-    action,
-    description,
-  })
-
-  if (error) {
-    console.error("[clients] activity-log:", error.message)
-  }
 }
 
 async function resolveClientForActor(actor: ClientActor, clientId: string) {
@@ -207,10 +182,11 @@ export async function createClientAction({
     return { error: error?.message ?? "Não foi possível criar o cliente." }
   }
 
-  await logClientActivity({
+  await logWorkspaceActivity({
     adminClient: actor.adminClient,
     workspaceId: actor.workspaceId,
     userId: actor.actorId,
+    area: "clients",
     action: "client_created",
     description: "cliente criado",
   })
@@ -271,10 +247,11 @@ export async function updateClientAction({
     return { error: error.message }
   }
 
-  await logClientActivity({
+  await logWorkspaceActivity({
     adminClient: actor.adminClient,
     workspaceId: actor.workspaceId,
     userId: actor.actorId,
+    area: "clients",
     action: "client_updated",
     description: "cliente atualizado",
   })
@@ -309,49 +286,14 @@ export async function deleteClientAction({ clientId }: { clientId: string }) {
     return { error: error.message }
   }
 
-  await logClientActivity({
+  await logWorkspaceActivity({
     adminClient: actor.adminClient,
     workspaceId: actor.workspaceId,
     userId: actor.actorId,
+    area: "clients",
     action: "client_archived",
     description: "cliente arquivado",
   })
 
   return { success: true }
-}
-
-export async function permanentlyDeleteClientAction({ clientId }: { clientId: string }) {
-  const actor = await getClientActor()
-
-  if ("error" in actor) {
-    return { error: actor.error }
-  }
-
-  if (!actor.canManage && !actor.isMaster) {
-    return { error: "Apenas owner, admin ou master podem excluir clientes." }
-  }
-
-  const resolved = await resolveClientForActor(actor, clientId)
-  if ("error" in resolved) {
-    return { error: resolved.error }
-  }
-
-  const { error } = await actor.adminClient
-    .from("clients")
-    .delete()
-    .eq("id", clientId)
-
-  if (error) {
-    return { error: error.message }
-  }
-
-  await logClientActivity({
-    adminClient: actor.adminClient,
-    workspaceId: actor.workspaceId,
-    userId: actor.actorId,
-    action: "client_deleted",
-    description: "cliente excluido permanentemente",
-  })
-
-  return { success: true, clientId: resolved.client.id }
 }

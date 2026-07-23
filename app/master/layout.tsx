@@ -25,8 +25,8 @@ import { ProtectedRouteGuard } from "@/components/auth/auth-route-guard"
 import { MasterProvider, useMaster } from "@/components/master/master-store"
 import { MasterModals, MasterToast } from "@/components/master/master-modals"
 
-const COS_LOGO_HEADER = "/travelpro-logo-horizontal.png"
-const COS_LOGO_MARK = "/travelpro-logo-mark.png"
+const TRAVELPRO_LOGO_HEADER = "/travelpro-logo-horizontal.png"
+const TRAVELPRO_LOGO_MARK = "/travelpro-logo-mark.png"
 
 const navItems = [
   { icon: LayoutDashboard, label: "Visão Geral", href: "/master", exact: true },
@@ -75,9 +75,9 @@ function MasterShell({ children }: { children: React.ReactNode }) {
         <div className="flex items-center gap-2 p-4 h-16 flex-shrink-0">
           <Link href="/master" className="flex items-center gap-2" onClick={() => setMobileMenuOpen(false)}>
             {collapsed ? (
-              <Image src={COS_LOGO_MARK} alt="TravelPro" width={28} height={28} priority style={{ height: "1.75rem", width: "auto" }} />
+              <Image src={TRAVELPRO_LOGO_MARK} alt="TravelPro" width={28} height={28} priority style={{ height: "1.75rem", width: "auto" }} />
             ) : (
-              <Image src={COS_LOGO_HEADER} alt="TravelPro" width={88} height={28} priority className="w-auto" style={{ height: "1.6rem", width: "auto" }} />
+              <Image src={TRAVELPRO_LOGO_HEADER} alt="TravelPro" width={88} height={28} priority className="w-auto" style={{ height: "1.6rem", width: "auto" }} />
             )}
           </Link>
           {!collapsed && (
@@ -117,7 +117,7 @@ function MasterShell({ children }: { children: React.ReactNode }) {
             </span>
             {!collapsed && (
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">Equipe COS</p>
+                <p className="text-sm font-medium truncate">Equipe TravelPro</p>
                 <p className="text-xs text-muted-foreground truncate">Acesso master</p>
               </div>
             )}

@@ -1,6 +1,7 @@
 "use server"
 
 import { canManageWorkspace, getUserAccessForUser } from "@/lib/auth"
+import { logWorkspaceActivity } from "@/lib/activity/log"
 import { createSupabaseAdminClient, createSupabaseServerClient } from "@/lib/supabase/server"
 
 export type OperationStatus = "open" | "in_progress" | "completed" | "archived"
@@ -69,32 +70,6 @@ function normalizePriority(priority: string): OperationPriority {
   if (normalized === "high" || normalized === "alta") return "high"
   if (normalized === "urgent" || normalized === "urgente") return "urgent"
   return "medium"
-}
-
-async function logOperationActivity({
-  adminClient,
-  workspaceId,
-  userId,
-  action,
-  description,
-}: {
-  adminClient: OperationActor["adminClient"]
-  workspaceId: string
-  userId: string
-  action: string
-  description: string
-}) {
-  const { error } = await adminClient.from("activity_logs").insert({
-    workspace_id: workspaceId,
-    user_id: userId,
-    area: "operations",
-    action,
-    description,
-  })
-
-  if (error) {
-    console.error("[operations] activity-log:", error.message)
-  }
 }
 
 async function resolveOperationForActor(actor: OperationActor, operationId: string) {
@@ -221,10 +196,11 @@ export async function createOperationAction({
     return { error: error?.message ?? "Não foi possível criar a operação." }
   }
 
-  await logOperationActivity({
+  await logWorkspaceActivity({
     adminClient: actor.adminClient,
     workspaceId: actor.workspaceId,
     userId: actor.actorId,
+    area: "operations",
     action: "operation_created",
     description: "operação criada",
   })
@@ -285,10 +261,11 @@ export async function updateOperationAction({
     return { error: error.message }
   }
 
-  await logOperationActivity({
+  await logWorkspaceActivity({
     adminClient: actor.adminClient,
     workspaceId: actor.workspaceId,
     userId: actor.actorId,
+    area: "operations",
     action: "operation_updated",
     description: "operação atualizada",
   })
@@ -323,10 +300,11 @@ export async function deleteOperationAction({ operationId }: { operationId: stri
     return { error: error.message }
   }
 
-  await logOperationActivity({
+  await logWorkspaceActivity({
     adminClient: actor.adminClient,
     workspaceId: actor.workspaceId,
     userId: actor.actorId,
+    area: "operations",
     action: "operation_archived",
     description: "operação arquivada",
   })

@@ -1,6 +1,7 @@
 "use server"
 
 import { canManageWorkspace, getUserAccessForUser } from "@/lib/auth"
+import { logWorkspaceActivity } from "@/lib/activity/log"
 import { createSupabaseAdminClient, createSupabaseServerClient } from "@/lib/supabase/server"
 
 export type SupportTicketStatus = "open" | "in_progress" | "waiting" | "resolved" | "closed"
@@ -82,32 +83,6 @@ async function getSupportActor() {
     canManageWorkspace: canManageWorkspace(access),
     adminClient,
   } satisfies SupportActor
-}
-
-async function insertActivityLog({
-  adminClient,
-  workspaceId,
-  userId,
-  action,
-  description,
-}: {
-  adminClient: SupportActor["adminClient"]
-  workspaceId: string
-  userId: string
-  action: string
-  description: string
-}) {
-  const { error } = await adminClient.from("activity_logs").insert({
-    workspace_id: workspaceId,
-    user_id: userId,
-    area: "support",
-    action,
-    description,
-  })
-
-  if (error) {
-    logSupportError("activity-log", error.message)
-  }
 }
 
 async function resolveTicketForActor(ticketId: string, actor: SupportActor) {
@@ -264,10 +239,11 @@ export async function createSupportTicketAction({
     return { error: messageError.message }
   }
 
-  await insertActivityLog({
+  await logWorkspaceActivity({
     adminClient: actor.adminClient,
     workspaceId: actor.workspaceId,
     userId: actor.actorId,
+    area: "support",
     action: "support_ticket_created",
     description: "chamado criado",
   })
@@ -400,10 +376,11 @@ export async function addSupportMessageAction({
     return { error: ticketError.message }
   }
 
-  await insertActivityLog({
+  await logWorkspaceActivity({
     adminClient: actor.adminClient,
     workspaceId: resolved.ticket.workspace_id,
     userId: actor.actorId,
+    area: "support",
     action: actor.isMaster ? "master_support_reply" : "support_message_created",
     description: actor.isMaster ? "resposta enviada pela equipe master" : "mensagem de suporte criada",
   })
@@ -446,10 +423,11 @@ export async function updateSupportTicketStatusAction({
     return { error: error.message }
   }
 
-  await insertActivityLog({
+  await logWorkspaceActivity({
     adminClient: actor.adminClient,
     workspaceId: resolved.ticket.workspace_id,
     userId: actor.actorId,
+    area: "support",
     action: "support_status_updated",
     description: `status alterado para ${status}`,
   })
@@ -492,10 +470,11 @@ export async function updateSupportTicketPriorityAction({
     return { error: error.message }
   }
 
-  await insertActivityLog({
+  await logWorkspaceActivity({
     adminClient: actor.adminClient,
     workspaceId: resolved.ticket.workspace_id,
     userId: actor.actorId,
+    area: "support",
     action: "support_priority_updated",
     description: `prioridade alterada para ${priority}`,
   })
@@ -538,10 +517,11 @@ export async function assignSupportTicketAction({
     return { error: error.message }
   }
 
-  await insertActivityLog({
+  await logWorkspaceActivity({
     adminClient: actor.adminClient,
     workspaceId: resolved.ticket.workspace_id,
     userId: actor.actorId,
+    area: "support",
     action: "support_ticket_assigned",
     description: assigneeId ? "chamado atribuído" : "atribuição removida",
   })

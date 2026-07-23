@@ -1,14 +1,12 @@
 import { createClientAction, getClientByIdAction, getClientsAction, updateClientAction } from "@/actions/clients"
-import { createContractAction } from "@/actions/contracts"
 import { createDocumentAction } from "@/actions/documents"
 import { createFinancialEntryAction, getFinancialSummaryAction } from "@/actions/financial"
 import { createMeetingAction } from "@/actions/meetings"
 import { createOperationAction } from "@/actions/operations"
 import { createSupportTicketAction } from "@/actions/support"
-import { createTripAction } from "@/actions/trips"
 import { getWorkspaceActivityLogsAction } from "@/actions/activity"
 import { formatCurrencyBRL, humanizeActivityAction } from "@/lib/cos-engine/operations-response"
-import { extractEmail, extractPhone, normalizeEngineText, toTitleCase } from "@/lib/cos-engine/operations-tools"
+import { toTitleCase } from "@/lib/cos-engine/operations-tools"
 import type { OperationsEngineResult, OperationsResolvedIntent } from "@/lib/cos-engine/types"
 
 type ResolvedClientRecord = {
@@ -22,18 +20,7 @@ type ResolvedClientRecord = {
   createdAt: string | null
 }
 
-function buildClientDisambiguationLabel(client: ResolvedClientRecord) {
-  const details = [client.email, client.phone, client.company].filter(Boolean)
-  return details.length > 0 ? `${client.name} (${details.join(" | ")})` : client.name
-}
-
-async function resolveClientByName(
-  clientName: string,
-  hints?: {
-    email?: string
-    phone?: string
-  },
-) {
+async function resolveClientByName(clientName: string) {
   const clientsResult = await getClientsAction()
 
   if (clientsResult.error) {
@@ -44,37 +31,14 @@ async function resolveClientByName(
   const activeClients = (clientsResult.clients ?? []).filter((client) => client.status !== "archived")
   const exactMatches = activeClients.filter((client) => client.name.trim().toLowerCase() === normalizedTarget)
   const partialMatches = activeClients.filter((client) => client.name.trim().toLowerCase().includes(normalizedTarget))
-  let matches = exactMatches.length > 0 ? exactMatches : partialMatches
-
-  const normalizedEmail = hints?.email?.trim().toLowerCase()
-  const normalizedPhone = hints?.phone?.replace(/\D/g, "")
-
-  if (matches.length > 1 && normalizedEmail) {
-    const filteredByEmail = matches.filter((client) => client.email.trim().toLowerCase() === normalizedEmail)
-    if (filteredByEmail.length > 0) {
-      matches = filteredByEmail
-    }
-  }
-
-  if (matches.length > 1 && normalizedPhone) {
-    const filteredByPhone = matches.filter((client) => client.phone.replace(/\D/g, "") === normalizedPhone)
-    if (filteredByPhone.length > 0) {
-      matches = filteredByPhone
-    }
-  }
+  const matches = exactMatches.length > 0 ? exactMatches : partialMatches
 
   if (matches.length === 0) {
     return { error: `Nao encontrei um cliente chamado ${clientName}.` }
   }
 
   if (matches.length > 1) {
-    return {
-      ambiguous: true as const,
-      error: `Encontrei mais de um cliente com esse nome. Informe email ou telefone para eu identificar o cliente correto. Opcoes: ${matches
-        .slice(0, 3)
-        .map(buildClientDisambiguationLabel)
-        .join("; ")}.`,
-    }
+    return { error: "Encontrei mais de um cliente com esse nome. Pode informar o nome completo?" }
   }
 
   return { client: matches[0] }
@@ -242,8 +206,6 @@ export async function executeResolvedIntent(input: {
   resolvedIntent: OperationsResolvedIntent
 }): Promise<OperationsEngineResult> {
   const { message, resolvedIntent } = input
-  const messageEmail = extractEmail(message)
-  const messagePhone = extractPhone(message)
 
   switch (resolvedIntent.intent) {
     case "create_client": {
@@ -313,10 +275,7 @@ export async function executeResolvedIntent(input: {
 
         targetClient = clientResult.client
       } else if (directClientName) {
-        const clientResolution = await resolveClientByName(directClientName, {
-          email: messageEmail,
-          phone: messagePhone,
-        })
+        const clientResolution = await resolveClientByName(directClientName)
         if ("error" in clientResolution) {
           return buildExecutionFailure(
             clientResolution.error || "Nao encontrei esse cliente para atualizar.",
@@ -434,67 +393,21 @@ export async function executeResolvedIntent(input: {
     case "create_operation": {
       const title = String(resolvedIntent.entities.title || "").trim()
       const clientName = String(resolvedIntent.entities.clientName || "").trim()
-      const isTripRequest = /\bviagem\b/.test(normalizeEngineText(message))
 
       let clientId: string | undefined
       let resolvedClientName = ""
 
       if (clientName) {
-        const clientResolution = await resolveClientByName(clientName, {
-          email: messageEmail,
-          phone: messagePhone,
-        })
+        const clientResolution = await resolveClientByName(clientName)
         if ("error" in clientResolution) {
           return buildExecutionFailure(
-            clientResolution.error ||
-              (isTripRequest
-                ? `Nao encontrei um cliente chamado ${clientName}. Voce quer cadastrar esse cliente primeiro ou selecionar outro cliente?`
-                : "Nao consegui localizar este cliente agora."),
+            clientResolution.error || "Nao consegui localizar este cliente agora.",
             "create_operation",
-            "validation_failed",
           )
         }
 
         clientId = clientResolution.client.id
         resolvedClientName = clientResolution.client.name || clientName
-      }
-
-      if (isTripRequest) {
-        const result = await createTripAction({
-          clientId,
-          title,
-          destination: "",
-          startDate: "",
-          endDate: "",
-          travelerCount: "1",
-          status: "draft",
-          notes: message,
-        })
-
-        if (result.error) {
-          return buildExecutionFailure("Nao consegui criar a viagem agora. Tente novamente em instantes.", "create_operation", "failed", resolvedIntent)
-        }
-
-        return buildExecutionSuccess({
-          action: "create_operation",
-          resultId: result.tripId,
-          message: resolvedClientName
-            ? `Viagem ${title} criada com sucesso para ${resolvedClientName}.`
-            : `Viagem ${title} criada com sucesso.`,
-          suggestedLabel: "Ver viagens no Portal",
-          suggestedHref: "/portal/viagens",
-          resolvedIntent,
-          targetId: result.tripId,
-          targetName: title,
-          area: "operacoes",
-          entityType: "project",
-          actionType: "create",
-          entities: {
-            ...resolvedIntent.entities,
-            title,
-            clientName: resolvedClientName || clientName || null,
-          },
-        })
       }
 
       const result = await createOperationAction({
@@ -536,66 +449,6 @@ export async function executeResolvedIntent(input: {
     case "create_document": {
       const title = String(resolvedIntent.entities.title || "").trim()
       const type = String(resolvedIntent.entities.type || "outro").trim()
-      const clientName = String(resolvedIntent.entities.clientName || "").trim()
-
-      if (type.toLowerCase() === "contrato") {
-        let clientId: string | undefined
-        let resolvedClientName = ""
-
-      if (clientName) {
-          const clientResolution = await resolveClientByName(clientName, {
-            email: messageEmail,
-            phone: messagePhone,
-          })
-          if ("error" in clientResolution) {
-            return buildExecutionFailure(
-              clientResolution.error ||
-                `Nao encontrei um cliente chamado ${clientName}. Voce quer cadastrar esse cliente primeiro ou selecionar outro cliente?`,
-              "create_document",
-              "validation_failed",
-              resolvedIntent,
-            )
-          }
-
-          clientId = clientResolution.client.id
-          resolvedClientName = clientResolution.client.name || clientName
-        }
-
-        const result = await createContractAction({
-          clientId,
-          title,
-          status: "draft",
-          fileUrl: "",
-          notes: message,
-        })
-
-        if (result.error) {
-          return buildExecutionFailure("Nao consegui criar o contrato agora. Tente novamente em instantes.", "create_document", "failed", resolvedIntent)
-        }
-
-        return buildExecutionSuccess({
-          action: "create_document",
-          resultId: result.contractId,
-          message: resolvedClientName
-            ? `Contrato ${title} criado com sucesso para ${resolvedClientName}.`
-            : `Contrato ${title} criado com sucesso.`,
-          suggestedLabel: "Ver contratos no Portal",
-          suggestedHref: "/portal/operacoes",
-          resolvedIntent,
-          targetId: result.contractId,
-          targetName: title,
-          area: "documentos",
-          entityType: "document",
-          actionType: "create",
-          entities: {
-            ...resolvedIntent.entities,
-            title,
-            type,
-            clientName: resolvedClientName || clientName || null,
-          },
-        })
-      }
-
       const result = await createDocumentAction({
         title,
         type,

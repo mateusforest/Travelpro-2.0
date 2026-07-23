@@ -49,7 +49,7 @@ export async function getOperationsHomeContextAction() {
 
   const [
     activeClientsResult,
-    activeTripsResult,
+    activeOperationsResult,
     activeDocumentsResult,
     activeMeetingsResult,
     supportTicketsResult,
@@ -63,7 +63,7 @@ export async function getOperationsHomeContextAction() {
       .eq("workspace_id", workspaceId)
       .eq("status", "active"),
     adminClient
-      .from("trips")
+      .from("operations")
       .select("id", { count: "exact", head: true })
       .eq("workspace_id", workspaceId)
       .neq("status", "archived"),
@@ -101,7 +101,7 @@ export async function getOperationsHomeContextAction() {
 
   const actionError =
     activeClientsResult.error ||
-    activeTripsResult.error ||
+    activeOperationsResult.error ||
     activeDocumentsResult.error ||
     activeMeetingsResult.error ||
     supportTicketsResult.error ||
@@ -141,7 +141,7 @@ export async function getOperationsHomeContextAction() {
     success: true,
     summary: {
       clientsCount: activeClientsResult.count ?? 0,
-      operationsCount: activeTripsResult.count ?? 0,
+      operationsCount: activeOperationsResult.count ?? 0,
       documentsCount: activeDocumentsResult.count ?? 0,
       meetingsCount: activeMeetingsResult.count ?? 0,
       supportCount: supportTicketsResult.count ?? 0,

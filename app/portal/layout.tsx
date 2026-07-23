@@ -1,30 +1,58 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import {
-  House,
+  Home,
+  MessageSquare,
+  ClipboardList,
+  Briefcase,
+  TrendingUp,
+  DollarSign,
+  UsersRound,
+  FileText,
+  Video,
+  BarChart3,
+  Plug,
+  Settings,
   ChevronLeft,
   ChevronRight,
-  ChevronDown,
-  Headphones,
   Smartphone,
   Monitor,
   MoreVertical,
-  Shield,
+  FileSignature,
+  Headphones,
+  Star,
 } from "lucide-react"
 import { ProtectedRouteGuard } from "@/components/auth/auth-route-guard"
-import { useAuth } from "@/components/auth/auth-provider"
-import { ExpansionLaunchItem } from "@/components/expansions/expansion-launch-item"
 import { PortalUIProvider, usePortalUI } from "@/components/portal/portal-ui-context"
 import { PortalInteractionsProvider, usePortalInteractions } from "@/components/portal/portal-interactions"
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { Toaster } from "@/components/ui/toaster"
-import { expansionItems } from "@/lib/expansion-configs"
-import { moduleVisualSections } from "@/lib/module-visual-structure"
+
+const mainNavItems = [
+  { icon: Home, label: "Início", href: "/portal" },
+  { icon: MessageSquare, label: "Conversas", href: "/portal/conversas" },
+  { icon: ClipboardList, label: "Cadastros", href: "/portal/cadastros" },
+  { icon: Briefcase, label: "Operações", href: "/portal/operacoes" },
+  { icon: TrendingUp, label: "Vendas", href: "/portal/vendas" },
+  { icon: DollarSign, label: "Financeiro", href: "/portal/financeiro" },
+  { icon: UsersRound, label: "Equipe", href: "/portal/equipe" },
+  { icon: FileText, label: "Documentos", href: "/portal/documentos" },
+  { icon: Video, label: "Reuniões", href: "/portal/reunioes" },
+  { icon: BarChart3, label: "Relatórios", href: "/portal/relatorios" },
+  { icon: Plug, label: "Integrações", href: "/portal/integracoes" },
+  { icon: Settings, label: "Configurações", href: "/portal/configuracoes" },
+]
+
+const favoriteItems = [
+  { icon: FileSignature, label: "Propostas", href: "/portal/vendas/propostas" },
+  { icon: FileText, label: "Contratos", href: "/portal/documentos/contratos" },
+  { icon: Headphones, label: "Atendimentos", href: "/portal/operacoes/atendimentos" },
+  { icon: DollarSign, label: "Balanço", href: "/portal/financeiro/balanco" },
+]
 
 export default function PortalLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -41,39 +69,9 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
 
 function PortalShell({ children }: { children: React.ReactNode }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
-  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
-    comercial: false,
-    documentos: false,
-  })
   const { mobileMenuOpen, setMobileMenuOpen } = usePortalUI()
   const { openInstall } = usePortalInteractions()
-  const { user, profile } = useAuth()
   const pathname = usePathname()
-  const displayName = profile?.full_name || profile?.email || user?.email || "Sua conta"
-  const displayRole = profile?.global_role === "master" ? "Master" : "Administrador"
-  const initials = displayName.trim().charAt(0).toUpperCase() || "S"
-
-  useEffect(() => {
-    setOpenGroups((current) => {
-      const next = { ...current }
-      let changed = false
-
-      moduleVisualSections.forEach((section) => {
-        if (!section.children?.length) {
-          return
-        }
-
-        const hasActiveChild = section.children.some((child) => child.portalHref === pathname)
-
-        if (hasActiveChild && !next[section.key]) {
-          next[section.key] = true
-          changed = true
-        }
-      })
-
-      return changed ? next : current
-    })
-  }, [pathname])
 
   return (
     <div className="flex h-screen bg-white">
@@ -124,100 +122,20 @@ function PortalShell({ children }: { children: React.ReactNode }) {
 
         <nav className="flex-1 px-3 py-2 overflow-y-auto">
           <ul className="space-y-1">
-            <li>
-              <Link
-                href="/portal"
-                onClick={() => setMobileMenuOpen(false)}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${
-                  pathname === "/portal" ? "bg-white shadow-sm text-foreground font-medium" : "text-muted-foreground hover:bg-white/60 hover:text-foreground"
-                }`}
-              >
-                <House className="w-5 h-5 flex-shrink-0" />
-                {!sidebarCollapsed && <span className="text-sm">Inicio</span>}
-              </Link>
-            </li>
-            {moduleVisualSections.map((section) => {
-              const hasChildren = Boolean(section.children?.length)
-              const sectionIsActive = Boolean(section.portalHref && pathname === section.portalHref)
-
-              if (!hasChildren) {
-                const Icon = section.icon
-
-                if (!Icon || !section.portalHref) {
-                  return null
-                }
-
-                return (
-                  <li key={section.key}>
-                    <Link
-                      href={section.portalHref}
-                      onClick={() => setMobileMenuOpen(false)}
-                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${
-                        sectionIsActive ? "bg-white shadow-sm text-foreground font-medium" : "text-muted-foreground hover:bg-white/60 hover:text-foreground"
-                      }`}
-                    >
-                      <Icon className="w-5 h-5 flex-shrink-0" />
-                      {!sidebarCollapsed && <span className="text-sm">{section.label}</span>}
-                    </Link>
-                  </li>
-                )
-              }
-
-              const SectionIcon = section.icon
-
+            {mainNavItems.map((item) => {
+              const isActive = pathname === item.href
               return (
-                <li key={section.key} className="space-y-1">
-                  <Collapsible
-                    open={openGroups[section.key]}
-                    onOpenChange={(open) => setOpenGroups((current) => ({ ...current, [section.key]: open }))}
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${
+                      isActive ? "bg-white shadow-sm text-foreground font-medium" : "text-muted-foreground hover:bg-white/60 hover:text-foreground"
+                    }`}
                   >
-                    <CollapsibleTrigger asChild>
-                      <button
-                        type="button"
-                        className={`flex w-full items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${
-                          sectionIsActive ? "bg-white shadow-sm text-foreground font-medium" : "text-muted-foreground hover:bg-white/60 hover:text-foreground"
-                        }`}
-                      >
-                        {SectionIcon ? <SectionIcon className="w-5 h-5 flex-shrink-0" /> : null}
-                        {!sidebarCollapsed && <span className="flex-1 text-left text-sm">{section.label}</span>}
-                        {!sidebarCollapsed && (
-                          <ChevronDown
-                            className={`h-4 w-4 flex-shrink-0 transition-transform ${openGroups[section.key] ? "rotate-180" : ""}`}
-                          />
-                        )}
-                      </button>
-                    </CollapsibleTrigger>
-
-                    <CollapsibleContent>
-                      <ul className={`${sidebarCollapsed ? "space-y-1 pt-1" : "ml-4 border-l border-gray-100 pl-3 pt-1 space-y-1"}`}>
-                        {section.children?.map((item) => {
-                          const isActive = Boolean(item.portalHref && pathname === item.portalHref)
-                          const Icon = item.icon
-
-                          if (!item.portalHref) {
-                            return null
-                          }
-
-                          return (
-                            <li key={item.key}>
-                              <Link
-                                href={item.portalHref}
-                                onClick={() => setMobileMenuOpen(false)}
-                                className={`flex items-center gap-3 rounded-xl px-3 py-2 transition-all ${
-                                  isActive ? "bg-white shadow-sm text-foreground font-medium" : "text-muted-foreground hover:bg-white/60 hover:text-foreground"
-                                }`}
-                              >
-                                <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: item.bg }}>
-                                  <Icon className="h-4 w-4" style={{ color: item.color }} />
-                                </span>
-                                {!sidebarCollapsed && <span className="text-sm">{item.label}</span>}
-                              </Link>
-                            </li>
-                          )
-                        })}
-                      </ul>
-                    </CollapsibleContent>
-                  </Collapsible>
+                    <item.icon className="w-5 h-5 flex-shrink-0" />
+                    {!sidebarCollapsed && <span className="text-sm">{item.label}</span>}
+                  </Link>
                 </li>
               )
             })}
@@ -226,31 +144,20 @@ function PortalShell({ children }: { children: React.ReactNode }) {
           {!sidebarCollapsed && (
             <div className="mt-8">
               <div className="flex items-center gap-2 px-3 mb-2">
-                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Expansões</span>
+                <Star className="w-3.5 h-3.5 text-muted-foreground" />
+                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Favoritos</span>
               </div>
               <ul className="space-y-1">
-                {expansionItems.map((item) => (
-                  <li key={item.slug}>
-                    <ExpansionLaunchItem
-                      item={item}
-                      href={item.portalHref ?? item.href}
-                      onNavigate={() => setMobileMenuOpen(false)}
+                {favoriteItems.map((item) => (
+                  <li key={item.href}>
+                    <Link
+                      href={item.href}
+                      onClick={() => setMobileMenuOpen(false)}
                       className="flex items-center gap-3 px-3 py-2 rounded-xl text-muted-foreground hover:bg-white/60 hover:text-foreground transition-all"
                     >
-                      <span className="flex h-4 w-4 flex-shrink-0 items-center justify-center">
-                        {item.imageSrc ? (
-                          <span className="relative h-4 w-4 overflow-hidden rounded-sm">
-                            <Image src={item.imageSrc} alt={item.label} fill className="object-contain" sizes="16px" />
-                          </span>
-                        ) : item.icon === "headphones" ? (
-                          <Headphones className="h-4 w-4" style={{ color: item.color }} />
-                        ) : (
-                          <Shield className="h-4 w-4" style={{ color: item.color }} />
-                        )}
-                      </span>
-                      <span className="flex-1 text-sm">{item.label}</span>
-                      <span className="text-xs text-muted-foreground">{item.description}</span>
-                    </ExpansionLaunchItem>
+                      <item.icon className="w-4 h-4 flex-shrink-0" />
+                      <span className="text-sm">{item.label}</span>
+                    </Link>
                   </li>
                 ))}
               </ul>
@@ -274,12 +181,12 @@ function PortalShell({ children }: { children: React.ReactNode }) {
 
           <div className={`flex items-center gap-3 mt-2 px-3 py-2.5 rounded-xl hover:bg-white/60 transition-all cursor-pointer ${sidebarCollapsed ? "justify-center" : ""}`}>
             <div className="tp-gradient-chip flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium">
-              {initials}
+              J
             </div>
             {!sidebarCollapsed && (
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{displayName}</p>
-                <p className="text-xs text-muted-foreground truncate">{displayRole}</p>
+                <p className="text-sm font-medium truncate">Sua conta</p>
+                <p className="text-xs text-muted-foreground truncate">Administrador</p>
               </div>
             )}
             {!sidebarCollapsed && <MoreVertical className="w-4 h-4 text-muted-foreground" />}

@@ -83,7 +83,7 @@ export default function LoginPage() {
           alt="TravelPro"
           width={56}
           height={56}
-          className="h-14 w-14 object-contain"
+          className="h-14 w-14 rounded-2xl object-contain"
         />
       </div>
 
@@ -117,7 +117,7 @@ export default function LoginPage() {
               type="button"
               onClick={() => handleCreateWorkspace("operations")}
               disabled={isWorkspacePending}
-              className="tp-gradient-btn w-full rounded-xl px-4 py-3 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+              className="tp-gradient-btn w-full rounded-xl px-4 py-3 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isWorkspacePending ? "Criando..." : "Criar workspace TravelPro Operações"}
             </button>
@@ -175,7 +175,7 @@ export default function LoginPage() {
           type="submit"
           disabled={isPending}
           whileTap={{ scale: 0.98 }}
-          className="tp-gradient-btn flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3.5 font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+          className="tp-gradient-btn flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3.5 font-medium disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isPending ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : "Entrar"}
         </motion.button>

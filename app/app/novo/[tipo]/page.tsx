@@ -11,7 +11,6 @@ import { createFinancialEntryAction } from "@/actions/financial"
 import { createMeetingAction } from "@/actions/meetings"
 import { createOperationAction } from "@/actions/operations"
 import { fotoConfig, novoConfigs, type NovoConfig } from "@/lib/novo-configs"
-import { publishOperationSync } from "@/lib/operation-sync"
 
 export default function NovoPage({ params }: { params: Promise<{ tipo: string }> }) {
   const { tipo } = use(params)
@@ -178,7 +177,6 @@ export default function NovoPage({ params }: { params: Promise<{ tipo: string }>
             return
           }
 
-          publishOperationSync({ source: "app" })
           setSubmitted(true)
         }}
         className="space-y-4"

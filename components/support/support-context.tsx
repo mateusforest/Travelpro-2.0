@@ -4,6 +4,7 @@ import { createContext, useContext, useMemo, useState, type ReactNode } from "re
 import { AnimatePresence, motion } from "framer-motion"
 import { Headset, LifeBuoy, CreditCard, Plug, HelpCircle, Loader2, X, Send } from "lucide-react"
 import { createSupportTicketAction } from "@/actions/support"
+import { publishOperationSync } from "@/lib/operation-sync"
 
 export type SupportCategory =
   | "Dúvida sobre o COS"
@@ -103,6 +104,7 @@ export function SupportProvider({ children }: { children: ReactNode }) {
     }
 
     setFeedback({ type: "success", message: result.message ?? "Chamado criado com sucesso." })
+    publishOperationSync({ source: "support" })
     setRefreshKey((current) => current + 1)
     setSubject("")
     setDescription("")

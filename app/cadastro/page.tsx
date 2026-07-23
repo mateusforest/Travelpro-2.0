@@ -100,7 +100,7 @@ export default function CadastroPage() {
           alt="TravelPro"
           width={56}
           height={56}
-          className="h-14 w-14 object-contain"
+          className="h-14 w-14 rounded-2xl object-contain"
         />
       </div>
 
@@ -151,7 +151,7 @@ export default function CadastroPage() {
                           type="button"
                           whileTap={{ scale: 0.98 }}
                           onClick={() => handleSelectProduct(product.id)}
-                          className="tp-gradient-btn flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-medium transition-colors"
+                          className="tp-gradient-btn flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-medium"
                         >
                           {product.cta}
                           <ChevronRight className="w-4 h-4" />
@@ -310,7 +310,7 @@ export default function CadastroPage() {
                 type="submit"
                 disabled={isPending}
                 whileTap={{ scale: 0.98 }}
-                className="tp-gradient-btn flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3.5 font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                className="tp-gradient-btn flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3.5 font-medium disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {isPending ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : "Criar conta"}
               </motion.button>

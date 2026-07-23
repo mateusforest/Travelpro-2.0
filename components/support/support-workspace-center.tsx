@@ -20,6 +20,7 @@ import {
 } from "@/actions/support"
 import { useSupport, type SupportCategory } from "@/components/support/support-context"
 import { useAuth } from "@/components/auth/auth-provider"
+import { publishOperationSync } from "@/lib/operation-sync"
 
 type WorkspaceTicket = {
   id: string
@@ -226,6 +227,7 @@ export function SupportWorkspaceCenter({
 
     setReply("")
     setFeedback("Mensagem enviada com sucesso.")
+    publishOperationSync({ source: "support" })
     await Promise.all([loadTickets(selectedTicketId), loadMessages(selectedTicketId)])
     setIsSending(false)
   }

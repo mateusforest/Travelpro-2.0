@@ -3,7 +3,7 @@ export type AccessRoutingState = {
     global_role?: string | null
   } | null
   workspace: {
-    type?: "operations" | null
+    type?: "operations" | "connect" | null
   } | null
 }
 
@@ -16,12 +16,20 @@ export function resolveHomePath(access: AccessRoutingState) {
     return "/app"
   }
 
+  if (access.workspace?.type === "connect") {
+    return "/connect"
+  }
+
   return null
 }
 
 export function canAccessPath(pathname: string, access: AccessRoutingState) {
   if (pathname.startsWith("/master")) {
     return access.profile?.global_role === "master"
+  }
+
+  if (pathname.startsWith("/connect")) {
+    return access.workspace?.type === "connect"
   }
 
   if (pathname.startsWith("/portal")) {

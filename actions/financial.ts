@@ -1,6 +1,7 @@
 "use server"
 
 import { canManageWorkspace, getUserAccessForUser } from "@/lib/auth"
+import { logWorkspaceActivity } from "@/lib/activity/log"
 import { createSupabaseAdminClient, createSupabaseServerClient } from "@/lib/supabase/server"
 
 export type FinancialEntryType = "income" | "expense"
@@ -54,32 +55,6 @@ async function getFinancialActor() {
     isMaster: access.profile?.global_role === "master",
     adminClient,
   } satisfies FinancialActor
-}
-
-async function logFinancialActivity({
-  adminClient,
-  workspaceId,
-  userId,
-  action,
-  description,
-}: {
-  adminClient: FinancialActor["adminClient"]
-  workspaceId: string
-  userId: string
-  action: string
-  description: string
-}) {
-  const { error } = await adminClient.from("activity_logs").insert({
-    workspace_id: workspaceId,
-    user_id: userId,
-    area: "financial",
-    action,
-    description,
-  })
-
-  if (error) {
-    console.error("[financial] activity-log:", error.message)
-  }
 }
 
 async function resolveFinancialEntryForActor(actor: FinancialActor, entryId: string) {
@@ -209,10 +184,11 @@ export async function createFinancialEntryAction({
     return { error: error?.message ?? "Não foi possível registrar o lançamento." }
   }
 
-  await logFinancialActivity({
+  await logWorkspaceActivity({
     adminClient: actor.adminClient,
     workspaceId: actor.workspaceId,
     userId: actor.actorId,
+    area: "financial",
     action: "financial_entry_created",
     description: normalizedType === "income" ? "ganho registrado" : "gasto registrado",
   })
@@ -282,10 +258,11 @@ export async function updateFinancialEntryAction({
     return { error: error.message }
   }
 
-  await logFinancialActivity({
+  await logWorkspaceActivity({
     adminClient: actor.adminClient,
     workspaceId: actor.workspaceId,
     userId: actor.actorId,
+    area: "financial",
     action: "financial_entry_updated",
     description: "lançamento financeiro atualizado",
   })
@@ -315,10 +292,11 @@ export async function deleteFinancialEntryAction({ entryId }: { entryId: string 
     return { error: error.message }
   }
 
-  await logFinancialActivity({
+  await logWorkspaceActivity({
     adminClient: actor.adminClient,
     workspaceId: actor.workspaceId,
     userId: actor.actorId,
+    area: "financial",
     action: "financial_entry_deleted",
     description: "lançamento financeiro removido",
   })

@@ -1,27 +1,36 @@
 "use client"
 
 import { use, useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 import {
   getOperationsConversationMessagesAction,
   runOperationsEngineAction,
 } from "@/actions/operations-engine"
 import { AreaChat, type ChatMessage } from "@/components/app/area-chat"
-import { useOperationsDashboard } from "@/components/app/operations-dashboard-store"
 import { areaConfigs, slug } from "@/lib/area-configs"
 import { publishOperationSync } from "@/lib/operation-sync"
 
-function resolveSubAreaConversationInput(area: string, sub: string) {
-  if (area === "studio-ia") {
-    return {
-      area: "sistema",
-      subArea: `studio-ia-${sub}`,
-    }
-  }
-
-  return {
-    area,
-    subArea: sub,
-  }
+const portalDestinations: Record<string, string> = {
+  clientes: "/portal/cadastros",
+  leads: "/portal/cadastros",
+  produtos: "/portal/cadastros",
+  servicos: "/portal/cadastros",
+  projetos: "/portal/operacoes",
+  ordens: "/portal/operacoes",
+  processos: "/portal/operacoes",
+  propostas: "/portal/propostas",
+  negociacoes: "/portal/vendas",
+  funil: "/portal/vendas",
+  ganhos: "/portal/financeiro",
+  gastos: "/portal/financeiro",
+  "fluxo-de-caixa": "/portal/financeiro",
+  comercial: "/portal/equipe",
+  operacional: "/portal/equipe",
+  financeiro: "/portal/equipe",
+  administrativo: "/portal/equipe",
+  contratos: "/portal/contratos",
+  arquivos: "/portal/documentos",
+  relatorios: "/portal/relatorios",
 }
 
 function resolveChatCopy(area: string, subLabel: string) {
@@ -29,7 +38,7 @@ function resolveChatCopy(area: string, subLabel: string) {
     return {
       subtitle: `Conversa contextual de ${subLabel.toLowerCase()} do seu workspace.`,
       emptyLabel: `Ainda nao ha mensagens nesta conversa. Use o campo abaixo para falar com o COS sobre ${subLabel.toLowerCase()}.`,
-      quickActions: ["Quero cadastrar um cliente", "Buscar cliente pelo nome", "Mostrar clientes com pendencias"],
+      quickActions: ["Criar cliente", "Buscar cliente", "Ver clientes no Portal"],
     }
   }
 
@@ -37,7 +46,7 @@ function resolveChatCopy(area: string, subLabel: string) {
     return {
       subtitle: `Conversa operacional sobre ${subLabel.toLowerCase()}.`,
       emptyLabel: `Ainda nao ha mensagens nesta conversa. Use o campo abaixo para falar com o COS sobre ${subLabel.toLowerCase()}.`,
-      quickActions: ["Quero criar uma viagem", "Buscar viagem por cliente", "Mostrar viagens com pendencias"],
+      quickActions: ["Criar viagem", "Buscar viagem", "Ver viagens no Portal"],
     }
   }
 
@@ -45,7 +54,7 @@ function resolveChatCopy(area: string, subLabel: string) {
     return {
       subtitle: `Conversa de cotações sobre ${subLabel.toLowerCase()}.`,
       emptyLabel: `Ainda nao ha mensagens nesta conversa. Use o campo abaixo para falar com o COS sobre ${subLabel.toLowerCase()}.`,
-      quickActions: ["Quero montar uma cotacao", "Buscar cotacao por cliente", "Mostrar cotacoes em aberto"],
+      quickActions: ["Criar cotação", "Buscar cotação", "Ver cotações no Portal"],
     }
   }
 
@@ -53,7 +62,7 @@ function resolveChatCopy(area: string, subLabel: string) {
     return {
       subtitle: `Conversa financeira sobre ${subLabel.toLowerCase()}.`,
       emptyLabel: `Ainda nao ha mensagens nesta conversa. Use o campo abaixo para falar com o COS sobre ${subLabel.toLowerCase()}.`,
-      quickActions: ["Quero registrar um recebimento", "Quero registrar um pagamento", "Mostrar resumo financeiro"],
+      quickActions: ["Registrar recebimento", "Registrar pagamento", "Ver financeiro no Portal"],
     }
   }
 
@@ -61,7 +70,7 @@ function resolveChatCopy(area: string, subLabel: string) {
     return {
       subtitle: `Conversa contextual de fornecedores ${subLabel.toLowerCase()}.`,
       emptyLabel: `Ainda nao ha mensagens nesta conversa. Use o campo abaixo para falar com o COS sobre a equipe ${subLabel.toLowerCase()}.`,
-      quickActions: ["Quero adicionar um fornecedor", "Buscar fornecedor por nome", "Mostrar fornecedores ativos"],
+      quickActions: ["Adicionar fornecedor", "Buscar fornecedor", "Ver fornecedores no Portal"],
     }
   }
 
@@ -69,33 +78,21 @@ function resolveChatCopy(area: string, subLabel: string) {
     return {
       subtitle: `Conversa documental sobre ${subLabel.toLowerCase()}.`,
       emptyLabel: `Ainda nao ha mensagens nesta conversa. Use o campo abaixo para falar com o COS sobre ${subLabel.toLowerCase()}.`,
-      quickActions: ["Quero criar um documento", "Buscar documento por nome", "Mostrar documentos recentes"],
-    }
-  }
-
-  if (area === "studio-ia") {
-    return {
-      subtitle: `Conversa contextual do Studio IA sobre ${subLabel.toLowerCase()}.`,
-      emptyLabel: `Ainda nao ha mensagens nesta conversa. Use o campo abaixo para falar sobre ${subLabel.toLowerCase()} no Studio IA.`,
-      quickActions: [
-        `Quero planejar ${subLabel.toLowerCase()}`,
-        `Quero organizar ${subLabel.toLowerCase()} da agencia`,
-        `Quero revisar prioridades de ${subLabel.toLowerCase()}`,
-      ],
+      quickActions: ["Criar documento", "Buscar arquivo", "Ver documentos no Portal"],
     }
   }
 
   return {
     subtitle: `${subLabel} · COS Operacoes`,
     emptyLabel: `Ainda nao ha mensagens nesta conversa. Use o campo abaixo para falar com o COS sobre ${subLabel.toLowerCase()}.`,
-    quickActions: [`Quero falar sobre ${subLabel.toLowerCase()}`],
+    quickActions: ["Abrir no Portal"],
   }
 }
 
 export default function SubAreaPage({ params }: { params: Promise<{ area: string; sub: string }> }) {
   const { area, sub } = use(params)
+  const router = useRouter()
   const config = areaConfigs[area]
-  const { refreshSummary } = useOperationsDashboard()
   const [messages, setMessages] = useState<ChatMessage[]>(config?.messages ?? [])
   const [isLoadingMessages, setIsLoadingMessages] = useState(true)
 
@@ -104,14 +101,16 @@ export default function SubAreaPage({ params }: { params: Promise<{ area: string
     sub.charAt(0).toUpperCase() + sub.slice(1).replace(/-/g, " ")
 
   const chatCopy = resolveChatCopy(area, subLabel)
-  const conversationInput = resolveSubAreaConversationInput(area, sub)
 
   useEffect(() => {
     let isMounted = true
 
     const loadMessages = async () => {
       setIsLoadingMessages(true)
-      const result = await getOperationsConversationMessagesAction(conversationInput)
+      const result = await getOperationsConversationMessagesAction({
+        area,
+        subArea: sub,
+      })
 
       if (!isMounted) {
         return
@@ -131,7 +130,7 @@ export default function SubAreaPage({ params }: { params: Promise<{ area: string
     return () => {
       isMounted = false
     }
-  }, [area, sub, config, conversationInput.area, conversationInput.subArea])
+  }, [area, sub, config])
 
   return (
     <AreaChat
@@ -143,14 +142,50 @@ export default function SubAreaPage({ params }: { params: Promise<{ area: string
       bg={config?.bg}
       messages={messages}
       isLoadingHistory={isLoadingMessages}
-      quickActions={chatCopy.quickActions.map((label) => ({ label }))}
+      quickActions={chatCopy.quickActions.map((label) => ({
+        label,
+        onClick: () => {
+          if (label.includes("Portal")) {
+            router.push(portalDestinations[sub] || "/portal")
+            return
+          }
+
+          if (label === "Criar cliente") {
+            router.push("/app/novo/cliente")
+            return
+          }
+
+          if (label === "Criar viagem") {
+            router.push("/app/novo/operacao")
+            return
+          }
+
+          if (label === "Criar cotação") {
+            router.push("/portal/propostas")
+            return
+          }
+
+          if (label === "Registrar recebimento" || label === "Registrar pagamento") {
+            router.push("/app/novo/financeiro")
+            return
+          }
+
+          if (label === "Criar documento") {
+            router.push("/app/novo/documento")
+            return
+          }
+        },
+      }))}
       onSendMessage={async (input, now) => {
         try {
           const result = await runOperationsEngineAction({
             message: input,
-            area: conversationInput.area,
-            subArea: conversationInput.subArea,
+            area,
+            subArea: sub,
           })
+          if (result.ok) {
+            publishOperationSync({ source: "chat" })
+          }
           const responseText =
             typeof result.message === "string" && result.message.trim()
               ? result.message
@@ -159,11 +194,6 @@ export default function SubAreaPage({ params }: { params: Promise<{ area: string
             "suggestedLabel" in result && typeof result.suggestedLabel === "string" ? result.suggestedLabel : undefined
           const ctaHref =
             "suggestedHref" in result && typeof result.suggestedHref === "string" ? result.suggestedHref : undefined
-
-          if (result.ok) {
-            publishOperationSync({ source: "chat" })
-            void refreshSummary({ silent: true, force: true })
-          }
 
           return {
             messages: [

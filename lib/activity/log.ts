@@ -1,6 +1,8 @@
-import { createSupabaseAdminClient } from "@/lib/supabase/server"
+"use server"
 
-type ActivityAdminClient = NonNullable<ReturnType<typeof createSupabaseAdminClient>>
+import type { createSupabaseAdminClient } from "@/lib/supabase/server"
+
+type AdminClient = NonNullable<ReturnType<typeof createSupabaseAdminClient>>
 
 export async function logWorkspaceActivity({
   adminClient,
@@ -10,7 +12,7 @@ export async function logWorkspaceActivity({
   action,
   description,
 }: {
-  adminClient: ActivityAdminClient
+  adminClient: AdminClient
   workspaceId: string
   userId: string
   area: string
@@ -26,6 +28,6 @@ export async function logWorkspaceActivity({
   })
 
   if (error) {
-    console.error(`[${area}] activity-log:`, error.message)
+    console.error(`[activity:${area}]`, error.message)
   }
 }

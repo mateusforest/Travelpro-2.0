@@ -16,12 +16,12 @@ type Cliente = {
   createdAt: string | null
 }
 
-const filtros = ["Todos", "Operacoes"] as const
+const filtros = ["Todos", "Operações", "Connect"] as const
 
 function formatDateLabel(value: string | null) {
-  if (!value) return "-"
+  if (!value) return "—"
   const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return "-"
+  if (Number.isNaN(date.getTime())) return "—"
   return new Intl.DateTimeFormat("pt-BR", {
     day: "2-digit",
     month: "2-digit",
@@ -66,13 +66,13 @@ export default function MasterClientesPage() {
   }, [clientes, filtro, busca])
 
   return (
-    <div className="flex h-full flex-1 flex-col">
+    <div className="flex-1 flex flex-col h-full">
       <MasterHeader />
       <div className="flex-1 overflow-y-auto">
-        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
           <MasterPageHeader
             title="Clientes"
-            description="Workspaces reais da plataforma tratados como clientes do TravelPro."
+            description="Workspaces reais da plataforma tratados como clientes do COS."
             actions={<PrimaryButton icon={Plus} onClick={() => openModal("cliente")}>Novo cliente</PrimaryButton>}
           />
 
@@ -84,24 +84,24 @@ export default function MasterClientesPage() {
 
           <TableCard
             toolbar={
-              <div className="flex w-full flex-col items-stretch gap-2 sm:w-auto sm:flex-row sm:items-center">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <input
                     type="text"
                     value={busca}
                     onChange={(event) => setBusca(event.target.value)}
                     placeholder="Buscar empresa..."
-                    className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2 pl-9 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-gray-200 sm:w-56"
+                    className="w-full sm:w-56 pl-9 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-200"
                   />
                 </div>
-                <div className="flex items-center gap-1 rounded-lg bg-gray-50 p-1">
+                <div className="flex items-center gap-1 bg-gray-50 rounded-lg p-1">
                   {filtros.map((item) => (
                     <button
                       key={item}
                       onClick={() => setFiltro(item)}
-                      className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-                        filtro === item ? "bg-white text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                      className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                        filtro === item ? "bg-white shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
                       }`}
                     >
                       {item}
@@ -119,17 +119,17 @@ export default function MasterClientesPage() {
             ) : (
               <table className="w-full min-w-[720px]">
                 <thead>
-                  <tr className="border-b border-gray-100 text-left text-xs font-medium text-muted-foreground">
+                  <tr className="text-left text-xs font-medium text-muted-foreground border-b border-gray-100">
                     <th className="px-5 py-3">Empresa</th>
                     <th className="px-5 py-3">Tipo</th>
-                    <th className="px-5 py-3">Usuarios</th>
+                    <th className="px-5 py-3">Usuários</th>
                     <th className="px-5 py-3">Status</th>
                     <th className="px-5 py-3">Criado em</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filtrados.map((cliente) => (
-                    <tr key={cliente.id} className="border-b border-gray-50 transition-colors hover:bg-gray-50/60 last:border-0">
+                    <tr key={cliente.id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/60 transition-colors">
                       <td className="px-5 py-3.5 text-sm font-medium">{cliente.company}</td>
                       <td className="px-5 py-3.5 text-sm text-muted-foreground">{cliente.type}</td>
                       <td className="px-5 py-3.5 text-sm text-muted-foreground">{cliente.users}</td>
@@ -153,4 +153,3 @@ export default function MasterClientesPage() {
     </div>
   )
 }
-

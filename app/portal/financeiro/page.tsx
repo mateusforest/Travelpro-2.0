@@ -9,7 +9,7 @@ export default function FinanceiroPage() {
       <PortalHeader />
       <FinancialManager
         title="Financeiro"
-        description="Acompanhe o fluxo de caixa, ganhos, gastos e cobranças da sua agência."
+        description="Acompanhe o fluxo de caixa, ganhos, gastos e cobranças do seu negócio."
         variant="portal"
       />
     </div>

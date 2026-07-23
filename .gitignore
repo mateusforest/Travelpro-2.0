@@ -12,5 +12,12 @@ __v0_jsx-dev-runtime.ts
 # Common ignores
 node_modules
 .next/
+Travelpro-2.0/
+.tmp-chrome-profile/
+.tmp-*.log
+.tmp-*.json
+.tmp-*.mjs
+.tmp-*.ps1
+*.tsbuildinfo
 .DS_Store
 .vercel

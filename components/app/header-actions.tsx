@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState, useTransition } from "react"
+import { useState, useTransition } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Search, Bell, X, User, SlidersHorizontal, Shield, LogOut, ExternalLink } from "lucide-react"
@@ -8,17 +8,16 @@ import { motion, AnimatePresence } from "framer-motion"
 import { logoutAction } from "@/actions/auth"
 import { useAuth } from "@/components/auth/auth-provider"
 import { UserAvatar } from "@/components/shared/user-avatar"
-import { appSessionHrefs } from "@/lib/area-configs"
 import { createSupabaseBrowserClient } from "@/lib/supabase/client"
 
 const notifications: { id: number; title: string; desc: string; time: string; dot: string; unread: boolean }[] = []
 
 const searchSuggestions = [
-  { label: "Clientes", href: appSessionHrefs.clientes },
-  { label: "Viagens em andamento", href: appSessionHrefs.viagens },
-  { label: "Balanço financeiro", href: appSessionHrefs.financeiro },
-  { label: "Agenda da semana", href: appSessionHrefs.agenda },
-  { label: "Documentos recentes", href: appSessionHrefs.documentos },
+  { label: "Clientes", href: "/app/conversas/cadastros" },
+  { label: "Operações em andamento", href: "/app/conversas/operacoes" },
+  { label: "Balanço financeiro", href: "/app/conversas/financeiro" },
+  { label: "Reuniões da semana", href: "/app/conversas/reunioes" },
+  { label: "Documentos recentes", href: "/app/conversas/documentos" },
 ]
 
 const avatarMenu = [
@@ -28,83 +27,18 @@ const avatarMenu = [
   { icon: ExternalLink, label: "Acessar Portal", href: "/portal" },
 ]
 
-export function HeaderActions({ variant = "mobile" }: { variant?: "mobile" | "desktop" }) {
+export function HeaderActions({ variant: _variant }: { variant?: "mobile" | "desktop" }) {
   const router = useRouter()
   const { user, profile, clearAuth } = useAuth()
   const [searchOpen, setSearchOpen] = useState(false)
   const [notifOpen, setNotifOpen] = useState(false)
   const [avatarOpen, setAvatarOpen] = useState(false)
-  const [avatarPlacement, setAvatarPlacement] = useState<"top" | "bottom">("bottom")
-  const [avatarMenuStyle, setAvatarMenuStyle] = useState<Record<string, string | number>>({})
   const [query, setQuery] = useState("")
   const [isPending, startTransition] = useTransition()
-  const avatarButtonRef = useRef<HTMLButtonElement | null>(null)
 
   const unreadCount = notifications.filter((item) => item.unread).length
   const displayName = profile?.full_name || user?.email || "Seu perfil"
   const displayEmail = profile?.email || user?.email || "Nenhum e-mail cadastrado"
-
-  useEffect(() => {
-    if (!avatarOpen) {
-      return
-    }
-
-    const updateAvatarMenuPosition = () => {
-      const trigger = avatarButtonRef.current
-      if (!trigger) {
-        return
-      }
-
-      const rect = trigger.getBoundingClientRect()
-      const viewportHeight = window.innerHeight
-      const viewportWidth = window.innerWidth
-      const viewportPadding = 16
-      const menuGap = 8
-      const maxHeight = Math.max(160, viewportHeight - 32)
-      const spaceBelow = viewportHeight - rect.bottom - viewportPadding
-      const spaceAbove = rect.top - viewportPadding
-      const openUp = spaceBelow < 240 && spaceAbove > spaceBelow
-
-      setAvatarPlacement(openUp ? "top" : "bottom")
-
-      if (variant === "desktop") {
-        const width = Math.min(240, viewportWidth - viewportPadding * 2)
-        const left = Math.min(
-          Math.max(viewportPadding, rect.right - width),
-          viewportWidth - viewportPadding - width,
-        )
-
-        setAvatarMenuStyle({
-          position: "fixed",
-          left: `${left}px`,
-          top: openUp ? "auto" : `${rect.bottom + menuGap}px`,
-          bottom: openUp ? `${viewportHeight - rect.top + menuGap}px` : "auto",
-          width: `${width}px`,
-          maxHeight: `${maxHeight}px`,
-        })
-        return
-      }
-
-      setAvatarMenuStyle({
-        position: "fixed",
-        left: "8px",
-        right: "8px",
-        top: openUp ? "auto" : `${rect.bottom + menuGap}px`,
-        bottom: openUp ? `${viewportHeight - rect.top + menuGap}px` : "auto",
-        maxHeight: `${maxHeight}px`,
-      })
-    }
-
-    updateAvatarMenuPosition()
-
-    window.addEventListener("resize", updateAvatarMenuPosition)
-    window.addEventListener("scroll", updateAvatarMenuPosition, true)
-
-    return () => {
-      window.removeEventListener("resize", updateAvatarMenuPosition)
-      window.removeEventListener("scroll", updateAvatarMenuPosition, true)
-    }
-  }, [avatarOpen, variant])
 
   const handleLogout = () => {
     startTransition(async () => {
@@ -129,7 +63,7 @@ export function HeaderActions({ variant = "mobile" }: { variant?: "mobile" | "de
           {unreadCount > 0 && <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-orange-500 rounded-full" />}
         </button>
         <div className="relative">
-          <button ref={avatarButtonRef} onClick={() => setAvatarOpen((value) => !value)} className="w-8 h-8 rounded-full overflow-hidden border border-gray-200 block" aria-label="Menu do perfil">
+          <button onClick={() => setAvatarOpen((value) => !value)} className="w-8 h-8 rounded-full overflow-hidden border border-gray-200 block" aria-label="Menu do perfil">
             <UserAvatar fullName={profile?.full_name} email={profile?.email || user?.email} avatarUrl={profile?.avatar_url} size={32} />
           </button>
 
@@ -138,17 +72,11 @@ export function HeaderActions({ variant = "mobile" }: { variant?: "mobile" | "de
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setAvatarOpen(false)} />
                 <motion.div
-                  initial={{ opacity: 0, y: avatarPlacement === "top" ? 8 : -8, scale: 0.97 }}
+                  initial={{ opacity: 0, y: -8, scale: 0.97 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: avatarPlacement === "top" ? 8 : -8, scale: 0.97 }}
+                  exit={{ opacity: 0, y: -8, scale: 0.97 }}
                   transition={{ duration: 0.15 }}
-                  className={`z-50 rounded-2xl border border-gray-100 bg-white shadow-xl overflow-x-hidden overflow-y-auto ${
-                    avatarPlacement === "top" ? "origin-bottom-right" : "origin-top-right"
-                  }`}
-                  style={{
-                    ...avatarMenuStyle,
-                    scrollbarWidth: "thin",
-                  }}
+                  className="absolute right-0 mt-2 w-60 bg-white rounded-2xl shadow-xl border border-gray-100 z-50 overflow-hidden"
                 >
                   <div className="flex items-center gap-3 p-4 border-b border-gray-100">
                     <UserAvatar fullName={profile?.full_name} email={profile?.email || user?.email} avatarUrl={profile?.avatar_url} size={40} />

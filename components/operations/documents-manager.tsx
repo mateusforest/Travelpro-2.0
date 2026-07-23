@@ -2,8 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { FileText, Loader2, Paperclip, Pencil, Plus, Search, Trash2 } from "lucide-react"
-import { getClientsAction, type ClientStatus } from "@/actions/clients"
-import { getContractsAction, type ContractStatus } from "@/actions/contracts"
 import {
   createDocumentAction,
   deleteDocumentAction,
@@ -12,16 +10,11 @@ import {
   type DocumentStatus,
   type DocumentType,
 } from "@/actions/documents"
-import { getQuotesAction, type QuoteStatus } from "@/actions/quotes"
-import { getTripsAction, type TripStatus } from "@/actions/trips"
 import { useAuth } from "@/components/auth/auth-provider"
+import { publishOperationSync, subscribeOperationSync } from "@/lib/operation-sync"
 
 type DocumentRecord = {
   id: string
-  clientId: string | null
-  tripId: string | null
-  quoteId: string | null
-  contractId: string | null
   title: string
   type: DocumentType
   fileUrl: string
@@ -30,35 +23,7 @@ type DocumentRecord = {
   createdAt: string | null
 }
 
-type ClientOption = {
-  id: string
-  name: string
-  status: ClientStatus
-}
-
-type TripOption = {
-  id: string
-  title: string
-  status: TripStatus
-}
-
-type QuoteOption = {
-  id: string
-  title: string
-  status: QuoteStatus
-}
-
-type ContractOption = {
-  id: string
-  title: string
-  status: ContractStatus
-}
-
 type DocumentFormState = {
-  clientId: string
-  tripId: string
-  quoteId: string
-  contractId: string
   title: string
   type: DocumentType
   fileUrl: string
@@ -67,10 +32,6 @@ type DocumentFormState = {
 }
 
 const defaultForm: DocumentFormState = {
-  clientId: "",
-  tripId: "",
-  quoteId: "",
-  contractId: "",
   title: "",
   type: "outro",
   fileUrl: "",
@@ -79,9 +40,9 @@ const defaultForm: DocumentFormState = {
 }
 
 function formatDateLabel(value: string | null) {
-  if (!value) return "-"
+  if (!value) return "—"
   const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return "-"
+  if (Number.isNaN(date.getTime())) return "—"
   return new Intl.DateTimeFormat("pt-BR", {
     day: "2-digit",
     month: "2-digit",
@@ -97,9 +58,7 @@ function statusLabel(status: DocumentStatus) {
 }
 
 function typeLabel(type: DocumentType) {
-  if (type === "relatorio") return "Relatorio"
-  if (type === "recibo") return "Recibo"
-  if (type === "nota_fiscal") return "Nota fiscal"
+  if (type === "relatório") return "Relatório"
   return type.charAt(0).toUpperCase() + type.slice(1)
 }
 
@@ -107,110 +66,10 @@ function normalizeFilterType(filterType?: string | null): DocumentType | null {
   if (!filterType) return null
   const normalized = filterType.trim().toLowerCase()
   if (normalized === "contrato" || normalized === "contratos") return "contrato"
-  if (normalized === "arquivo" || normalized === "arquivos" || normalized === "documento" || normalized === "documentos") return "arquivo"
-  if (normalized === "relatorio" || normalized === "relatorios") return "relatorio"
+  if (normalized === "arquivo" || normalized === "arquivos") return "arquivo"
+  if (normalized === "relatório" || normalized === "relatorios" || normalized === "relatórios" || normalized === "relatorio" || normalized === "relatórios") return "relatório"
   if (normalized === "proposta" || normalized === "propostas") return "proposta"
-  if (normalized === "recibo" || normalized === "recibos") return "recibo"
-  if (normalized === "nota fiscal" || normalized === "notas fiscais" || normalized === "nota-fiscal" || normalized === "notas-fiscais") return "nota_fiscal"
   return null
-}
-
-function resolveModuleCopy(type: DocumentType | null) {
-  if (type === "arquivo") {
-    return {
-      singular: "arquivo",
-      singularCapitalized: "Arquivo",
-      plural: "arquivos",
-      loading: "Carregando arquivos...",
-      empty: "Nenhum arquivo criado ainda.",
-      save: "Salvar arquivo",
-      create: "Novo arquivo",
-      edit: "Editar arquivo",
-      helper: "Salve metadados reais e vincule o arquivo aos registros da operacao.",
-    }
-  }
-
-  if (type === "relatorio") {
-    return {
-      singular: "relatorio",
-      singularCapitalized: "Relatorio",
-      plural: "relatorios",
-      loading: "Carregando relatorios...",
-      empty: "Nenhum relatorio criado ainda.",
-      save: "Salvar relatorio",
-      create: "Novo relatorio",
-      edit: "Editar relatorio",
-      helper: "Salve metadados reais e vincule o relatorio aos registros da operacao.",
-    }
-  }
-
-  if (type === "recibo") {
-    return {
-      singular: "recibo",
-      singularCapitalized: "Recibo",
-      plural: "recibos",
-      loading: "Carregando recibos...",
-      empty: "Nenhum recibo criado ainda.",
-      save: "Salvar recibo",
-      create: "Novo recibo",
-      edit: "Editar recibo",
-      helper: "Salve metadados reais e vincule o recibo aos registros da operacao.",
-    }
-  }
-
-  if (type === "nota_fiscal") {
-    return {
-      singular: "nota fiscal",
-      singularCapitalized: "Nota fiscal",
-      plural: "notas fiscais",
-      loading: "Carregando notas fiscais...",
-      empty: "Nenhuma nota fiscal criada ainda.",
-      save: "Salvar nota fiscal",
-      create: "Nova nota fiscal",
-      edit: "Editar nota fiscal",
-      helper: "Salve metadados reais e vincule a nota fiscal aos registros da operacao.",
-    }
-  }
-
-  if (type === "contrato") {
-    return {
-      singular: "contrato",
-      singularCapitalized: "Contrato",
-      plural: "contratos",
-      loading: "Carregando contratos...",
-      empty: "Nenhum contrato criado ainda.",
-      save: "Salvar contrato",
-      create: "Novo contrato",
-      edit: "Editar contrato",
-      helper: "Salve metadados reais e vincule o contrato aos registros da operacao.",
-    }
-  }
-
-  if (type === "proposta") {
-    return {
-      singular: "proposta",
-      singularCapitalized: "Proposta",
-      plural: "propostas",
-      loading: "Carregando propostas...",
-      empty: "Nenhuma proposta criada ainda.",
-      save: "Salvar proposta",
-      create: "Nova proposta",
-      edit: "Editar proposta",
-      helper: "Salve metadados reais e vincule a proposta aos registros da operacao.",
-    }
-  }
-
-  return {
-    singular: "documento",
-    singularCapitalized: "Documento",
-    plural: "documentos",
-    loading: "Carregando documentos...",
-    empty: "Nenhum documento criado ainda.",
-    save: "Salvar documento",
-    create: "Novo documento",
-    edit: "Editar documento",
-    helper: "Salve metadados reais e vincule o documento aos registros da operacao.",
-  }
 }
 
 export function DocumentsManager({
@@ -226,10 +85,6 @@ export function DocumentsManager({
 }) {
   const { canManageWorkspace } = useAuth()
   const [documents, setDocuments] = useState<DocumentRecord[]>([])
-  const [clients, setClients] = useState<ClientOption[]>([])
-  const [trips, setTrips] = useState<TripOption[]>([])
-  const [quotes, setQuotes] = useState<QuoteOption[]>([])
-  const [contracts, setContracts] = useState<ContractOption[]>([])
   const [search, setSearch] = useState("")
   const [filter, setFilter] = useState<"all" | DocumentStatus>("all")
   const [isLoading, setIsLoading] = useState(true)
@@ -244,23 +99,12 @@ export function DocumentsManager({
   })
 
   const currentTypeFilter = normalizeFilterType(filterType)
-  const moduleCopy = resolveModuleCopy(currentTypeFilter)
-  const clientsMap = useMemo(() => new Map(clients.map((client) => [client.id, client.name])), [clients])
-  const tripsMap = useMemo(() => new Map(trips.map((trip) => [trip.id, trip.title])), [trips])
-  const quotesMap = useMemo(() => new Map(quotes.map((quote) => [quote.id, quote.title])), [quotes])
-  const contractsMap = useMemo(() => new Map(contracts.map((contract) => [contract.id, contract.title])), [contracts])
 
   const loadDocuments = async () => {
     setIsLoading(true)
     setError(null)
 
-    const [result, clientsResult, tripsResult, quotesResult, contractsResult] = await Promise.all([
-      getDocumentsAction(),
-      getClientsAction(),
-      getTripsAction(),
-      getQuotesAction(),
-      getContractsAction(),
-    ])
+    const result = await getDocumentsAction()
 
     if (result.error) {
       setError(result.error)
@@ -270,10 +114,6 @@ export function DocumentsManager({
     }
 
     setDocuments((result.documents ?? []) as DocumentRecord[])
-    setClients(((clientsResult.clients ?? []) as ClientOption[]).filter((client) => client.status === "active"))
-    setTrips(((tripsResult.trips ?? []) as TripOption[]).filter((trip) => trip.status !== "archived"))
-    setQuotes(((quotesResult.quotes ?? []) as QuoteOption[]).filter((quote) => quote.status !== "archived"))
-    setContracts(((contractsResult.contracts ?? []) as ContractOption[]).filter((contract) => contract.status !== "archived"))
     setIsLoading(false)
   }
 
@@ -281,28 +121,21 @@ export function DocumentsManager({
     void loadDocuments()
   }, [])
 
+  useEffect(() => {
+    return subscribeOperationSync(() => {
+      void loadDocuments()
+    })
+  }, [])
+
   const filteredDocuments = useMemo(() => {
     return documents.filter((document) => {
       const matchesStatus = filter === "all" ? true : document.status === filter
       const matchesType = currentTypeFilter ? document.type === currentTypeFilter : true
       const term = search.trim().toLowerCase()
-      const matchesSearch =
-        !term ||
-        [
-          document.title,
-          document.type,
-          document.content,
-          document.clientId ? clientsMap.get(document.clientId) ?? "" : "",
-          document.tripId ? tripsMap.get(document.tripId) ?? "" : "",
-          document.quoteId ? quotesMap.get(document.quoteId) ?? "" : "",
-          document.contractId ? contractsMap.get(document.contractId) ?? "" : "",
-        ]
-          .join(" ")
-          .toLowerCase()
-          .includes(term)
+      const matchesSearch = !term || [document.title, document.type, document.content].join(" ").toLowerCase().includes(term)
       return matchesStatus && matchesType && matchesSearch
     })
-  }, [clientsMap, contractsMap, currentTypeFilter, documents, filter, quotesMap, search, tripsMap])
+  }, [currentTypeFilter, documents, filter, search])
 
   const startCreate = () => {
     setEditingDocumentId(null)
@@ -318,10 +151,6 @@ export function DocumentsManager({
   const startEdit = (document: DocumentRecord) => {
     setEditingDocumentId(document.id)
     setForm({
-      clientId: document.clientId ?? "",
-      tripId: document.tripId ?? "",
-      quoteId: document.quoteId ?? "",
-      contractId: document.contractId ?? "",
       title: document.title,
       type: document.type,
       fileUrl: document.fileUrl,
@@ -339,10 +168,6 @@ export function DocumentsManager({
     setFeedback(null)
 
     const payload = {
-      clientId: form.clientId || undefined,
-      tripId: form.tripId || undefined,
-      quoteId: form.quoteId || undefined,
-      contractId: form.contractId || undefined,
       title: form.title,
       type: form.type,
       fileUrl: form.fileUrl,
@@ -363,6 +188,7 @@ export function DocumentsManager({
 
     setFeedback(editingDocumentId ? "Documento atualizado com sucesso." : "Documento criado com sucesso.")
     setModalOpen(false)
+    publishOperationSync({ source: "portal" })
     await loadDocuments()
   }
 
@@ -378,6 +204,7 @@ export function DocumentsManager({
     }
 
     setFeedback("Documento arquivado com sucesso.")
+    publishOperationSync({ source: "portal" })
     await loadDocuments()
   }
 
@@ -391,11 +218,10 @@ export function DocumentsManager({
           </div>
           <button
             onClick={startCreate}
-            disabled={!canManageWorkspace}
-            className="inline-flex items-center gap-2 rounded-xl bg-[#0a0a0a] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#1a1a1a] disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-xl bg-[#0a0a0a] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#1a1a1a]"
           >
             <Plus className="h-4 w-4" />
-            {moduleCopy.create}
+            Novo documento
           </button>
         </div>
 
@@ -410,7 +236,7 @@ export function DocumentsManager({
                 type="text"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder={`Buscar por titulo, tipo, cliente, viagem ou conteudo de ${moduleCopy.plural}...`}
+                placeholder="Buscar por título, tipo ou conteúdo..."
                 className="w-full rounded-xl bg-gray-50 px-10 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-200"
               />
             </div>
@@ -438,37 +264,31 @@ export function DocumentsManager({
           {isLoading ? (
             <div className="flex items-center justify-center py-16 text-sm text-gray-500">
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              {moduleCopy.loading}
+              Carregando documentos...
             </div>
           ) : filteredDocuments.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-gray-200 px-6 py-16 text-center">
-              <p className="text-sm text-gray-500">{moduleCopy.empty}</p>
+              <p className="text-sm text-gray-500">Nenhum documento criado ainda.</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[1180px]">
+              <table className="w-full min-w-[780px]">
                 <thead>
                   <tr className="border-b border-gray-100 text-left text-xs font-medium text-gray-500">
-                    <th className="px-4 py-3">Titulo</th>
-                    <th className="px-4 py-3">Cliente</th>
-                    <th className="px-4 py-3">Viagem</th>
-                    <th className="px-4 py-3">Contrato</th>
+                    <th className="px-4 py-3">Título</th>
                     <th className="px-4 py-3">Tipo</th>
-                    <th className="px-4 py-3">Conteudo</th>
+                    <th className="px-4 py-3">Conteúdo</th>
                     <th className="px-4 py-3">Status</th>
                     <th className="px-4 py-3">Criado em</th>
-                    <th className="px-4 py-3 text-right">Acoes</th>
+                    <th className="px-4 py-3 text-right">Ações</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredDocuments.map((document) => (
                     <tr key={document.id} className="border-b border-gray-50 last:border-0">
                       <td className="px-4 py-3.5 text-sm font-medium text-[#0a0a0a]">{document.title}</td>
-                      <td className="px-4 py-3.5 text-sm text-gray-500">{document.clientId ? clientsMap.get(document.clientId) ?? "-" : "-"}</td>
-                      <td className="px-4 py-3.5 text-sm text-gray-500">{document.tripId ? tripsMap.get(document.tripId) ?? "-" : "-"}</td>
-                      <td className="px-4 py-3.5 text-sm text-gray-500">{document.contractId ? contractsMap.get(document.contractId) ?? "-" : "-"}</td>
                       <td className="px-4 py-3.5 text-sm text-gray-500">{typeLabel(document.type)}</td>
-                      <td className="px-4 py-3.5 text-sm text-gray-500">{document.content || "-"}</td>
+                      <td className="px-4 py-3.5 text-sm text-gray-500">{document.content || "—"}</td>
                       <td className="px-4 py-3.5">
                         <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${
                           document.status === "signed"
@@ -515,14 +335,14 @@ export function DocumentsManager({
       {modalOpen && (
         <>
           <div className="fixed inset-0 z-[70] bg-black/40 backdrop-blur-sm" onClick={() => setModalOpen(false)} />
-          <div className="fixed inset-x-0 bottom-0 z-[80] max-h-[85vh] overflow-y-auto rounded-t-3xl bg-white p-5 pb-8 lg:inset-0 lg:m-auto lg:h-fit lg:max-h-[80vh] lg:max-w-2xl lg:rounded-3xl">
+          <div className="fixed inset-x-0 bottom-0 z-[80] max-h-[85vh] overflow-y-auto rounded-t-3xl bg-white p-5 pb-8 lg:inset-0 lg:m-auto lg:h-fit lg:max-h-[80vh] lg:max-w-lg lg:rounded-3xl">
             <div className="mb-4 flex items-center gap-3">
               <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-50">
                 <FileText className="h-5 w-5 text-blue-500" />
               </span>
               <div>
-                <h2 className="text-lg font-semibold text-[#0a0a0a]">{editingDocumentId ? moduleCopy.edit : moduleCopy.create}</h2>
-                <p className="text-sm text-gray-500">{moduleCopy.helper}</p>
+                <h2 className="text-lg font-semibold text-[#0a0a0a]">{editingDocumentId ? "Editar documento" : "Novo documento"}</h2>
+                <p className="text-sm text-gray-500">Salve conteúdo real e mantenha o upload apenas como metadado enquanto o storage não estiver conectado.</p>
               </div>
             </div>
 
@@ -535,65 +355,16 @@ export function DocumentsManager({
             {error && <div className="mb-4 rounded-2xl border border-red-100 bg-red-50 p-4 text-sm text-red-700">{error}</div>}
 
             <div className="space-y-3">
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                <FormField label="Cliente">
-                  <select value={form.clientId} onChange={(event) => setForm((prev) => ({ ...prev, clientId: event.target.value }))} className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:border-gray-300 focus:outline-none">
-                    <option value="">Sem cliente vinculado</option>
-                    {clients.map((client) => (
-                      <option key={client.id} value={client.id}>
-                        {client.name}
-                      </option>
-                    ))}
-                  </select>
-                </FormField>
-                <FormField label="Viagem">
-                  <select value={form.tripId} onChange={(event) => setForm((prev) => ({ ...prev, tripId: event.target.value }))} className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:border-gray-300 focus:outline-none">
-                    <option value="">Sem viagem vinculada</option>
-                    {trips.map((trip) => (
-                      <option key={trip.id} value={trip.id}>
-                        {trip.title}
-                      </option>
-                    ))}
-                  </select>
-                </FormField>
-              </div>
-
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                <FormField label="Cotacao">
-                  <select value={form.quoteId} onChange={(event) => setForm((prev) => ({ ...prev, quoteId: event.target.value }))} className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:border-gray-300 focus:outline-none">
-                    <option value="">Sem cotacao vinculada</option>
-                    {quotes.map((quote) => (
-                      <option key={quote.id} value={quote.id}>
-                        {quote.title}
-                      </option>
-                    ))}
-                  </select>
-                </FormField>
-                <FormField label="Contrato">
-                  <select value={form.contractId} onChange={(event) => setForm((prev) => ({ ...prev, contractId: event.target.value }))} className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:border-gray-300 focus:outline-none">
-                    <option value="">Sem contrato vinculado</option>
-                    {contracts.map((contract) => (
-                      <option key={contract.id} value={contract.id}>
-                        {contract.title}
-                      </option>
-                    ))}
-                  </select>
-                </FormField>
-              </div>
-
-              <FormField label="Titulo">
-                <input value={form.title} onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))} placeholder="Titulo do documento" className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:border-gray-300 focus:outline-none" />
+              <FormField label="Título">
+                <input value={form.title} onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))} placeholder="Título do documento" className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:border-gray-300 focus:outline-none" />
               </FormField>
-
               <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                 <FormField label="Tipo">
                   <select value={form.type} onChange={(event) => setForm((prev) => ({ ...prev, type: event.target.value as DocumentType }))} className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:border-gray-300 focus:outline-none">
                     <option value="contrato">Contrato</option>
                     <option value="arquivo">Arquivo</option>
-                    <option value="relatorio">Relatorio</option>
+                    <option value="relatório">Relatório</option>
                     <option value="proposta">Proposta</option>
-                    <option value="recibo">Recibo</option>
-                    <option value="nota_fiscal">Nota fiscal</option>
                     <option value="outro">Outro</option>
                   </select>
                 </FormField>
@@ -606,21 +377,19 @@ export function DocumentsManager({
                   </select>
                 </FormField>
               </div>
-
-              <FormField label="Referencia do arquivo">
+              <FormField label="Referência do arquivo">
                 <div className="relative">
                   <Paperclip className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                  <input value={form.fileUrl} onChange={(event) => setForm((prev) => ({ ...prev, fileUrl: event.target.value }))} placeholder="URL ou referencia do arquivo" className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-10 py-3 text-sm focus:border-gray-300 focus:outline-none" />
+                  <input value={form.fileUrl} onChange={(event) => setForm((prev) => ({ ...prev, fileUrl: event.target.value }))} placeholder="URL ou referência do arquivo" className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-10 py-3 text-sm focus:border-gray-300 focus:outline-none" />
                 </div>
               </FormField>
-
-              <FormField label="Conteudo">
-                <textarea value={form.content} onChange={(event) => setForm((prev) => ({ ...prev, content: event.target.value }))} placeholder="Escreva o conteudo ou resumo do documento" rows={5} className="w-full resize-none rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:border-gray-300 focus:outline-none" />
+              <FormField label="Conteúdo">
+                <textarea value={form.content} onChange={(event) => setForm((prev) => ({ ...prev, content: event.target.value }))} placeholder="Escreva o conteúdo ou resumo do documento" rows={5} className="w-full resize-none rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:border-gray-300 focus:outline-none" />
               </FormField>
             </div>
 
             <div className="mt-3 rounded-2xl border border-gray-100 bg-gray-50 p-4 text-sm text-gray-500">
-              O upload real continua fora deste escopo. Nesta etapa salvamos apenas metadados e referencias do documento.
+              O upload real pode continuar visível na interface, mas nesta etapa apenas metadados e conteúdo são salvos.
             </div>
 
             <div className="mt-5 flex gap-2">
@@ -632,7 +401,7 @@ export function DocumentsManager({
                 disabled={isSaving || (Boolean(editingDocumentId) && !canManageWorkspace)}
                 className="flex-1 rounded-2xl bg-[#0a0a0a] px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-[#1a1a1a] disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {isSaving ? "Salvando..." : editingDocumentId ? "Salvar alteracoes" : moduleCopy.save}
+                {isSaving ? "Salvando..." : editingDocumentId ? "Salvar alterações" : "Salvar documento"}
               </button>
             </div>
           </div>

@@ -43,8 +43,8 @@ export function extractEmail(message: string) {
 }
 
 export function extractPhone(message: string) {
-  const match = message.match(/(?:\+?\d[\d\s().-]{7,}\d)/)
-  return match?.[0]?.trim() || ""
+  const digits = message.match(/\b\d{8,15}\b/)
+  return digits?.[0] || ""
 }
 
 export function extractMoneyValue(message: string) {
@@ -98,7 +98,7 @@ export function cleanupEntityTail(value: string) {
 
 function stripLeadingCommand(value: string) {
   return value
-    .replace(/^(crie|criar|novo|nova|cadastrar|cadastre|registrar|registre|lancar|lance|adicionar|abrir|iniciar|inicie)\s+/i, "")
+    .replace(/^(crie|criar|novo|nova|cadastrar|cadastre|registrar|registre|lancar|lance|adicionar|abrir)\s+/i, "")
     .trim()
 }
 
@@ -132,9 +132,9 @@ function isLikelyClientName(value: string) {
 
 function extractClientNameByPatterns(message: string) {
   const patterns = [
-    /^(?:crie|criar|cadastre|cadastrar|adicione|adicionar)\s+(.+?)\s+como\s+cliente$/iu,
-    /^(?:crie|criar|cadastre|cadastrar|adicione|adicionar)\s+(?:um\s+|uma\s+)?cliente\s+(.+)$/iu,
-    /^(?:crie|criar|cadastre|cadastrar|adicione|adicionar)\s+cliente\s+(.+)$/iu,
+    /^(?:crie|criar|cadastre|cadastrar)\s+(.+?)\s+como\s+cliente$/iu,
+    /^(?:crie|criar|cadastre|cadastrar)\s+(?:um\s+|uma\s+)?cliente\s+(.+)$/iu,
+    /^(?:crie|criar|cadastre|cadastrar)\s+cliente\s+(.+)$/iu,
     /^cliente\s+(.+)$/iu,
   ]
 
@@ -165,15 +165,10 @@ export function extractClientName(message: string, context: OperationsEngineCont
     "cliente chamado",
     "cliente com nome",
     "cadastrar cliente",
-    "adicionar cliente",
-    "adicione cliente",
     "crie um cliente chamado",
     "crie cliente chamado",
     "crie um cliente",
     "crie cliente",
-    "adicione um cliente chamado",
-    "adicione cliente chamado",
-    "adicione um cliente",
     "novo cliente",
   ])
 
@@ -201,8 +196,8 @@ export function recoverClientNameFromMessage(message: string) {
 export function inferFinancialType(message: string, context: OperationsEngineContext) {
   const normalized = normalizeEngineText(message)
 
-  if (/\b(gastei|gasto|despesa|paguei|pagar|pagamento|saida)\b/.test(normalized)) return "expense"
-  if (/\b(recebi|recebimento|ganho|receita|venda|faturamento|consultoria|entrada)\b/.test(normalized)) return "income"
+  if (/\b(gasto|despesa|pagar|pagamento)\b/.test(normalized)) return "expense"
+  if (/\b(ganho|receita|venda|faturamento|consultoria|entrada)\b/.test(normalized)) return "income"
   if (context.subArea === "gastos") return "expense"
   if (context.subArea === "ganhos") return "income"
 
@@ -210,46 +205,19 @@ export function inferFinancialType(message: string, context: OperationsEngineCon
 }
 
 export function extractFinancialTitle(message: string) {
-  const normalized = normalizeEngineText(message)
-  const amount = extractMoneyValue(message)
-  const amountPattern = amount ? amount.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") : ""
-
-  const patterns = amountPattern
-    ? [
-        new RegExp(`(?:recebi|recebimento|receita|ganho|entrada)\\s+(?:de\\s+)?${amountPattern}\\s+(?:d[oa]s?\\s+|de\\s+)(.+)$`, "iu"),
-        new RegExp(`(?:paguei|gastei|gasto|despesa|pagamento)\\s+(?:de\\s+)?${amountPattern}\\s+(?:com\\s+|d[oa]s?\\s+|de\\s+)(.+)$`, "iu"),
-      ]
-    : []
-
-  for (const pattern of patterns) {
-    const match = message.match(pattern)
-    const candidate = cleanupEntityTail(match?.[1] || "")
-      .replace(/^(o|a|os|as)\s+/iu, "")
-      .trim()
-    if (candidate) {
-      return toTitleCase(candidate)
-    }
-  }
-
-  const explicit = extractAfterKeyword(message, ["com ", "referente a "])
+  const explicit = extractAfterKeyword(message, ["com ", "referente a ", "de "])
   const raw = cleanupEntityTail(explicit)
 
-  if (raw && !/^(r\$\s*)?\d/i.test(raw.trim())) {
-    return toTitleCase(raw)
+  if (raw) {
+    const cleaned = raw.replace(/^\d+(?:[.,]\d+)?\s*/, "").trim()
+    return toTitleCase(cleaned)
   }
 
+  const amount = extractMoneyValue(message)
   if (!amount) return ""
 
   const remainder = message.slice(message.toLowerCase().indexOf(amount.toLowerCase()) + amount.length).trim()
-  const cleanedRemainder = stripLeadingCommand(cleanupEntityTail(remainder))
-    .replace(/^(d[oa]s?|de|com)\s+/iu, "")
-    .trim()
-
-  if (!cleanedRemainder || /^(r\$\s*)?\d/i.test(cleanedRemainder)) {
-    return ""
-  }
-
-  return toTitleCase(cleanedRemainder)
+  return toTitleCase(stripLeadingCommand(cleanupEntityTail(remainder)))
 }
 
 export function extractLeadName(message: string) {
@@ -265,21 +233,9 @@ export function extractServiceName(message: string) {
 }
 
 export function extractOperationTitle(message: string, context: OperationsEngineContext) {
-  if (/(?:criar|crie|cadastrar|cadastre|abrir|abra|iniciar|inicie)\s+viagem\s+para\s+/iu.test(message)) {
-    return ""
-  }
-
   const direct = extractAfterKeyword(message, [
     "chamada ",
     "chamado ",
-    "viagem chamada ",
-    "viagem com titulo ",
-    "criar viagem ",
-    "crie viagem ",
-    "cadastrar viagem ",
-    "cadastre viagem ",
-    "abrir viagem ",
-    "iniciar viagem ",
     "criar operacao ",
     "crie operacao ",
     "nova operacao ",
@@ -288,24 +244,6 @@ export function extractOperationTitle(message: string, context: OperationsEngine
   ])
 
   const raw = stripLeadingCommand(cleanupEntityTail(direct || (isOperationsContext(context) ? message : "")))
-  if (/^para\b/i.test(raw)) {
-    return ""
-  }
-
-  const normalizedRaw = normalizeEngineText(raw)
-  if (
-    normalizedRaw === "viagem" ||
-    normalizedRaw === "nova viagem" ||
-    normalizedRaw === "criar viagem" ||
-    normalizedRaw === "crie viagem" ||
-    normalizedRaw === "cadastrar viagem" ||
-    normalizedRaw === "cadastre viagem" ||
-    normalizedRaw === "abrir viagem" ||
-    normalizedRaw === "iniciar viagem"
-  ) {
-    return ""
-  }
-
   return toTitleCase(raw)
 }
 
@@ -322,20 +260,8 @@ export function extractProcessTitle(message: string) {
 }
 
 export function extractOperationClientName(message: string) {
-  const patterns = [
-    /cliente\s+([a-zA-ZÀ-ÿ0-9 ]+?)(?:\s+chamad[ao]|\s*$)/i,
-    /(?:viagem|operacao|operação|processo|projeto)\s+para\s+([a-zA-ZÀ-ÿ0-9 ]+?)(?:\s*$|\s+com\s+)/i,
-    /para\s+o?\s*cliente\s+([a-zA-ZÀ-ÿ0-9 ]+?)(?:\s*$|\s+com\s+)/i,
-  ]
-
-  for (const pattern of patterns) {
-    const match = message.match(pattern)
-    if (match?.[1]) {
-      return toTitleCase(match[1].trim())
-    }
-  }
-
-  return ""
+  const match = message.match(/cliente\s+([a-zA-ZÀ-ÿ0-9 ]+?)(?:\s+chamad[ao]|\s*$)/i)
+  return match?.[1] ? toTitleCase(match[1].trim()) : ""
 }
 
 export function detectDocumentType(message: string) {
@@ -344,19 +270,11 @@ export function detectDocumentType(message: string) {
   if (normalized.includes("proposta")) return "proposta"
   if (normalized.includes("relatorio")) return "relatório"
   if (normalized.includes("arquivo")) return "arquivo"
-  if (normalized.includes("documento")) return "arquivo"
   return "outro"
 }
 
 export function extractDocumentTitle(message: string, context: OperationsEngineContext) {
   const direct = extractAfterKeyword(message, [
-    "criar contrato ",
-    "crie contrato ",
-    "gerar contrato ",
-    "gere contrato ",
-    "cadastrar contrato ",
-    "cadastre contrato ",
-    "novo contrato ",
     "criar documento ",
     "novo documento ",
     "documento ",
@@ -730,35 +648,28 @@ export function extractClientUpdateEntities(message: string) {
 
 export function looksLikeCreateClient(message: string, context: OperationsEngineContext) {
   const normalized = normalizeEngineText(message)
-  const isOtherCreateFlow =
-    /\b(viagem|operacao|processo|projeto|ordem|documento|contrato|proposta|relatorio|arquivo|reuniao)\b/.test(
-      normalized,
-    )
-
-  if (isOtherCreateFlow && !isClientsContext(context)) return false
-  if (/\b(cliente)\b/.test(normalized) && /\b(crie|criar|novo|nova|cadastrar|cadastre|adicione|adicionar)\b/.test(normalized)) return true
+  if (/\b(cliente)\b/.test(normalized) && /\b(crie|criar|novo|nova|cadastrar|cadastre)\b/.test(normalized)) return true
   if (isClientsContext(context) && !!extractClientName(message, context)) return true
   return false
 }
 
 export function looksLikeCreateFinancial(message: string, context: OperationsEngineContext) {
   const normalized = normalizeEngineText(message)
-  if (/\b(recebi|recebimento|gastei|paguei|gasto|despesa|ganho|receita|entrada|saida|lancar|lance|registrar|registre|adicionar)\b/.test(normalized) && !!extractMoneyValue(message)) return true
+  if (/\b(gasto|despesa|ganho|receita|lancar|lance|registrar|registre|adicionar)\b/.test(normalized) && !!extractMoneyValue(message)) return true
   if (isFinancialContext(context) && !!extractMoneyValue(message)) return true
   return false
 }
 
 export function looksLikeCreateOperation(message: string, context: OperationsEngineContext) {
   const normalized = normalizeEngineText(message)
-  if (/\b(operacao|processo|projeto|ordem|viagem)\b/.test(normalized) && /\b(criar|crie|novo|nova|abrir|cadastrar|cadastre|iniciar|inicie)\b/.test(normalized)) return true
+  if (/\b(operacao|processo|projeto|ordem)\b/.test(normalized) && /\b(criar|crie|novo|nova|abrir)\b/.test(normalized)) return true
   if (isOperationsContext(context) && !!extractOperationTitle(message, context)) return true
-  if (isOperationsContext(context) && !!extractOperationClientName(message)) return true
   return false
 }
 
 export function looksLikeCreateDocument(message: string, context: OperationsEngineContext) {
   const normalized = normalizeEngineText(message)
-  if (/\b(documento|contrato|proposta|relatorio|arquivo)\b/.test(normalized) && /\b(criar|crie|novo|nova|gerar|gere|cadastrar|cadastre)\b/.test(normalized)) return true
+  if (/\b(documento|contrato|proposta|relatorio|arquivo)\b/.test(normalized) && /\b(criar|crie|novo|nova)\b/.test(normalized)) return true
   if (isDocumentsContext(context) && !!extractDocumentTitle(message, context)) return true
   return false
 }

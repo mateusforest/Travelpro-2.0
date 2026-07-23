@@ -31,7 +31,7 @@ export default function RecuperarSenhaPage() {
           alt="TravelPro"
           width={56}
           height={56}
-          className="h-14 w-14 object-contain"
+          className="w-14 h-14"
         />
       </div>
 
@@ -57,7 +57,7 @@ export default function RecuperarSenhaPage() {
           
           <Link
             href="/login"
-            className="tp-gradient-btn inline-flex w-full items-center justify-center rounded-xl px-4 py-3.5 font-medium transition-colors"
+            className="tp-gradient-btn inline-flex w-full items-center justify-center rounded-xl px-4 py-3.5 font-medium"
           >
             Voltar para login
           </Link>
@@ -107,7 +107,7 @@ export default function RecuperarSenhaPage() {
               type="submit"
               disabled={isLoading}
               whileTap={{ scale: 0.98 }}
-              className="tp-gradient-btn flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3.5 font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+              className="tp-gradient-btn flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3.5 font-medium disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isLoading ? (
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />

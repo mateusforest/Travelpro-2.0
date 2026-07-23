@@ -14,6 +14,7 @@ import {
 } from "@/actions/support"
 import { EmptyState, PrimaryButton, SecondaryButton, StatusBadge, TableCard } from "@/components/master/master-ui"
 import { useAuth } from "@/components/auth/auth-provider"
+import { publishOperationSync } from "@/lib/operation-sync"
 
 type MasterTicket = {
   id: string
@@ -227,6 +228,7 @@ export function MasterSupportConsole() {
 
     setReply("")
     setFeedback("Resposta enviada com sucesso.")
+    publishOperationSync({ source: "master" })
     await Promise.all([loadTickets(selectedTicketId), loadMessages(selectedTicketId)])
     setIsSending(false)
   }
@@ -250,6 +252,7 @@ export function MasterSupportConsole() {
     }
 
     setFeedback("Status atualizado com sucesso.")
+    publishOperationSync({ source: "master" })
     await loadTickets(selectedTicketId)
     setIsUpdatingMeta(false)
   }
@@ -273,6 +276,7 @@ export function MasterSupportConsole() {
     }
 
     setFeedback("Prioridade atualizada com sucesso.")
+    publishOperationSync({ source: "master" })
     await loadTickets(selectedTicketId)
     setIsUpdatingMeta(false)
   }
@@ -296,6 +300,7 @@ export function MasterSupportConsole() {
     }
 
     setFeedback("Chamado atribuído com sucesso.")
+    publishOperationSync({ source: "master" })
     await loadTickets(selectedTicketId)
     setIsUpdatingMeta(false)
   }

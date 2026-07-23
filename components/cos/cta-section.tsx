@@ -33,20 +33,20 @@ export function CTASection() {
 
           {/* Subheadline */}
           <p className="text-sm text-muted-foreground mb-6 max-w-[280px] mx-auto">
-            O COS unifica comunicação, processos e pessoas em um só sistema operacional.
+            O TravelPro unifica comunicação, processos e pessoas em um só sistema operacional.
           </p>
 
           {/* Primary CTA */}
           <Link
             href="/cadastro"
-            className="inline-flex items-center justify-center gap-2 bg-foreground text-white rounded-full py-3.5 px-8 font-medium mb-6 w-full max-w-[280px]"
+            className="tp-gradient-btn mb-6 inline-flex w-full max-w-[280px] items-center justify-center gap-2 rounded-full px-8 py-3.5 font-medium"
           >
             <Image
-              src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/COS%20LOGO%20%281%29-mBU7xqdIZoWP3indGVxJrDFLu8urZH.png"
-              alt="COS"
+              src="/travelpro-logo-mark.png"
+              alt="TravelPro"
               width={20}
               height={20}
-              className="w-5 h-5 invert"
+              className="h-5 w-5"
             />
             Começar agora
             <ArrowRight className="h-4 w-4" />
