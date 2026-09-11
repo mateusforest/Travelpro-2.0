@@ -1,0 +1,63 @@
+/* The access pages share the landing identity; form behavior stays in auth.js. */
+body.auth-page { background: var(--paper); height: auto; }
+.auth-page .header { padding: 0; }
+.auth-page .header-actions { color: var(--muted); font-size: 12px; }
+.auth-page .header-actions > a:not(.primary-cta) { color: var(--ink); }
+.auth-page .header-actions > a:not(.primary-cta):hover { color: var(--orange); }
+.auth-layout { max-width: 1600px; min-height: calc(100svh - 53px); padding: 137px var(--gutter) 40px; gap: 10%; }
+.auth-story { height: min(650px, calc(100svh - 215px)); min-height: 450px; }
+.auth-photo-window { width: 100%; height: 100%; border-radius: 7px; box-shadow: none; transform: none; animation: access-photo-in 1s var(--ease) both; }
+.auth-photo-window > img { animation: photo-drift 30s ease-in-out infinite alternate; }
+.auth-photo-window::after { background: linear-gradient(180deg, #1b343c33, #152b3008 30%, #172b34bd); }
+.auth-story-caption { left: 33px; right: 25px; bottom: 37px; }
+.auth-story-caption small { font-size: 8px; letter-spacing: .13em; }
+.auth-story-caption h2 { font: 400 clamp(38px, 3.7vw, 58px)/1.06 'Manrope', sans-serif; letter-spacing: -.065em; margin-top: 19px; }
+.auth-story-caption p { font-size: 11px; }
+.auth-orbit, .auth-story-note { display: none; }
+.cos-welcome { top: 25px; left: 27px; right: 27px; padding: 0 0 17px; border: 0; border-bottom: 1px solid #ffffff40; background: none; backdrop-filter: none; border-radius: 0; box-shadow: none; rotate: none; animation: none; }
+.cos-welcome > span { width: 27px; height: 27px; border-radius: 6px; font-size: 14px; background: #f45b2a; }
+.cos-welcome p { color: #ffffffc7; font-size: 10px; }
+.cos-welcome p strong { color: white; font-size: 8px; letter-spacing: .1em; }
+.auth-surface { max-width: 395px; animation: form-arrive .6s .05s both; }
+.auth-kicker { color: var(--orange); font-size: 9px; }
+.auth-surface h1 { font-weight: 500; font-size: clamp(33px, 3vw, 46px); line-height: 1.08; }
+.auth-subtitle { font-size: 14px; color: var(--muted); margin-bottom: 29px; }
+.field > label { font-size: 12px; color: var(--ink); }
+.field input { border-radius: 5px; border-color: #d9dbd0; background: #ffffff91; height: 50px; font-size: 15px; }
+.field input::placeholder { font-size: 13px; color: #9da18f; }
+.field input:focus { border-color: #9ca38b; box-shadow: 0 0 0 3px #868e730c; }
+.password-toggle { border-radius: 4px; color: #959b87; }
+.subtle-button { color: var(--muted); font-size: 12px; }
+.auth-form .submit-button { height: 50px; border-radius: 5px; font-size: 13px; background: var(--ink); color: white; }
+.auth-form .submit-button:hover { background: var(--orange); }
+.auth-switch { font-size: 12px; color: var(--muted); }
+.auth-switch a { color: var(--ink); }
+.auth-switch a:hover { color: var(--orange); }
+.preview-notice { font-size: 10px; color: #919784; border-color: var(--line); line-height: 1.6; }
+.auth-stepper { color: #939887; }
+.auth-stepper .is-current { color: var(--ink); }
+.auth-stepper .is-current b { background: var(--ink); color: white; border-color: var(--ink); }
+.auth-stepper .is-done b { background: #8c9878; border-color: #8c9878; }
+.form-result { border-radius: 5px; }
+.auth-bottom { position: relative; left: auto; right: auto; bottom: auto; margin: 0 var(--gutter); min-height: 53px; padding: 17px 0; align-items: center; border-top: 1px solid var(--line); font-size: 9px; color: #969b8c; }
+@keyframes access-photo-in { from { opacity: 0; translate: 0 18px; } to { opacity: 1; translate: 0 0; } }
+@media (max-height: 800px) and (min-width: 761px) {
+  .auth-layout { padding-top: 116px; padding-bottom: 35px; }
+  .auth-story { min-height: 440px; height: calc(100svh - 220px); }
+  .auth-surface h1 { font-size: 37px; }
+  .auth-subtitle { margin-bottom: 22px; }
+  .preview-notice { margin-top: 20px; }
+  .auth-stepper { margin-bottom: 18px; }
+  .auth-kicker { margin-bottom: 14px; }
+  .field { margin-bottom: 16px; }
+}
+@media (max-width: 760px) {
+  .auth-page .brand { width: auto; }
+  .auth-page .header { padding: 0; }
+  .auth-layout { padding: 118px 25px 75px; }
+  .auth-surface h1 { font-size: 39px; }
+  .auth-story { display: none; }
+  .auth-bottom { font-size: 8px; margin: 0 25px; padding: 17px 0; }
+  .auth-page .header-actions > a { font-size: 11px; }
+  .field input { font-size: 16px; }
+}

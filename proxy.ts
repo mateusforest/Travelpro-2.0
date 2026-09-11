@@ -14,7 +14,7 @@ function getPublicSupabaseEnv() {
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
-  const appOrigin = process.env.NEXT_PUBLIC_APP_URL ?? request.nextUrl.origin
+  const appOrigin = request.nextUrl.origin
 
   const response = NextResponse.next({
     request: {

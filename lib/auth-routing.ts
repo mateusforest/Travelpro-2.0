@@ -13,7 +13,7 @@ export function resolveHomePath(access: AccessRoutingState) {
   }
 
   if (access.workspace?.type === "operations") {
-    return "/app"
+    return "/portal"
   }
 
   if (access.workspace?.type === "connect") {
@@ -46,6 +46,7 @@ export function canAccessPath(pathname: string, access: AccessRoutingState) {
 export function resolvePostAuthPath(access: AccessRoutingState, requestedPath?: string | null) {
   if (
     requestedPath &&
+    requestedPath.startsWith("/") && !requestedPath.startsWith("//") && !requestedPath.includes("\\") &&
     requestedPath !== "/login" &&
     requestedPath !== "/cadastro" &&
     canAccessPath(requestedPath, access)

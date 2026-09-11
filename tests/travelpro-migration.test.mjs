@@ -1,0 +1,15 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {validateState} from '../lib/travelpro/validation.mjs';
+const seed=JSON.parse(readFileSync(new URL('../lib/travelpro/initial-state.json',import.meta.url),'utf8'));
+const base=process.env.TRAVELPRO_TEST_URL||'http://127.0.0.1:3000';
+test('new workspace accepts an empty agency without demo customers',()=>{const state=structuredClone(seed);state.agency='Agência de teste';assert.equal(validateState(state),state);assert.equal(state.clients.length,0);assert.equal(state.trips.length,0);});
+test('invalid linked travel records are rejected',()=>{const state=structuredClone(seed);state.agency='Agência de teste';state.trips.push({id:'trip',client:'another-agency'});assert.throws(()=>validateState(state));});
+test('prototype pollution and duplicate identifiers are rejected',()=>{const state=structuredClone(seed);state.agency='Agência';state.clients=[{id:'c',name:'Nome',email:'',phone:''},{id:'c',name:'Outro',email:'',phone:''}];assert.throws(()=>validateState(state));state.clients=[];state.extra=JSON.parse('{"__proto__":{"admin":true}}');assert.throws(()=>validateState(state));});
+test('landing and authentication routes use the new presentation',async()=>{for(const [path,expected]of [['/','hero-motion.css'],['/login','login-form'],['/cadastro','signup-form']]){const res=await fetch(base+path);assert.equal(res.status,200);assert.match(await res.text(),new RegExp(expected));}});
+test('protected API rejects anonymous access',async()=>{for(const path of ['auth/session','workspace','integrations','audit','files/00000000-0000-0000-0000-000000000000/document.pdf']){const res=await fetch(base+'/api/travelpro/'+path);assert.equal(res.status,401,path);assert.match((await res.json()).error,/Entre/);}});
+test('mutations reject foreign origin before authentication or database access',async()=>{const res=await fetch(base+'/api/travelpro/workspace',{method:'PUT',headers:{Origin:'https://other.example','Content-Type':'application/json'},body:'{}'});assert.equal(res.status,403);});
+test('invalid login is rejected without contacting a provider',async()=>{const res=await fetch(base+'/api/travelpro/auth/login',{method:'POST',headers:{Origin:base,'Content-Type':'application/json'},body:'{}'});assert.equal(res.status,422);});
+test('direct HTML entry cannot bypass login',async()=>{const res=await fetch(base+'/experience/portal',{redirect:'manual'});assert.equal(res.status,307);assert.equal(new URL(res.headers.get('location')).pathname,'/login');});
+test('local assets resolve, including hero movie',async()=>{for(const path of ['commercial.js','hero-motion.css','assets/hero-motion.mp4','portal.js','api.js']){const res=await fetch(base+'/travelpro/'+path,{method:'HEAD'});assert.equal(res.status,200,path);}});
