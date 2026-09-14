@@ -1,1 +1,1 @@
-{"name":"travelpro-landing","version":"1.0.0","private":true,"type":"module","scripts":{"dev":"node server.mjs","start":"node server.mjs","check":"node --check dist/app.js && node --check server.mjs"}}
+{"name":"travelpro","version":"2.0.0","private":true,"type":"module","engines":{"node":">=24.0.0"},"scripts":{"dev":"node server.mjs","start":"node server.mjs","test":"node --test --test-isolation=none tests/backend.test.mjs tests/frontend.test.mjs","check":"node --check server.mjs && node --check backend/app.mjs && node --check dist/portal.js && node --check dist/auth.js"}}

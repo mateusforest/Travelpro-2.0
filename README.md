@@ -1,28 +1,20 @@
-# TravelPro — landing page
+# TravelPro
 
-Experiência de apresentação com sete cenas em um palco fixo. O scroll vertical controla a passagem horizontal. Também é possível usar as setas, os marcadores de etapa e gestos horizontais no celular.
+Aplicação local para agências de viagem, com landing page, portal, COS e frente de atendimento WhatsApp.
 
 ## Abrir
 
-Abra `dist/index.html` diretamente no navegador, ou use `npm run dev` com Node.js instalado. O endereço local é http://127.0.0.1:4173.
+A instalação atual funciona em http://127.0.0.1:4174. Comece em cadastro.html para criar sua agência. Não há conta ou senha padrão.
 
-## Estrutura
+Login, cadastros, viagens, agenda, documentos, roteiros, financeiro, orçamentos, leads e conversas ficam salvos por agência no servidor. Integrações reais recebem suas chaves depois, pela tela Integrações. Sem chaves, o COS funciona em modo guiado, as cotações podem ser ilustrativas e os editores manuais continuam disponíveis.
 
-- `dist/index.html`: conteúdo e estrutura acessível.
-- `dist/styles.css`: identidade visual, cenas e adaptações de tela.
-- `dist/app.js`: controle de scroll, navegação, cursor ilustrativo e preferência de movimento reduzido.
-- `dist/assets/`: marca fornecida pelo proprietário e fotografias.
-- `server.mjs`: servidor local sem dependências.
+Consulte [BACKEND.md](BACKEND.md) para configuração, APIs, contratos dos provedores, testes, backup e limites da versão. O arquivo .env.example contém as opções de ambiente. Node.js 24 ou superior; não são necessárias dependências npm.
 
-Esta entrega contém somente a landing page. Conversa, cotações, dados de clientes, assinatura, financeiro e peças de campanha são demonstrações pré-definidas. Não existe autenticação, geração por IA, consulta de preços, envio de documentos ou reserva real nesta página.
+## Estado da entrega
 
-As fotografias estão salvas localmente. As fontes Manrope e DM Sans são carregadas pelo Google Fonts com fontes alternativas locais se a rede não estiver disponível.
+O backend local está implementado e ligado às telas. IA conversacional, geração de roteiro textual e legenda possuem adaptador OpenAI. WhatsApp possui webhook autenticado, fila de rascunhos e envio explícito. A operadora precisa de um adaptador para sua API específica. Não houve testes com chaves reais ou publicação desta versão.
 
-## Sequência
-
-Pedido → Cotação → Roteiro → Documentos → Gestão → Studio IA → Visão completa.
-
-Travel Match e Vuei aparecem como extensões disponíveis conforme o plano. Os modelos de roteiro, contrato e campanha são parte da demonstração da identidade da agência.
+Pagamentos, assinatura eletrônica, MFA, geração de imagens/vídeos e emissão de viagens ainda não estão implementados. Planos, Travel Match e Vuei seguem como demonstrações. O financeiro registra lançamentos internos sem movimentar dinheiro.
 
 ## Créditos das fotografias
 
@@ -30,3 +22,5 @@ Travel Match e Vuei aparecem como extensões disponíveis conforme o plano. Os m
 - Roma: Mathew Schwartz / Unsplash — https://unsplash.com/photos/the-colosseum-rome-Kyxejaf39vM
 - Florença: Tom Podmore / Unsplash — https://unsplash.com/photos/a-view-of-a-city-with-a-river-running-through-it-AVQUqyNYZMM
 - Licença: https://unsplash.com/license
+
+Logo e ícone fornecidos pelo proprietário. As fotografias estão salvas localmente; Google Fonts possui alternativas de sistema.

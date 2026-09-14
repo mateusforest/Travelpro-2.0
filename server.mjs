@@ -1,17 +1,12 @@
-import http from 'node:http';
-import { readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-const root = path.join(path.dirname(fileURLToPath(import.meta.url)), 'dist');
-const types = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp' };
-const server = http.createServer(async (req, res) => {
-  try {
-    const pathname = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
-    const file = path.resolve(root, '.' + (pathname === '/' ? '/index.html' : pathname));
-    if (!file.startsWith(root + path.sep)) { res.writeHead(403); res.end(); return; }
-    if (!(await stat(file)).isFile()) throw new Error('Not a file');
-    res.writeHead(200, { 'Content-Type': types[path.extname(file)] || 'application/octet-stream', 'Cache-Control': 'no-cache' });
-    res.end(await readFile(file));
-  } catch { res.writeHead(404); res.end('Não encontrado'); }
-});
-server.listen(4173, '127.0.0.1', () => console.log('TravelPro: http://127.0.0.1:4173'));
+import {fileURLToPath} from 'node:url';
+import {existsSync} from 'node:fs';
+import {createApp} from './backend/app.mjs';
+const root=path.dirname(fileURLToPath(import.meta.url));
+if(existsSync(path.join(root,'.env')))process.loadEnvFile(path.join(root,'.env'));
+const port=Number(process.env.PORT||4173),host=process.env.HOST||'127.0.0.1';
+const origin=process.env.PUBLIC_ORIGIN||`http://${host}:${port}`;
+if(process.env.NODE_ENV==='production'&&!origin.startsWith('https://'))throw new Error('Produção exige PUBLIC_ORIGIN HTTPS e proxy TLS.');
+const app=createApp({directory:process.env.DATA_DIR||path.join(root,'data'),dist:path.join(root,'dist'),env:process.env,origin});
+app.server.listen(port,host,()=>console.log('TravelPro: '+origin));
+for(const signal of ['SIGINT','SIGTERM'])process.on(signal,()=>app.close().then(()=>process.exit(0)));

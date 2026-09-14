@@ -1,0 +1,13 @@
+CREATE TABLE agencies(id TEXT PRIMARY KEY, name TEXT NOT NULL, created_at INTEGER NOT NULL);
+CREATE TABLE users(id TEXT PRIMARY KEY, agency_id TEXT NOT NULL REFERENCES agencies(id), name TEXT NOT NULL, email TEXT NOT NULL UNIQUE, password_hash TEXT NOT NULL, created_at INTEGER NOT NULL);
+CREATE TABLE agency_state(agency_id TEXT PRIMARY KEY REFERENCES agencies(id), data TEXT NOT NULL CHECK(json_valid(data)), version INTEGER NOT NULL DEFAULT 1, updated_at INTEGER NOT NULL);
+CREATE TABLE sessions(id TEXT PRIMARY KEY, user_id TEXT NOT NULL REFERENCES users(id), token_hash TEXT NOT NULL UNIQUE, csrf TEXT NOT NULL, created_at INTEGER NOT NULL, last_seen INTEGER NOT NULL, expires_at INTEGER NOT NULL, user_agent TEXT NOT NULL);
+CREATE INDEX sessions_user ON sessions(user_id);
+CREATE TABLE uploads(id TEXT PRIMARY KEY, agency_id TEXT NOT NULL REFERENCES agencies(id), name TEXT NOT NULL, mime TEXT NOT NULL, size INTEGER NOT NULL, created_at INTEGER NOT NULL);
+CREATE INDEX uploads_agency ON uploads(agency_id);
+CREATE TABLE audit(id INTEGER PRIMARY KEY, agency_id TEXT NOT NULL, user_id TEXT, action TEXT NOT NULL, created_at INTEGER NOT NULL);
+CREATE INDEX audit_agency ON audit(agency_id, created_at);
+CREATE TABLE integration_config(agency_id TEXT NOT NULL REFERENCES agencies(id), service TEXT NOT NULL, public_config TEXT NOT NULL DEFAULT '{}', secret TEXT, PRIMARY KEY(agency_id,service));
+CREATE TABLE password_resets(token_hash TEXT PRIMARY KEY, user_id TEXT NOT NULL REFERENCES users(id), expires_at INTEGER NOT NULL);
+CREATE TABLE webhook_events(id TEXT PRIMARY KEY, agency_id TEXT NOT NULL, received_at INTEGER NOT NULL);
+CREATE TABLE outbox(id TEXT PRIMARY KEY, agency_id TEXT NOT NULL, thread_id TEXT NOT NULL, text TEXT NOT NULL, status TEXT NOT NULL, remote_id TEXT, created_at INTEGER NOT NULL);

@@ -3,76 +3,143 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#fafaf9">
-  <meta name="description" content="Conheça o TravelPro: o COS conecta cotações, roteiros, contratos e a operação da sua agência em uma única experiência.">
-  <title>TravelPro — Sua agência, em movimento</title>
+  <meta name="theme-color" content="#171b1d">
+  <meta name="description" content="Divulgue seus pacotes, capte interessados e crie propostas, campanhas e roteiros com agilidade. Conheça o TravelPro, feito para agências de viagens.">
+  <title>TravelPro — Mais alcance. Mais agilidade.</title>
   <link rel="icon" type="image/png" href="assets/travelpro-icon-20260914.png">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="commercial.css">
+  <link rel="stylesheet" href="refinements.css">
+  <link rel="stylesheet" href="hero-motion.css">
+  <script src="vendor/gsap.min.js" defer></script>
+  <script src="vendor/ScrollTrigger.min.js" defer></script>
+  <script src="commercial.js" defer></script>
 <link rel="stylesheet" href="branding.css?v=20260914"></head>
 <body>
-  <a class="skip" href="#journey-nav">Ir para as etapas</a>
-  <header class="header">
-    <a class="brand travelpro-brand" href="#inicio" aria-label="TravelPro, início da experiência"><img src="assets/travelpro-logo.png" alt="TravelPro" width="1774" height="887"></a>
-    <div class="demo-label"><span></span>COS <span class="label-divider">/</span> uma viagem, todas as possibilidades</div>
-    <button class="overview text-button" data-goto="6">Visão completa <span aria-hidden="true">↗</span></button>
-  </header>
+  <a class="skip" href="#resultados">Ir para as entregas</a>
+  <main class="experience" id="inicio">
+    <header class="site-header">
+      <a class="brand travelpro-brand" href="#inicio" aria-label="TravelPro, início"><img src="assets/travelpro-logo.png" alt="TravelPro" width="1774" height="887"></a>
+      <span class="brand-descriptor">Feito para agências de viagens</span>
+      <nav class="site-nav" aria-label="Acesso ao TravelPro">
+        <a href="#resultados" class="experience-link">A experiência</a>
+        <a href="login.html">Entrar</a>
+        <a href="cadastro.html" class="start-link">Começar agora <span aria-hidden="true">↗</span></a>
+      </nav>
+    </header>
 
-  <main id="experience" aria-label="Demonstração guiada do TravelPro">
-    <div class="ambient" aria-hidden="true"></div>
-    <div class="track">
-      <section class="scene intro is-active" id="inicio" aria-labelledby="title-0">
-        <div class="conversation">
-          <div class="cos-orb" aria-hidden="true"><div class="icon-crop"><img src="assets/travelpro-icon.png" alt=""></div><span class="orb-ring"></span></div>
-          <div class="eyebrow">01 <span>O começo de tudo</span></div>
-          <h1 id="title-0" class="user-message">Um casal. Itália. 10 dias.<br><strong>Surpreenda.</strong><span class="message-dot" aria-hidden="true"></span></h1>
-          <div class="cos-answer"><span class="cos-avatar">C</span><p>Vamos criar algo especial.<br><strong>Qual é o orçamento?</strong></p></div>
-          <div class="budget-options" aria-label="Orçamento selecionado na demonstração"><span>Até R$ 15 mil</span><span class="budget-selected">R$ 15–25 mil <i>✓</i></span><span>Vamos explorar</span><div class="demo-cursor" aria-hidden="true">➤<small>COS</small></div></div>
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-background" aria-hidden="true">
+        <img src="assets/hero-lencois.jpg" alt="" class="hero-photo" fetchpriority="high" width="1920" height="1080">
+        <video class="hero-film" muted playsinline loop preload="none" poster="assets/hero-lencois.jpg" data-src="assets/hero-motion.mp4" tabindex="-1"></video>
+      </div>
+      <div class="hero-shade" aria-hidden="true"></div>
+      <div class="hero-copy">
+        <h1 id="hero-title"><span class="title-line"><span>Mais leads.</span></span><span class="title-line"><span>Mais alcance.</span></span><span class="title-line accent"><span>Mais agilidade.</span></span></h1>
+        <p class="hero-subtitle">Divulgue seus pacotes. Capte interessados. <br>Crie propostas e campanhas com agilidade.</p>
+        <a class="explore-cue" href="#resultados"><span class="cue-line" aria-hidden="true"></span>Veja o que sua agência ganha <span aria-hidden="true">↓</span></a>
+      </div>
+      <div class="hero-art" aria-label="Exemplo de uma campanha preparada para divulgar">
+        <div class="campaign-stage">
+          <div class="campaign-motion">
+            <div class="campaign-companion companion-feed" aria-hidden="true"><img src="assets/hero-lencois.jpg" alt=""><div><small>ATELIER VIAGENS</small><strong>Um destino.<br>Mil histórias.</strong><span>FEED</span></div></div>
+            <div class="campaign-companion companion-story" aria-hidden="true"><img src="assets/hero-lencois.jpg" alt=""><div><small>ATELIER VIAGENS</small><strong>VIVA<br>O NOVO.</strong><span>STORIES</span></div></div>
+            <div class="campaign-float">
+          <article class="campaign-poster">
+            <img src="assets/hero-lencois.jpg" alt="Dunas claras e lagoas dos Lençóis Maranhenses em uma campanha de viagem" width="1920" height="1080">
+            <div class="poster-content">
+              <span class="atelier"><span aria-hidden="true">✳</span> ATELIER VIAGENS</span>
+              <h2>Seu próximo<br>destino.</h2>
+              <p>Lençóis Maranhenses</p>
+              <span class="poster-tagline">O extraordinário<br>é mais perto do que parece.</span>
+              <span class="poster-invitation">Quero viver essa viagem <span aria-hidden="true">↗</span></span>
+            </div>
+            <span class="campaign-sheen" aria-hidden="true"></span>
+          </article>
+            </div>
+          </div>
         </div>
-        <div class="visual intro-visual">
-          <div class="flight-line" aria-hidden="true"></div>
-          <article class="destination-card"><img class="travel-photo amalfi" src="assets/amalfi.jpg" alt="Casas de Positano à beira do mar na Costa Amalfitana" fetchpriority="high"><div class="destination-caption"><span>FEITO PARA ANA E PEDRO</span><h2>Itália a dois.</h2><p>10 dias <b>·</b> Setembro</p></div><span class="bookmark" aria-hidden="true">♡</span></article>
-          <div class="mini-route"><div><img src="assets/rome.jpg" alt="" loading="eager"><span>Roma</span></div><i></i><div><img src="assets/florence.jpg" alt="" loading="eager"><span>Florença</span></div><i></i><div><img src="assets/amalfi.jpg" alt=""><span>Amalfi</span></div></div>
-          <div class="floating-status"><span class="progress-ring"></span><span>Uma ideia começa a ganhar forma</span></div>
+        <div class="distribution" aria-label="Divulgação em Instagram, WhatsApp e catálogo">
+          <svg class="distribution-path" viewBox="0 0 390 32" fill="none" aria-hidden="true"><path class="route-base" d="M195 0V12H58V31M195 12V31M195 12H332V31"/><path class="route-signal" d="M195 0V12H58V31"/><path class="route-signal" d="M195 0V31"/><path class="route-signal" d="M195 0V12H332V31"/></svg>
+          <div class="channel-row">
+            <span><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17" cy="7" r=".7"/></svg>Instagram</span>
+            <span><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 18 3 21l5-1a9 9 0 1 0-3-2Z"/><path d="M8 7c0 5 3 8 8 9l1-3-3-1-1 1-3-3 1-1-1-2Z"/></svg>WhatsApp</span>
+            <span><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 5v15M3 4c4-1 6 0 9 1 3-1 5-2 9-1v14c-4-1-6 0-9 2-3-2-5-3-9-2Z"/></svg>Catálogo</span>
+          </div>
+          <p>Do interesse ao contato com sua agência.</p>
         </div>
-      </section>
+      </div>
+      <div class="hero-bottomline"><span class="location-label">LENÇÓIS MARANHENSES <span>/ BRASIL</span></span><button id="motion-toggle" aria-pressed="false" aria-label="Pausar animação"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path class="pause-symbol" d="M7 5v10M13 5v10"/><path class="play-symbol" d="m7 5 8 5-8 5Z"/></svg><span>Pausar animação</span></button></div>
+    </section>
 
-      <section class="scene" id="cotacao" aria-labelledby="title-1" inert>
-        <div class="conversation"><div class="chapter-symbol">✳</div><div class="eyebrow">02 <span>A cotação</span></div><h2 id="title-1">Possibilidades.<br><em>Bem escolhidas.</em></h2><div class="cos-answer"><span class="cos-avatar">C</span><p>Encontrei uma combinação<br>que combina com eles.</p></div><div class="context-chip">Ana + Pedro <span>·</span> Itália <span>·</span> 10 dias</div></div>
-        <div class="visual quote-visual"><article class="product-card quote-card"><div class="card-topline"><span class="tiny-label">COTAÇÃO · 0028</span><span class="tag">Demonstração</span></div><h3>O próximo destino deles.</h3><div class="flight-summary"><div><strong>GRU</strong><span>São Paulo</span></div><div class="flight-dash">✈<small>Ida e volta</small></div><div><strong>FCO</strong><span>Roma</span></div></div><div class="quote-item"><span class="item-icon">⌂</span><div><strong>Estadias com personalidade</strong><span>9 noites · 3 destinos · Café da manhã</span></div><span>✓</span></div><div class="quote-item"><span class="item-icon">↗</span><div><strong>O caminho também é a viagem</strong><span>Trens + transfer privativo</span></div><span>✓</span></div><div class="quote-total"><div><small>Total para o casal</small><strong>R$ 22.480<span>,00</span></strong></div><span class="selected-label">Selecionada <b>✓</b></span></div><p class="fine-print">Valores ilustrativos. Sem consulta ou reserva real.</p></article><div class="floating-status quote-confirm"><span class="check-round">✓</span>Dentro do orçamento. Fora do comum.</div></div>
-      </section>
+    <div class="results-stage">
+    <section class="results" id="resultados" aria-label="O que sua agência ganha" tabindex="-1">
+      <div class="results-window">
+        <div class="results-track">
+          <article class="result-card is-current" id="leads" aria-labelledby="lead-title">
+            <div class="result-eyebrow"><span>01</span> CAPTAÇÃO · WHATSAPP</div>
+            <div class="deliverable lead-deliverable" aria-label="Exemplo de um contato com interesse e contexto">
+              <div class="lead-slip"><span class="lead-avatar" aria-hidden="true">AP</span><div><strong>Viagem em casal · Setembro</strong><p>Queremos conhecer os Lençóis Maranhenses. Pode nos enviar opções?</p><span class="lead-status"><i aria-hidden="true">✓</i> Contato com contexto</span></div><span class="lead-signal" aria-hidden="true"></span></div>
+            </div>
+            <h2 id="lead-title">Mais leads<br>para trabalhar.</h2>
+            <p class="result-description">Divulgação conectada à captação.</p>
+          </article>
+          <article class="result-card" id="alcance" aria-labelledby="reach-title">
+            <div class="result-eyebrow"><span>02</span> CATÁLOGO · LINKS · TRAVELMATCH</div>
+            <div class="deliverable reach-deliverable" aria-label="Pacote pronto para ganhar novos canais">
+              <div class="package-cover"><img src="assets/hero-lencois.jpg" alt="Capa de um pacote de viagem para os Lençóis Maranhenses" loading="lazy"><div><span>ATELIER VIAGENS</span><strong>Brasil<br>extraordinário.</strong><small>Lençóis Maranhenses</small></div><span class="cover-arrow" aria-hidden="true">↗</span></div>
+              <svg class="reach-paths" viewBox="0 0 90 120" fill="none" aria-hidden="true"><path d="M0 60H26L74 14M26 60H74M26 60 74 106"/></svg>
+              <div class="reach-icons" aria-hidden="true"><span>↗</span><span>↗</span><span>↗</span></div>
+            </div>
+            <h2 id="reach-title">Seus pacotes<br>em mais lugares.</h2>
+            <p class="result-description">Uma oferta. Novos caminhos até o cliente.</p>
+          </article>
+          <article class="result-card" id="propostas" aria-labelledby="proposal-title">
+            <div class="result-eyebrow"><span>03</span> COTAÇÕES · PROPOSTAS</div>
+            <div class="deliverable proposal-deliverable" aria-label="Proposta personalizada para o cliente">
+              <div class="proposal-back" aria-hidden="true"><img src="assets/hero-lencois.jpg" alt=""><i></i><i></i><i></i></div>
+              <div class="proposal-sheet"><span>ATELIER VIAGENS</span><h3>Proposta de viagem</h3><small>Lençóis Maranhenses</small><img src="assets/hero-lencois.jpg" alt="Paisagem do destino na proposta" loading="lazy"><p>Uma viagem feita<br>para vocês.</p><span class="document-signature">Ana & Pedro</span></div>
+            </div>
+            <h2 id="proposal-title">Propostas com<br>mais agilidade.</h2>
+            <p class="result-description">Do pedido à apresentação para o cliente.</p>
+          </article>
+          <article class="result-card" id="campanhas" aria-labelledby="studio-title">
+            <div class="result-eyebrow"><span>04</span> STUDIO IA</div>
+            <div class="deliverable studio-deliverable" aria-label="Exemplos de campanha no feed e stories">
+              <div class="social-square"><img src="assets/hero-lencois.jpg" alt="Campanha para Instagram" loading="lazy"><div><small>ATELIER VIAGENS</small><h3>Lençóis<br>Maranhenses.</h3><p>Natureza em<br>grandes planos.</p></div></div>
+              <div class="social-story"><img src="assets/hero-lencois.jpg" alt="Modelo vertical de campanha" loading="lazy"><div><span>SONHE.<br>EXPLORE.<br>VIVA.</span><small>ATELIER VIAGENS</small></div><i aria-hidden="true"></i></div>
+            </div>
+            <h2 id="studio-title">Campanhas prontas<br>para divulgar.</h2>
+            <p class="result-description">Sua marca em imagens e vídeos.</p>
+          </article>
+          <article class="result-card" id="roteiros" aria-labelledby="itinerary-title">
+            <div class="result-eyebrow"><span>05</span> ROTEIROS · DOCUMENTOS</div>
+            <div class="deliverable itinerary-deliverable" aria-label="Roteiro com o modelo da agência">
+              <div class="itinerary-sheet"><span>ATELIER VIAGENS</span><h3>O roteiro de vocês.</h3><img src="assets/hero-lencois.jpg" alt="Lençóis Maranhenses no roteiro" loading="lazy"><div><b>01</b> São Luís</div><div><b>02</b> Barreirinhas</div><div><b>03</b> Lagoas e novos caminhos</div><span class="template-seal">SEU MODELO. SUA ASSINATURA.</span></div>
+            </div>
+            <h2 id="itinerary-title">Roteiros com<br>a sua assinatura.</h2>
+            <p class="result-description">Viagens únicas, com o cuidado da sua agência.</p>
+          </article>
+        </div>
+      </div>
+    </section>
 
-      <section class="scene" id="roteiro" aria-labelledby="title-2" inert>
-        <div class="conversation"><div class="chapter-symbol">⌁</div><div class="eyebrow">03 <span>O roteiro</span></div><h2 id="title-2">O jeito deles.<br><em>A sua assinatura.</em></h2><div class="cos-answer"><span class="cos-avatar">C</span><p>Organizei cada dia no modelo<br>que sua agência já usa.</p></div><div class="template-choice"><span class="template-icon">▤</span><div><strong>Meu modelo de roteiro</strong><small>Identidade da agência aplicada</small></div><span class="check-round">✓</span></div></div>
-        <div class="visual itinerary-visual"><article class="itinerary-card product-card"><div class="itinerary-cover"><img src="assets/amalfi.jpg" alt="Costa Amalfitana"><div><span>ATELIER VIAGENS · AGÊNCIA DEMONSTRATIVA</span><h3>Dez dias.<br>Mil lembranças.</h3><p>O roteiro de Ana e Pedro</p></div></div><div class="itinerary-days"><div class="day"><span>01—04</span><div><h4>Roma, sem pressa.</h4><p>História, pequenas ruas e uma mesa em Trastevere.</p></div><img src="assets/rome.jpg" alt="Coliseu de Roma"></div><div class="day"><span>05—07</span><div><h4>Um encontro com Florença.</h4><p>Arte, Toscana e o pôr do sol sobre o Arno.</p></div><img src="assets/florence.jpg" alt="Florença"></div><div class="day"><span>08—10</span><div><h4>A vida na costa.</h4><p>Positano, mar e tempo para não fazer nada.</p></div><img src="assets/amalfi.jpg" alt="Positano"></div></div></article><div class="floating-status itinerary-ready"><span class="check-round">✓</span>Seu modelo. Sua marca. Pronto para encantar.</div></div>
-      </section>
-
-      <section class="scene" id="documentos" aria-labelledby="title-3" inert>
-        <div class="conversation"><div class="chapter-symbol">↗</div><div class="eyebrow">04 <span>Da proposta ao sim</span></div><h2 id="title-3">Tudo pronto<br><em>para o próximo sim.</em></h2><div class="cos-answer"><span class="cos-avatar">C</span><p>Proposta e contrato preparados.<br>Com os documentos da sua agência.</p></div><div class="process-chips"><span>Proposta</span><i>→</i><span>Revisão</span><i>→</i><span class="orange">Assinatura</span></div></div>
-        <div class="visual docs-visual"><article class="proposal-card product-card"><img src="assets/amalfi.jpg" alt="Costa Amalfitana na proposta de viagem"><div><span class="tiny-label">SUA PRÓXIMA HISTÓRIA</span><h3>Itália a dois.</h3><p>Ana e Pedro · 10 dias</p><div class="proposal-price">R$ 22.480,00 <span>para o casal</span></div></div><div class="approved">✓ Proposta aprovada</div></article><article class="contract-card product-card"><div class="contract-head"><span>ATELIER<br><b>VIAGENS</b></span><span class="document-icon">▤</span></div><span class="tiny-label">CONTRATO DE SERVIÇOS</span><h3>A próxima viagem<br>começa aqui.</h3><dl><div><dt>Viajantes</dt><dd>Ana e Pedro</dd></div><div><dt>Destino</dt><dd>Itália · 10 dias</dd></div><div><dt>Modelo</dt><dd>Contrato da agência</dd></div></dl><div class="document-lines" aria-hidden="true"><i></i><i></i><i></i></div><div class="signature">Ana & Pedro</div><div class="signature-caption">Assinatura ilustrativa</div><div class="contract-stamp">✓ Fluxo de assinatura demonstrado</div></article></div>
-      </section>
-
-      <section class="scene" id="operacao" aria-labelledby="title-4" inert>
-        <div class="conversation"><div class="chapter-symbol">⌘</div><div class="eyebrow">05 <span>Tudo conectado</span></div><h2 id="title-4">A venda acontece.<br><em>A agência acompanha.</em></h2><div class="cos-answer"><span class="cos-avatar">C</span><p>Cliente, agenda e financeiro.<br>A mesma viagem conecta tudo.</p></div><div class="context-chip">Uma viagem <span>·</span> Nenhuma informação perdida</div></div>
-        <div class="visual operations-visual"><article class="product-card crm-card"><div class="card-topline"><span class="tiny-label">CLIENTES E VIAGENS</span><span class="tag">Confirmada</span></div><div class="traveler-heading"><div class="avatars"><span>A</span><span>P</span></div><div><h3>Ana & Pedro</h3><p>Itália a dois · Setembro</p></div></div><div class="pipeline"><span class="done">Contato</span><i></i><span class="done">Proposta</span><i></i><span class="done">Confirmada</span><i></i><span>Embarque</span></div></article><article class="product-card agenda-card"><span class="tiny-label">AGENDA</span><div class="agenda-entry"><div class="date-block"><small>SET</small><strong>12</strong></div><div><strong>Buon viaggio, Ana e Pedro!</strong><p>Embarque · São Paulo → Roma</p><span class="tag">Checklist de documentos</span></div></div></article><article class="product-card finance-card"><div class="card-topline"><span class="tiny-label">FINANCEIRO DA VIAGEM</span><span class="mini-arrow">↗</span></div><div class="finance-value">R$ 22.480<small>,00</small></div><div class="finance-row"><span>Entrada · R$ 6.744,00</span><span class="paid">Recebida</span></div><div class="finance-row"><span>Saldo · R$ 15.736,00</span><span>Programado</span></div><div class="finance-note">Recebimentos, repasses e comissões no mesmo lugar.</div></article></div>
-      </section>
-
-      <section class="scene" id="studio" aria-labelledby="title-5" inert>
-        <div class="conversation"><div class="chapter-symbol">✳</div><div class="eyebrow">06 <span>Studio IA</span></div><h2 id="title-5">Uma boa viagem.<br><em>Novas possibilidades.</em></h2><div class="cos-answer"><span class="cos-avatar">C</span><p>Transformei o destino em campanha.<br>Com a identidade da sua agência.</p></div><div class="process-chips"><span class="orange">Instagram</span><span>Stories</span><span>Vídeo</span></div><div class="template-note">A partir dos seus modelos de campanha.</div></div>
-        <div class="visual studio-visual"><article class="social-card"><img src="assets/amalfi.jpg" alt="Campanha demonstrativa com uma paisagem de Positano"><div class="social-brand">ATELIER <span>VIAGENS</span></div><div class="social-copy"><span>O VERÃO TEM UM ENDEREÇO.</span><h3>La dolce<br><em>vita.</em></h3><div>Itália, do seu jeito. <span>↗</span></div></div><span class="social-format">POST · 4:5</span></article><article class="reel-card"><img src="assets/florence.jpg" alt="Modelo de vídeo com paisagem de Florença"><div class="reel-top">STUDIO IA <span>9:16</span></div><span class="play-icon" aria-hidden="true">▶</span><div class="reel-caption"><small>SEU PRÓXIMO DESTINO</small><h3>Permita-se<br>ir além.</h3><div class="reel-progress"><i></i></div><span>Modelo de vídeo · 15 s</span></div></article><div class="floating-status studio-ready"><span class="check-round">✓</span>Uma campanha. A sua identidade.</div></div>
-      </section>
-
-      <section class="scene finale" id="travelpro" aria-labelledby="title-6" inert>
-        <div class="finale-heading"><div class="small-orb"><div class="icon-crop"><img src="assets/travelpro-icon.png" alt=""></div></div><div><div class="eyebrow">07 <span>O seu TravelPro</span></div><h2 id="title-6">Toda a agência.<em> Um só movimento.</em></h2></div><button class="replay text-button" data-goto="0">Rever a experiência <span>↺</span></button></div>
-        <div class="tools-grid"><article><span class="tool-icon">✳</span><h3>COS</h3><p>Da intenção à próxima ação.</p></article><article><span class="tool-icon">♧</span><h3>Clientes e viagens</h3><p>Cada relação. Cada etapa.</p></article><article><span class="tool-icon">⌁</span><h3>Roteiros</h3><p>Seus modelos, sua assinatura.</p></article><article><span class="tool-icon">▤</span><h3>Documentos</h3><p>Propostas e contratos da agência.</p></article><article><span class="tool-icon">▦</span><h3>Agenda</h3><p>O próximo passo no tempo certo.</p></article><article><span class="tool-icon">↗</span><h3>Financeiro</h3><p>Recebimentos, repasses e comissões.</p></article><article><span class="tool-icon">✧</span><h3>Studio IA</h3><p>Imagens, campanhas e modelos de vídeo.</p></article><article class="extensions"><span class="tiny-label">EXPANDA SUAS POSSIBILIDADES</span><h3>Travel Match <span>·</span> Vuei</h3><p>Frentes conectadas, conforme seu plano.</p></article></div>
-        <div class="finale-bottom"><span>Feito para agências de viagens.</span><span>Da primeira conversa às próximas histórias. <b>↗</b></span></div>
-      </section>
+    <footer class="journey-controls">
+      <span class="scroll-instruction"><span aria-hidden="true">↓</span> Role para explorar</span>
+      <nav class="chapter-nav" aria-label="Escolher uma entrega">
+        <button data-step="0" aria-label="1. Captação de leads" aria-current="step"><span>Leads</span><i></i></button>
+        <button data-step="1" aria-label="2. Distribuição de pacotes"><span>Distribuição</span><i></i></button>
+        <button data-step="2" aria-label="3. Propostas"><span>Propostas</span><i></i></button>
+        <button data-step="3" aria-label="4. Campanhas"><span>Campanhas</span><i></i></button>
+        <button data-step="4" aria-label="5. Roteiros"><span>Roteiros</span><i></i></button>
+      </nav>
+      <span class="demo-note">Exemplos ilustrativos de entregas</span>
+      <div class="arrow-controls"><span id="step-counter" aria-hidden="true">01 <span>/ 05</span></span><button id="previous" aria-label="Entrega anterior" disabled>←</button><button id="next" aria-label="Próxima entrega">→</button></div>
+    </footer>
     </div>
   </main>
-
-  <footer class="journey-footer"><div class="scroll-cue"><span class="mouse-icon"><i></i></span><span>Role para descobrir<small>ou use as setas</small></span></div><nav id="journey-nav" aria-label="Etapas da demonstração"><button data-goto="0" aria-label="1. O pedido" aria-current="step"><span>Pedido</span><i></i></button><button data-goto="1" aria-label="2. Cotação"><span>Cotação</span><i></i></button><button data-goto="2" aria-label="3. Roteiro"><span>Roteiro</span><i></i></button><button data-goto="3" aria-label="4. Documentos"><span>Documentos</span><i></i></button><button data-goto="4" aria-label="5. Gestão"><span>Gestão</span><i></i></button><button data-goto="5" aria-label="6. Studio IA"><span>Studio IA</span><i></i></button><button data-goto="6" aria-label="7. TravelPro"><span>TravelPro</span><i></i></button></nav><div class="chapter-controls"><button id="previous" aria-label="Etapa anterior">←</button><span id="counter">01 <i>/ 07</i></span><button id="next" aria-label="Próxima etapa">→</button></div></footer>
-  <div class="demo-disclaimer">Experiência demonstrativa · Dados e valores ilustrativos</div>
-  <div id="chapter-announcement" class="sr-only" aria-live="polite"></div>
-  <noscript><div class="noscript">Ative o JavaScript para acompanhar a demonstração animada do TravelPro.</div></noscript>
-  <script src="app.js" defer></script>
+  <p class="sr-only" aria-live="polite" id="step-announcement"></p>
+  <noscript><p class="noscript-message">Explore os exemplos deslizando a faixa de entregas. Acesse sua agência pelos links Entrar ou Começar agora.</p></noscript>
 </body>
 </html>

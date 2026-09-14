@@ -1,0 +1,137 @@
+{
+  "cosDraft": "",
+  "agency": "",
+  "plan": "essencial",
+  "crmTab": "viagens",
+  "financeTab": "receber",
+  "documentTab": "todos",
+  "month": 8,
+  "year": 2026,
+  "day": "2026-09-10",
+  "messages": [],
+  "attachment": null,
+  "files": [],
+  "clients": [],
+  "trips": [],
+  "events": [],
+  "transactions": [],
+  "templates": [
+    {
+      "id": "own",
+      "name": "Meu modelo de roteiro",
+      "subtitle": "Identidade da agência",
+      "kind": "Da agência"
+    },
+    {
+      "id": "editorial",
+      "name": "Editorial",
+      "subtitle": "Imagens e histórias em destaque",
+      "kind": "TravelPro"
+    },
+    {
+      "id": "essencial",
+      "name": "Essencial",
+      "subtitle": "Cada informação no seu lugar",
+      "kind": "TravelPro"
+    }
+  ],
+  "itineraries": [],
+  "documents": [],
+  "campaigns": [],
+  "studio": {
+    "format": "post",
+    "template": "dolce",
+    "title": "La dolce vita.",
+    "subtitle": "Itália, do seu jeito.",
+    "caption": "Há viagens que ficam para sempre. Descubra a Itália com um roteiro pensado para você.",
+    "photo": "amalfi.jpg"
+  },
+  "playing": false,
+  "quote": null,
+  "quoteDraft": {
+    "client": "",
+    "destination": "",
+    "origin": "",
+    "start": "",
+    "end": "",
+    "travelers": 2,
+    "category": "Conforto"
+  },
+  "budgetFilter": "todos",
+  "budgets": [],
+  "connections": [
+    {
+      "id": "operator",
+      "name": "Operadora parceira",
+      "type": "Inventário de viagens",
+      "icon": "plane",
+      "description": "Cotações e disponibilidade no fluxo de atendimento.",
+      "configured": false
+    },
+    {
+      "id": "whatsapp",
+      "name": "WhatsApp Business",
+      "type": "Comunicação",
+      "icon": "mail",
+      "description": "Conversas e propostas próximas de cada cliente.",
+      "configured": false
+    },
+    {
+      "id": "signature",
+      "name": "Assinatura eletrônica",
+      "type": "Documentos",
+      "icon": "doc",
+      "description": "Contratos e acompanhamento de assinaturas.",
+      "configured": false
+    },
+    {
+      "id": "payments",
+      "name": "Meios de pagamento",
+      "type": "Recebimentos",
+      "icon": "wallet",
+      "description": "Cobranças vinculadas aos orçamentos da agência.",
+      "configured": false
+    }
+  ],
+  "security": {
+    "mfa": false,
+    "alerts": true,
+    "timeout": "30",
+    "sessions": []
+  },
+  "billing": {
+    "name": "",
+    "email": "",
+    "taxid": "",
+    "address": ""
+  },
+  "invoices": [],
+  "whatsapp": {
+    "selected": null,
+    "filter": "all",
+    "search": "",
+    "config": {
+      "name": "COS",
+      "tone": "acolhedor",
+      "autoLead": true,
+      "autoDraft": true,
+      "start": "09:00",
+      "end": "18:00",
+      "welcome": "Olá! Sou o COS, assistente da {agencia}. Vamos preparar sua próxima viagem?",
+      "away": "Recebemos sua mensagem! A equipe retorna no próximo horário de atendimento.",
+      "instructions": "Entenda o estilo de viagem antes de sugerir um roteiro. Faça uma pergunta por vez. Nunca confirme preços, reservas ou pagamentos sem validação da agência. Solicitações que alteram reservas, preços ou cobranças devem ser revisadas pela equipe.",
+      "required": [
+        "destination",
+        "dates",
+        "travelers",
+        "budget"
+      ]
+    },
+    "threads": []
+  },
+  "profile": {
+    "email": "",
+    "phone": "",
+    "website": ""
+  }
+}
