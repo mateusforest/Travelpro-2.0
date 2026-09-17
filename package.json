@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "node server.mjs",
     "start": "node server.mjs",
-    "test": "node --experimental-vm-modules --test --test-isolation=none tests/backend.test.mjs tests/frontend.test.mjs tests/supabase.test.mjs tests/runtime.test.mjs tests/finance.test.mjs tests/finance-ui.test.mjs tests/granatum.test.mjs",
+    "test": "node --experimental-vm-modules --test --test-isolation=none tests/backend.test.mjs tests/frontend.test.mjs tests/supabase.test.mjs tests/runtime.test.mjs tests/finance.test.mjs tests/finance-ui.test.mjs tests/granatum.test.mjs tests/agency-import.test.mjs",
     "check": "node scripts/check.mjs",
     "test:supabase:live": "node scripts/verify-supabase.mjs"
   },
