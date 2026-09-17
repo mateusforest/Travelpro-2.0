@@ -22,6 +22,11 @@ As tabelas e funções adicionais estão documentadas em
 `supabase/migrations/20260911_travelpro_portal.sql`. No projeto Supabase
 conectado, elas já existem. Não é necessário recriar o banco ou as contas.
 
+O novo financeiro acrescenta `20260917_finance.sql` e
+`20260918_finance_conflicts.sql`, nessa ordem. Ambas já foram aplicadas
+ao projeto conectado. Em outro ambiente, aplique-as antes de publicar
+esta versão. Veja [o guia financeiro](docs/financeiro.md) para migração e operação.
+
 Em Supabase → Authentication → URL Configuration, use o domínio público
 como Site URL e permita o callback
 `https://www.usetravelpro.com/api/auth/callback`, inclusive com a consulta

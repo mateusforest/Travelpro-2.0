@@ -17,5 +17,6 @@ export function transaction(db,fn){db.exec('BEGIN IMMEDIATE');try{const result=f
 export function stateRow(db,agency){const row=db.prepare('SELECT data,version FROM agency_state WHERE agency_id=?').get(agency);return {state:JSON.parse(row.data),version:row.version};}
 export {collections,fail,validateState} from './validation.mjs';
 export function saveState(db,agency,s,version,user='system'){
+  if(db.prepare('SELECT agency_id FROM finance_migrations WHERE agency_id=?').get(agency)&&JSON.stringify(stateRow(db,agency).state.transactions)!==JSON.stringify(s.transactions))fail(409,'O financeiro foi atualizado. Recarregue o portal antes de continuar.');
   validateState(s);return transaction(db,()=>{const result=db.prepare('UPDATE agency_state SET data=?,version=version+1,updated_at=? WHERE agency_id=? AND version=?').run(JSON.stringify(s),Date.now(),agency,version);if(!result.changes)fail(409,'Esta agência mudou em outra aba ou recebeu uma mensagem. Recarregue os dados antes de salvar.');db.prepare('UPDATE agencies SET name=? WHERE id=?').run(s.agency,agency);db.prepare('INSERT INTO audit(agency_id,user_id,action,created_at) VALUES(?,?,?,?)').run(agency,user,'workspace.saved',Date.now());return version+1;});
 }

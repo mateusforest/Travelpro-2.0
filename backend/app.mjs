@@ -6,6 +6,8 @@ import {randomUUID,randomBytes,createHash,createHmac,scrypt,timingSafeEqual} fro
 import {promisify} from 'node:util';
 import {openStore,stateRow,saveState,validateState,transaction,fail,collections} from './store.mjs';
 import {vault,configFor,connectionStatus,providerNames,cosReply,remote,safeEndpoint} from './providers.mjs';
+import {handleFinance} from './finance-api.mjs';
+import {sqliteFinanceRepository} from './finance-sqlite.mjs';
 const derive=promisify(scrypt),hash=x=>createHash('sha256').update(x).digest('hex'),id=()=>randomUUID(),now=()=>Date.now();
 const equal=(a,b)=>{const x=Buffer.from(a||''),y=Buffer.from(b||'');return x.length===y.length&&timingSafeEqual(x,y);};
 const cleanText=(v,max=500)=>typeof v==='string'?v.trim().slice(0,max):'';
@@ -74,6 +76,7 @@ export function createApp({directory,dist,env={},origin}={}){
    if(p==='/api/auth/reset-confirm'&&method==='POST'){rate(req.socket.remoteAddress+':reset-confirm',10);if(!passwordOK(data.password)||typeof data.token!=='string')fail(422,'Informe uma senha válida.');const r=db.prepare('SELECT * FROM password_resets WHERE token_hash=? AND expires_at>?').get(hash(data.token),now());if(!r)fail(400,'Link inválido ou expirado.');const pw=await passwordHash(data.password);transaction(db,()=>{db.prepare('UPDATE users SET password_hash=? WHERE id=?').run(pw,r.user_id);db.prepare('DELETE FROM password_resets WHERE user_id=?').run(r.user_id);db.prepare('DELETE FROM sessions WHERE user_id=?').run(r.user_id);});output(res,200,{ok:true});return;}
    const s=session(req);if(!s)fail(401,'Entre na sua conta para continuar.');const user={id:s.user_id,agency_id:s.agency_id,name:s.name,email:s.email};
    if(!['GET','HEAD'].includes(method)&&!equal(req.headers['x-csrf-token'],s.csrf))fail(403,'Sua sessão precisa ser atualizada. Recarregue a página.');
+   if(p==='/api/finance'||p.startsWith('/api/finance/')){output(res,200,await handleFinance({path:p.slice(5),method,input:data,query:Object.fromEntries(url.searchParams),repo:sqliteFinanceRepository(db,s.agency_id,s.user_id),getWorkspace:async()=>stateRow(db,s.agency_id),manager:true}));return;}
    if(p==='/api/auth/session'&&method==='GET'){output(res,200,{user:publicUser(user),csrf:s.csrf});return;}
    if(p==='/api/auth/logout'&&method==='POST'){db.prepare('DELETE FROM sessions WHERE id=?').run(s.id);cookie(res,'',0);output(res,200,{ok:true});return;}
    if(p==='/api/auth/password'&&method==='POST'){rate(s.user_id+':password',5);if(!passwordOK(data.password)||typeof data.current!=='string'||data.current.length>256)fail(422,'A nova senha deve ter pelo menos 10 caracteres.');const u=db.prepare('SELECT * FROM users WHERE id=?').get(s.user_id);if(!await passwordCheck(data.current,u.password_hash))fail(403,'Senha atual incorreta.');const pw=await passwordHash(data.password);transaction(db,()=>{db.prepare('UPDATE users SET password_hash=? WHERE id=?').run(pw,s.user_id);db.prepare('DELETE FROM sessions WHERE user_id=?').run(s.user_id);});output(res,200,makeSession(req,res,u));return;}

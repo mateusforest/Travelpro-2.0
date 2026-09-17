@@ -11,3 +11,4 @@ data/
 *.sqlite-wal
 *.sqlite-shm
 *.key
+supabase/.temp/

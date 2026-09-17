@@ -1,3 +1,4 @@
+import {verifyFinance} from './finance-contract.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdtempSync,readFileSync} from 'node:fs';
@@ -52,6 +53,7 @@ test('TravelPro integrated backend',async t=>{
   assert.equal((await a.call('/records/trips/t-test')).data.data.title,'Itália a dois');
   assert.equal((await b.call('/records/trips/t-test')).status,404);
  });
+ await t.test('finance HTTP migration, isolation and complete payment lifecycle',async()=>{await verifyFinance(a,b);});
  await t.test('uploaded files persist and are protected by agency',async()=>{
   const r=await a.call('/files','POST',{name:'modelo.txt',base64:Buffer.from('Meu modelo de contrato').toString('base64')});assert.equal(r.status,201);fileId=r.data.id;
   assert.equal((await a.call('/files/'+fileId)).data,'Meu modelo de contrato');assert.equal((await b.call('/files/'+fileId)).status,404);assert.equal((await anon.call('/files/'+fileId)).status,401);

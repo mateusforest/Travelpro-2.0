@@ -1,3 +1,4 @@
+import {verifyFinance} from '../tests/finance-contract.mjs';
 // Integration smoke test: creates only disposable users; never sends email.
 import {createClient} from '@supabase/supabase-js';
 import {randomUUID,randomBytes,createHash} from 'node:crypto';
@@ -37,6 +38,9 @@ try{
   assert.equal((await a.call('/workspace','PUT',{state,version:workspace.data.version})).status,409);
   assert.ok((await a.call('/workspace')).data.state.clients.some(c=>c.id==='isolated-check'));
   assert.equal((await b.call('/workspace')).data.state.clients.length,0);
+  console.log('Running finance checks...');
+  await verifyFinance(a,b);
+  console.log('PASS: finance accounts, installments, idempotency, partial payment, transfer, balances, isolation, CSV, reversal and audit.');
   const upload=await a.call('/files','POST',{name:'smoke.txt',base64:Buffer.from('TravelPro private storage test').toString('base64')});
   assert.equal(upload.status,201,JSON.stringify(upload.data));objects.push(users[0].workspace+'/'+upload.data.id);
   assert.equal((await a.call('/files/'+encodeURIComponent(upload.data.id))).data,'TravelPro private storage test');

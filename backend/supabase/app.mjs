@@ -6,13 +6,14 @@ import {getUserAccessForUser,ensureAppAccessForUser,canManageWorkspace,resolvePo
 import seed from '../initial-state.json' with {type:'json'};
 import {fail,validateState,collections} from '../validation.mjs';
 import {cosReply,remote,safeEndpoint,providerNames,connectionStatus} from '../providers.mjs';
+import {handleFinance,supabaseRepository} from '../finance-api.mjs';
 
 const requestOrigin=request=>new URL(request.url).origin;
 const clean=(x,max=500)=>typeof x==='string'?x.trim().slice(0,max):'';
 const equal=(a,b)=>{const x=Buffer.from(a||''),y=Buffer.from(b||'');return x.length===y.length&&timingSafeEqual(x,y);};
 const json=(data,status=200)=>ApiResponse.json(data,{status,headers:{'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});
 const setupMessage='A atualização do banco ainda precisa ser aplicada. Execute a migração 20260911_travelpro_portal.sql no Supabase deste projeto.';
-function dbError(error){if(!error)return;if(['42P01','PGRST205','PGRST202','42883'].includes(error.code))fail(503,setupMessage);if(error.code==='40001')fail(409,'Os dados mudaram em outro acesso. Recarregue antes de salvar.');console.error('TravelPro database:',error.code);fail(500,'Não foi possível salvar ou consultar os dados.');}
+function dbError(error){if(!error)return;if(['42P01','PGRST205','PGRST202','42883'].includes(error.code))fail(503,setupMessage);if(['40001','PT409'].includes(error.code))fail(409,'Os dados mudaram em outro acesso. Recarregue antes de salvar.');console.error('TravelPro database:',error.code);fail(500,'Não foi possível salvar ou consultar os dados.');}
 function admin(){const client=createSupabaseAdminClient();if(!client)fail(503,'A conexão administrativa com o Supabase precisa ser configurada no servidor.');return client;}
 async function actor(){
   const supabase=await createSupabaseServerClient();const {data:{user},error}=await supabase.auth.getUser();
@@ -113,6 +114,7 @@ export async function handle(request){
     const {error}=await supabase.auth.updateUser({password:data.password});if(error)fail(400,'Não foi possível atualizar a senha. Escolha uma senha diferente.');jar.delete('tp-recovery');await supabase.auth.signOut();return json({ok:true});
   }
   const a=await actor();
+  if(path==='finance'||path.startsWith('finance/'))return json(await handleFinance({path,method,input:data,query:Object.fromEntries(url.searchParams),repo:supabaseRepository(a),getWorkspace:()=>workspace(a),manager:canManageWorkspace(a.access)}));
   if(path==='auth/session'&&method==='GET')return json({csrf:'',user:{id:a.user.id,email:a.user.email,name:a.access.profile?.full_name||a.user.user_metadata?.name||a.user.email,agencyId:a.wid}});
   if(path==='auth/logout'&&method==='POST'){const {error}=await a.supabase.auth.signOut({scope:'local'});if(error)fail(503,'Não foi possível encerrar a sessão. Tente novamente.');return json({ok:true});}
   if(path==='auth/password'&&method==='POST'){

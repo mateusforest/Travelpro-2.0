@@ -5,6 +5,7 @@ import vm from 'node:vm';
 import {readFileSync} from 'node:fs';
 import * as crypto from 'node:crypto';
 import * as validation from '../backend/validation.mjs';
+import * as financeAPI from '../backend/finance-api.mjs';
 import * as providers from '../backend/providers.mjs';
 const initial=JSON.parse(readFileSync(new URL('../backend/initial-state.json',import.meta.url)));
 async function fixture({role='owner',workspaceId='agency-a',version=1}={}){
@@ -22,7 +23,7 @@ async function fixture({role='owner',workspaceId='agency-a',version=1}={}){
     '@supabase/supabase-js':{createClient:()=>{throw Error('Unexpected external auth');}},
     './clients.mjs':{createSupabaseServerClient:async()=>({auth:{getUser:async()=>({data:{user}})}}),createSupabaseAdminClient:()=>db,supabaseConfigured:()=>true},
     './access.mjs':{getUserAccessForUser:async()=>access,ensureAppAccessForUser:async()=>({access}),canManageWorkspace:a=>['owner','admin'].includes(a.membershipRole),resolvePostAuthPath:()=>'/portal'},
-    '../initial-state.json':{default:initial},'../validation.mjs':validation,'../providers.mjs':{...providers,cosReply:async()=>null}
+    '../initial-state.json':{default:initial},'../finance-api.mjs':financeAPI,'../validation.mjs':validation,'../providers.mjs':{...providers,cosReply:async()=>null}
   };
   const module=new vm.SourceTextModule(readFileSync(new URL('../backend/supabase/app.mjs',import.meta.url),'utf8'));
   await module.link(async name=>{const values=imports[name];assert.ok(values,'Unexpected import '+name);return new vm.SyntheticModule(Object.keys(values),function(){for(const [k,v]of Object.entries(values))this.setExport(k,v);});});await module.evaluate();
