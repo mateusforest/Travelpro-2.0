@@ -1,1 +1,20 @@
-{"name":"travelpro","version":"2.0.0","private":true,"type":"module","engines":{"node":">=24.0.0"},"scripts":{"dev":"node server.mjs","start":"node server.mjs","test":"node --test --test-isolation=none tests/backend.test.mjs tests/frontend.test.mjs","check":"node --check server.mjs && node --check backend/app.mjs && node --check dist/portal.js && node --check dist/auth.js"}}
+{
+  "name": "travelpro",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "dev": "node server.mjs",
+    "start": "node server.mjs",
+    "test": "node --experimental-vm-modules --test --test-isolation=none tests/backend.test.mjs tests/frontend.test.mjs tests/supabase.test.mjs tests/runtime.test.mjs",
+    "check": "node scripts/check.mjs",
+    "test:supabase:live": "node scripts/verify-supabase.mjs"
+  },
+  "dependencies": {
+    "@supabase/ssr": "^0.10.3",
+    "@supabase/supabase-js": "^2.108.0"
+  }
+}

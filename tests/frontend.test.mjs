@@ -1,4 +1,28 @@
 import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import vm from 'node:vm';
+test('signup stays on the confirmation message until Supabase issues a session',async()=>{
+ const result={hidden:true,textContent:'',focus(){}};
+ const document={body:{dataset:{auth:'signup'}},querySelectorAll(){return[];},querySelector(){return null;},getElementById(id){return id==='signup-result'?result:{value:'test-input'};},addEventListener(){}};
+ const location={search:'',href:''};let response={message:'Confirme seu e-mail.'};
+ const context={document,location,URLSearchParams,addEventListener(){},TravelAPI:{async request(){return response;}}};vm.createContext(context);
+ const source=fs.readFileSync(new URL('../dist/auth.js',import.meta.url),'utf8').replace(/\}\)\(\);\s*$/,'globalThis.finish=finish;})();');vm.runInContext(source,context);
+ const form={id:'signup-form',dataset:{result:'signup-result'},querySelectorAll(){return[];}};
+ await context.finish(form);assert.equal(result.textContent,'Confirme seu e-mail.');assert.equal(location.href,'');
+ response={redirectTo:'/portal.html'};await context.finish(form);assert.equal(location.href,'portal.html');
+});
+test('API rejects static hosting responses instead of reporting a successful login',async()=>{
+ let response;
+ const context={window:{},fetch:async()=>response};vm.createContext(context);
+ vm.runInContext(fs.readFileSync(new URL('../dist/api.js',import.meta.url),'utf8'),context);
+ const request=()=>context.window.TravelAPI.request('/auth/login',{method:'POST',body:{email:'test@example.com',password:'test-password'}});
+ for(const [body,status,type] of [['NOT_FOUND',404,'text/plain'],['<!doctype html>',200,'text/html'],['invalid',200,'application/json'],['null',200,'application/json']]){
+  response=new Response(body,{status,headers:{'Content-Type':type}});
+  await assert.rejects(request(),error=>error.status===(status===200?502:status)&&error.message.includes('indisponível neste endereço'));
+ }
+ response=new Response(JSON.stringify({error:'E-mail ou senha inválidos.'}),{status:401,headers:{'Content-Type':'application/json'}});
+ await assert.rejects(request(),error=>error.status===401&&error.message==='E-mail ou senha inválidos.');
+ response=new Response(JSON.stringify({user:{id:'user-id'},csrf:'token'}),{headers:{'Content-Type':'application/json'}});
+ assert.equal((await request()).user.id,'user-id');
+});
 test('portal loads persistent empty account and saves linked forms',async()=>{
  const elements=new Map();const elem=()=>({innerHTML:'',textContent:'',value:'',dataset:{},style:{},hidden:false,open:false,classList:{add(){},remove(){},toggle(){}},querySelectorAll(){return[]},querySelector(){return elem()},addEventListener(){},focus(){},showModal(){this.open=true},close(){this.open=false},reportValidity(){return true}});
  const document={querySelector(s){if(!elements.has(s))elements.set(s,elem());return elements.get(s)},querySelectorAll(){return[]},addEventListener(){},body:{dataset:{startRoute:'inicio'}},activeElement:{tagName:'BODY'}};

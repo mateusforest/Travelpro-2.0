@@ -4,6 +4,7 @@ import {mkdtempSync,readFileSync} from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import {createHmac} from 'node:crypto';
+import http from 'node:http';
 import {createApp} from '../backend/app.mjs';
 const directory=mkdtempSync(path.join(os.tmpdir(),'travelpro-test-'));
 let app,origin;
@@ -18,6 +19,19 @@ test('TravelPro integrated backend',async t=>{
   assert.equal((await b.call('/auth/register','POST',{name:'Bia',agency:'Agência B',email:'b@example.com',password:'b-secure-password'})).status,201);
   assert.equal((await anon.call('/auth/login','POST',{email:'a@example.com',password:'wrong'})).status,401);
   assert.equal((await a.call('/auth/session')).data.user.email,'a@example.com');
+ });
+ await t.test('local aliases support login without accepting foreign hosts or origins',async()=>{
+  const local='http://localhost:'+app.server.address().port;
+  const raw=(route,headers,body)=>new Promise((resolve,reject)=>{const req=http.request(origin+route,{method:body?'POST':'GET',headers},res=>{res.resume();res.on('end',()=>resolve({status:res.statusCode,headers:res.headers}));});req.on('error',reject);req.end(body);});
+  const login=await raw('/api/auth/login',{Host:new URL(local).host,Origin:local,'Content-Type':'application/json'},JSON.stringify({email:'a@example.com',password:'a-secure-password'}));
+  assert.equal(login.status,200);
+  const cookie=login.headers['set-cookie'][0].split(';')[0];
+  assert.equal((await raw('/api/auth/session',{Host:new URL(local).host,Cookie:cookie})).status,200);
+  assert.equal((await raw('/api/auth/login',{Host:new URL(local).host,Origin:origin,'Content-Type':'application/json'},'{}')).status,403);
+  assert.equal((await raw('/api/health',{Host:'evil.example'})).status,403);
+  assert.equal((await raw('/api/health',{Host:'localhost:1'})).status,403);
+  app.setOrigin('https://www.usetravelpro.com');
+  try{assert.equal((await raw('/api/health',{Host:new URL(local).host})).status,403);}finally{app.setOrigin(origin);}
  });
  let state,version,fileId;
  await t.test('persisted connected records, CSRF and optimistic concurrency',async()=>{

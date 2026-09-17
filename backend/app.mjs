@@ -28,7 +28,17 @@ export function createApp({directory,dist,env={},origin}={}){
  function output(res,status,data){res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});res.end(JSON.stringify(data));}
  async function body(req){let size=0,chunks=[];for await(const part of req){size+=part.length;if(size>8*1024*1024)fail(413,'Solicitação muito grande.');chunks.push(part);}return Buffer.concat(chunks);}
  function parse(buf){try{return buf.length?JSON.parse(buf.toString()):{};}catch{fail(400,'JSON inválido.');}}
- function trustedOrigin(req){if(req.headers.origin!==address)fail(403,'Origem da solicitação não autorizada.');}
+ function allowedHost(host){
+  const configured=new URL(address);
+  if(host===configured.host)return true;
+  if(env.NODE_ENV==='production'||configured.protocol!=='http:')return false;
+  const local=new Set(['localhost','127.0.0.1','[::1]']);
+  try{const candidate=new URL('http://'+host);return candidate.host===host&&local.has(configured.hostname)&&local.has(candidate.hostname)&&candidate.port===configured.port;}catch{return false;}
+ }
+ function trustedOrigin(req){
+  const expected=new URL(address).protocol+'//'+req.headers.host;
+  if(req.headers.origin!==expected||!allowedHost(req.headers.host))fail(403,'Origem da solicitação não autorizada.');
+ }
  function cfg(agency,service){return configFor(db,v,agency,service,env);}
  function services(agency){return providerNames.map(service=>connectionStatus(service,cfg(agency,service)));}
  async function webhook(req,res,url){
@@ -45,7 +55,7 @@ export function createApp({directory,dist,env={},origin}={}){
   res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Referrer-Policy','same-origin');res.setHeader('X-Frame-Options','SAMEORIGIN');
   try{
    const url=new URL(req.url,address||'http://127.0.0.1'),p=url.pathname,method=req.method;
-   if(address&&req.headers.host!==new URL(address).host)fail(403,'Host não autorizado.');
+   if(address&&!allowedHost(req.headers.host))fail(403,'Host não autorizado.');
    if(p==='/api/health'){output(res,200,{ok:true,storage:'sqlite',version:2});return;}
    if(p==='/api/webhooks/whatsapp'){await webhook(req,res,url);return;}
    if(!p.startsWith('/api/')){const pathname=decodeURIComponent(p),file=path.resolve(dist,'.'+(pathname==='/'?'/index.html':pathname));if(!file.startsWith(path.resolve(dist)+path.sep)||!mimetypes[path.extname(file)])fail(404,'Não encontrado.');if(!(await stat(file)).isFile())fail(404,'Não encontrado.');res.writeHead(200,{'Content-Type':mimetypes[path.extname(file)],'Cache-Control':'no-cache'});res.end(await readFile(file));return;}

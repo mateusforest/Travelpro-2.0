@@ -60,6 +60,7 @@
       else {route='/auth/reset-request';body={email:document.getElementById('reset-email').value};}
       const data=await TravelAPI.request(route,{method:'POST',body});clearSecrets();
       if(form.id==='reset-form'){result.textContent=data.message;return;}
+      if(data.message){result.textContent=data.message;return;}
       location.href='portal.html';
     }catch(error){result.textContent=error.message;result.focus();}finally{buttons.forEach(b=>b.disabled=false);}
   }
@@ -99,7 +100,9 @@
     document.querySelector('#password-hint').classList.toggle('is-met', ready);
     document.querySelector('#password-hint').textContent = ready ? '✓ Mínimo de 10 caracteres atendido.' : 'Use pelo menos 10 caracteres.';
   });
-  const token=new URLSearchParams(location.search).get('reset');
+  const params=new URLSearchParams(location.search);
+  const token=params.get('reset')||params.get('recovery');
+  if(params.has('erro')){const output=document.getElementById('login-result');if(output){output.hidden=false;output.textContent='Este link é inválido ou expirou. Solicite um novo link de acesso.';}}
   if(token&&page==='login'){
     showPanel('reset-panel');document.getElementById('reset-title').textContent='Crie uma nova senha';
     const form=document.getElementById('reset-form');form.innerHTML='<div class="field"><label for="reset-new">Nova senha</label><input id="reset-new" type="password" autocomplete="new-password" minlength="10" required></div><button class="primary-cta submit-button" type="submit">Salvar nova senha</button>';
