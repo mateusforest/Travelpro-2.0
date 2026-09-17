@@ -22,7 +22,9 @@ export function granatumClient(token,fetcher=fetch){
 function flatten(rows,children){return rows.flatMap(row=>[row,...flatten(row[children]||[],children)]);}
 export function normalizeGranatum(raw,syncedAt=new Date().toISOString()){
   const catalogs=[],byKind=kind=>raw.filter(r=>r.kind===kind).map(r=>r.data),accounts=byKind('contas');
-  for(const c of accounts)catalogs.push({id:id('account',integer(c.id)),kind:'account',name:c.descricao,archived:c.ativo===false,source:'granatum',externalId:String(c.id),openingCents:0,openingDate:'1900-01-01',reportedBalanceCents:cents(c.saldo,{signed:true,zero:true}),balanceAt:syncedAt});
+  const details=new Map(byKind('account-details').map(a=>[String(a.id),a]));
+  const openingIds=new Set([...details.values()].flatMap(a=>(a.lancamentos||[]).map(e=>String(e.id))));
+  for(const c of accounts){const opening=details.get(String(c.id))?.lancamentos||[];catalogs.push({id:id('account',integer(c.id)),kind:'account',name:c.descricao,archived:c.ativo===false,source:'granatum',externalId:String(c.id),openingCents:opening.reduce((s,e)=>s+cents(e.valor,{signed:true,zero:true}),0),openingDate:opening.map(e=>e.data_pagamento).filter(validDate).sort()[0]||'1900-01-01',reportedBalanceCents:cents(c.saldo,{signed:true,zero:true}),balanceAt:syncedAt});}
   for(const c of flatten(byKind('categorias'),'categorias_filhas'))catalogs.push({id:id('category',integer(c.id)),kind:'category',name:c.descricao,archived:c.ativo===false,source:'granatum',externalId:String(c.id),type:Number(c.tipo_categoria_id)===1?'expense':'income',parentId:id('category',c.parent_id)});
   const people=new Map();for(const c of [...byKind('clientes'),...byKind('fornecedores')])people.set(String(c.id),{...people.get(String(c.id)),...c});
   for(const c of people.values())catalogs.push({id:id('person',integer(c.id)),kind:'person',name:c.nome||c.nome_fantasia||'Contato Granatum',archived:c.ativo===false,source:'granatum',externalId:String(c.id),role:c.cliente&&c.fornecedor?'both':c.cliente?'client':'supplier',email:c.email||'',document:c.documento||'',phone:c.telefone||''});
@@ -44,10 +46,10 @@ export function normalizeGranatum(raw,syncedAt=new Date().toISOString()){
     if(!refs.has(accountId)||toAccountId&&!refs.has(toAccountId))fail(422,'Conta não encontrada para o lançamento Granatum '+key+'.');
     // Missing archived categories/contacts remain identifiable, without silently attaching another record.
     for(const [field,kind,label]of [['categoria_id','category','Categoria'],['pessoa_id','person','Contato']])if(row[field]&&!refs.has(id(kind,row[field]))){const fallback={id:id(kind,row[field]),kind,name:label+' Granatum #'+row[field],source:'granatum',externalId:String(row[field]),archived:true,...(kind==='category'?{type:'both'}:{role:'both',email:'',document:'',phone:''})};catalogs.push(fallback);refs.add(fallback.id);}
-    entries.push({id:id('entry',externalId),title:row.descricao||'Lançamento Granatum',type:destination?'transfer':signed<0?'expense':'income',amountCents:amount,dueDate:row.data_vencimento,competenceDate:row.data_competencia||row.data_vencimento,accountId,toAccountId,categoryId:destination?'':id('category',row.categoria_id),personId:id('person',row.pessoa_id),tripId:'',document:row.documento||'',notes:row.observacao||'',source:'granatum',externalId,granatumIds:ids,payments:row.data_pagamento?[{id:'granatum-payment-'+externalId,amountCents:amount,date:row.data_pagamento,note:'Baixa registrada no Granatum'}]:[],legacyPaid:false,canceled:false,installment:Number(row.total_repeticoes)>1?{groupId:String(row.grupo_id),number:Number(row.numero_repeticao),total:Number(row.total_repeticoes)}:null,granatum:{groupId:row.grupo_id,compoundId:row.lancamento_composto_id,infinite:Boolean(row.infinito),periodicity:row.periodicidade,center:centers.get(String(row.centro_custo_lucro_id))||'',paymentMethod:methods.get(String(row.forma_pagamento_id))||'',tags:(row.tags||[]).map(t=>tags.get(String(t.id))||String(t.id)),attachments:(row.anexos||[]).map(a=>({id:a.id})),modified:row.modified}});
+    entries.push({id:id('entry',externalId),title:row.descricao||'Lançamento Granatum',type:openingIds.has(key)?'opening':destination?'transfer':signed<0?'expense':'income',...(openingIds.has(key)?{openingSignedCents:signed}:{}),amountCents:amount,dueDate:row.data_vencimento,competenceDate:row.data_competencia||row.data_vencimento,accountId,toAccountId,categoryId:destination?'':id('category',row.categoria_id),personId:id('person',row.pessoa_id),tripId:'',document:row.documento||'',notes:row.observacao||'',source:'granatum',externalId,granatumIds:ids,payments:row.data_pagamento?[{id:'granatum-payment-'+externalId,amountCents:amount,date:row.data_pagamento,note:'Baixa registrada no Granatum'}]:[],legacyPaid:false,canceled:false,installment:Number(row.total_repeticoes)>1?{groupId:String(row.grupo_id),number:Number(row.numero_repeticao),total:Number(row.total_repeticoes)}:null,granatum:{groupId:row.grupo_id,compoundId:row.lancamento_composto_id,infinite:Boolean(row.infinito),periodicity:row.periodicidade,center:centers.get(String(row.centro_custo_lucro_id))||'',paymentMethod:methods.get(String(row.forma_pagamento_id))||'',tags:(row.tags||[]).map(t=>tags.get(String(t.id))||String(t.id)),attachments:(row.anexos||[]).map(a=>({id:a.id})),modified:row.modified}});
   }
   const dates=entries.map(e=>e.dueDate).sort();
-  return {entries,catalogs:[...new Map(catalogs.map(c=>[c.id,c])).values()],stats:{sourceRows:rows.size,entries:entries.length,transfers:entries.filter(e=>e.type==='transfer').length,accounts:accounts.length,from:dates[0]||null,to:dates.at(-1)||null}};
+  return {entries,catalogs:[...new Map(catalogs.map(c=>[c.id,c])).values()],stats:{sourceRows:rows.size,entries:entries.length,transfers:entries.filter(e=>e.type==='transfer').length,openingBalances:entries.filter(e=>e.type==='opening').length,accounts:accounts.length,from:dates[0]||null,to:dates.at(-1)||null}};
 }
 
 export async function granatumStatus(db,wid){
@@ -66,8 +68,11 @@ export async function runGranatum(db,wid,{force=false,budgetMs=35000}={}){
       if(p.phase==='catalogs'){
         const kind=kinds[p.index],rows=await get(kind,{considerar_inativos:true});if(!Array.isArray(rows))fail(502,'Lista Granatum inválida.');
         if(kind==='contas')p.accounts=rows.map(a=>String(a.id));p.index++;
-        if(p.index>=kinds.length){p.phase='entries';p.index=0;p.offset=0;p.expected=null;}
+        if(p.index>=kinds.length){p.phase='accounts';p.index=0;p.offset=0;p.expected=null;}
         await commit(wrap(kind,rows));
+      }else if(p.phase==='accounts'){
+        if(p.index>=p.accounts.length){p.phase='entries';p.index=0;await commit();continue;}
+        const account=await get('contas/'+p.accounts[p.index]);p.index++;await commit(wrap('account-details',[account]));
       }else if(p.phase==='entries'){
         if(p.index>=p.accounts.length){p.phase='deletions';p.index=0;p.offset=0;await commit();continue;}
         const account=p.accounts[p.index];

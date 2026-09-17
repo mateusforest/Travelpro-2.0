@@ -27,7 +27,8 @@ O novo financeiro acrescenta `20260917_finance.sql` e
 ao projeto conectado. Em outro ambiente, aplique-as antes de publicar
 esta versão. Veja [o guia financeiro](docs/financeiro.md) para migração e operação.
 
-Para o Granatum, aplicar `20260919_granatum.sql`, vincular a credencial
+Para o Granatum, aplicar `20260919_granatum.sql` e
+`20260921_granatum_opening.sql`, vincular a credencial
 à agência e publicar a API. Depois, aplicar `20260920_granatum_schedule.sql`
 para ativar a leitura periódica. O token fica no Vault, sem variável pública
 na Vercel. Veja [o guia da integração](docs/granatum.md).

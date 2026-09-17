@@ -12,7 +12,8 @@ const expected=normalizeGranatum(raw,connection.progress.startedAt),saved=[];
 for(let offset=0;;offset+=1000){const page=checked(await db.from('travelpro_finance_entries').select('data').eq('workspace_id',wid).eq('data->>source','granatum').order('id').range(offset,offset+999));saved.push(...page.map(r=>r.data));if(page.length<1000)break;}
 assert.equal(saved.length,expected.entries.length);
 const byId=new Map(saved.map(e=>[e.id,e]));for(const e of expected.entries)assert.deepEqual(byId.get(e.id),e);
-const totals={income:0,expense:0,transfer:0};for(const r of raw.filter(r=>r.kind==='entries')){const amount=Math.round(Number(r.data.valor)*100);totals[r.data.lancamento_transferencia_id?'transfer':amount<0?'expense':'income']+=amount;}
+const openingIds=new Set(raw.filter(r=>r.kind==='account-details').flatMap(r=>(r.data.lancamentos||[]).map(e=>String(e.id))));
+const totals={income:0,expense:0,transfer:0};for(const r of raw.filter(r=>r.kind==='entries'&&!openingIds.has(r.id))){const amount=Math.round(Number(r.data.valor)*100);totals[r.data.lancamento_transferencia_id?'transfer':amount<0?'expense':'income']+=amount;}
 assert.equal(totals.transfer,0);assert.equal(totals.income,saved.filter(e=>e.type==='income').reduce((s,e)=>s+e.amountCents,0));assert.equal(-totals.expense,saved.filter(e=>e.type==='expense').reduce((s,e)=>s+e.amountCents,0));
 const report=await handleFinance({path:'finance',method:'GET',query:{from:expected.stats.from,to:expected.stats.to,source:'granatum'},repo:supabaseRepository({db,wid,user:{id:null}}),getWorkspace:()=>{throw Error('Unexpected legacy migration');},manager:true});
 assert.equal(report.total,expected.stats.entries);for(const account of expected.catalogs.filter(c=>c.kind==='account'))assert.equal(report.balances.find(c=>c.id===account.id).balanceCents,account.reportedBalanceCents);

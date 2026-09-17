@@ -41,7 +41,7 @@ export async function handleFinance({path,method,input={},query={},repo,getWorks
     const catalogs=await repo.catalogs(),name=id=>catalogs.find(c=>c.id===id)?.name||'';
     const csv=value=>'"'+String(value??'').replace(/^[\s\uFEFF]*[=+\-@]/,match=>"'"+match).replaceAll('"','""')+'"';
     const heading=['ID','Descrição','Tipo','Valor','Baixado','Em aberto','Vencimento','Competência','Situação','Conta','Conta destino','Categoria','Cliente/Fornecedor','Origem','ID externo','Documento','Observações'];
-    return {csv:'\uFEFF'+[heading,...rows.map(e=>[e.id,e.title,e.type,(e.amountCents/100).toFixed(2),(finance.paid(e)/100).toFixed(2),((e.amountCents-finance.paid(e))/100).toFixed(2),e.dueDate,e.competenceDate,finance.status(e),name(e.accountId),name(e.toAccountId),name(e.categoryId),name(e.personId),e.source,e.externalId,e.document,e.notes])].map(row=>row.map(csv).join(';')).join('\r\n')};
+    return {csv:'\uFEFF'+[heading,...rows.map(e=>[e.id,e.title,e.type,((e.type==='opening'?e.openingSignedCents:e.amountCents)/100).toFixed(2),(finance.paid(e)/100).toFixed(2),((e.amountCents-finance.paid(e))/100).toFixed(2),e.dueDate,e.competenceDate,finance.status(e),name(e.accountId),name(e.toAccountId),name(e.categoryId),name(e.personId),e.source,e.externalId,e.document,e.notes])].map(row=>row.map(csv).join(';')).join('\r\n')};
   }
   if(path==='finance/catalogs'&&method==='POST'){
     requireManager();const data=finance.catalog(input),catalogs=await repo.catalogs();
