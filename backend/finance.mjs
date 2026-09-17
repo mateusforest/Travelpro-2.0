@@ -35,6 +35,7 @@ export function catalog(input,previous){
 }
 function reference(catalogs,id,kind,previousId){
   if(!id)return '';
+  if(kind==='account'&&catalogs.some(c=>c.id===id&&c.source==='granatum'))fail(422,'Use uma conta TravelPro para lançamentos manuais. Contas Granatum são sincronizadas na origem.');
   if(!catalogs.some(c=>c.id===id&&c.kind===kind&&(!c.archived||id===previousId)))fail(422,'Selecione um cadastro financeiro ativo.');return id;
 }
 export function entry(input,catalogs,previous){

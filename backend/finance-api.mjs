@@ -29,6 +29,7 @@ export async function handleFinance({path,method,input={},query={},repo,getWorks
   const requireManager=()=>{if(!manager)fail(403,'Somente o responsável pela agência pode alterar cadastros, cancelar ou estornar.');};
   if(path==='finance'&&method==='GET'){
     const f=finance.filters(query),[data,catalogs]=await Promise.all([repo.report(f),repo.catalogs()]);
+    for(const account of catalogs.filter(c=>c.kind==='account'&&c.source==='granatum')){const balance=data.balances.find(b=>b.id===account.id);if(balance)balance.balanceCents=account.reportedBalanceCents;}
     return {...data,catalogs,filters:f,manager,today:f.today};
   }
   if(path==='finance/export'&&method==='GET'){
@@ -50,6 +51,7 @@ export async function handleFinance({path,method,input={},query={},repo,getWorks
   const parts=path.split('/'),id=parts[2];
   if(parts[1]==='catalogs'&&id&&method==='PUT'){
     requireManager();const previous=await repo.get(id,'catalogs');checkVersion(input,previous);
+    if(previous.source==='granatum')fail(409,'Este cadastro é sincronizado. Faça a alteração no Granatum.');
     const data=input.archive!==undefined?{...previous,archived:Boolean(input.archive)}:finance.catalog(input,previous);delete data.version;
     return repo.write('catalog',id,previous.version,data);
   }

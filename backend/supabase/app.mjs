@@ -7,6 +7,7 @@ import seed from '../initial-state.json' with {type:'json'};
 import {fail,validateState,collections} from '../validation.mjs';
 import {cosReply,remote,safeEndpoint,providerNames,connectionStatus} from '../providers.mjs';
 import {handleFinance,supabaseRepository} from '../finance-api.mjs';
+import {granatumStatus,runGranatum} from '../granatum.mjs';
 
 const requestOrigin=request=>new URL(request.url).origin;
 const clean=(x,max=500)=>typeof x==='string'?x.trim().slice(0,max):'';
@@ -100,6 +101,13 @@ export async function handle(request){
   }
   if(path==='auth/callback'&&method==='GET')return await callback(request);
   if(path==='webhooks/whatsapp')return await whatsappWebhook(request);
+  if(path==='cron/granatum'&&method==='POST'){
+    const bearer=request.headers.get('authorization')||'';if(!/^Bearer [a-f0-9]{64}$/.test(bearer))fail(401,'Acesso não autorizado.');
+    const db=admin(),secret=await db.rpc('travelpro_granatum_cron_secret');dbError(secret.error);
+    if(!secret.data||!equal(bearer.slice(7),secret.data))fail(401,'Acesso não autorizado.');
+    const rows=await db.from('travelpro_granatum').select('workspace_id').eq('enabled',true).lte('next_sync',new Date().toISOString()).order('next_sync').limit(1);dbError(rows.error);
+    return json(rows.data.length?await runGranatum(db,rows.data[0].workspace_id):{idle:true});
+  }
   let data={};
   if(!['GET','HEAD'].includes(method)){
     if(request.headers.get('origin')!==requestOrigin(request))fail(403,'Origem não autorizada. Reabra o TravelPro neste endereço.');
@@ -114,6 +122,12 @@ export async function handle(request){
     const {error}=await supabase.auth.updateUser({password:data.password});if(error)fail(400,'Não foi possível atualizar a senha. Escolha uma senha diferente.');jar.delete('tp-recovery');await supabase.auth.signOut();return json({ok:true});
   }
   const a=await actor();
+  if(path==='finance/granatum'&&method==='GET')return json(await granatumStatus(a.db,a.wid));
+  if(path==='finance/granatum/sync'&&method==='POST'){
+    requireManager(a);await rate(a,'granatum_sync',4);
+    if(data.restart){const reset=await a.db.rpc('travelpro_granatum_restart',{p_workspace:a.wid});dbError(reset.error);}
+    return json(await runGranatum(a.db,a.wid,{force:true}));
+  }
   if(path==='finance'||path.startsWith('finance/'))return json(await handleFinance({path,method,input:data,query:Object.fromEntries(url.searchParams),repo:supabaseRepository(a),getWorkspace:()=>workspace(a),manager:canManageWorkspace(a.access)}));
   if(path==='auth/session'&&method==='GET')return json({csrf:'',user:{id:a.user.id,email:a.user.email,name:a.access.profile?.full_name||a.user.user_metadata?.name||a.user.email,agencyId:a.wid}});
   if(path==='auth/logout'&&method==='POST'){const {error}=await a.supabase.auth.signOut({scope:'local'});if(error)fail(503,'Não foi possível encerrar a sessão. Tente novamente.');return json({ok:true});}

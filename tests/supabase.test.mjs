@@ -5,6 +5,7 @@ import vm from 'node:vm';
 import {readFileSync} from 'node:fs';
 import * as crypto from 'node:crypto';
 import * as validation from '../backend/validation.mjs';
+import * as granatum from '../backend/granatum.mjs';
 import * as financeAPI from '../backend/finance-api.mjs';
 import * as providers from '../backend/providers.mjs';
 const initial=JSON.parse(readFileSync(new URL('../backend/initial-state.json',import.meta.url)));
@@ -23,7 +24,7 @@ async function fixture({role='owner',workspaceId='agency-a',version=1}={}){
     '@supabase/supabase-js':{createClient:()=>{throw Error('Unexpected external auth');}},
     './clients.mjs':{createSupabaseServerClient:async()=>({auth:{getUser:async()=>({data:{user}})}}),createSupabaseAdminClient:()=>db,supabaseConfigured:()=>true},
     './access.mjs':{getUserAccessForUser:async()=>access,ensureAppAccessForUser:async()=>({access}),canManageWorkspace:a=>['owner','admin'].includes(a.membershipRole),resolvePostAuthPath:()=>'/portal'},
-    '../initial-state.json':{default:initial},'../finance-api.mjs':financeAPI,'../validation.mjs':validation,'../providers.mjs':{...providers,cosReply:async()=>null}
+    '../initial-state.json':{default:initial},'../granatum.mjs':granatum,'../finance-api.mjs':financeAPI,'../validation.mjs':validation,'../providers.mjs':{...providers,cosReply:async()=>null}
   };
   const module=new vm.SourceTextModule(readFileSync(new URL('../backend/supabase/app.mjs',import.meta.url),'utf8'));
   await module.link(async name=>{const values=imports[name];assert.ok(values,'Unexpected import '+name);return new vm.SyntheticModule(Object.keys(values),function(){for(const [k,v]of Object.entries(values))this.setExport(k,v);});});await module.evaluate();
@@ -37,3 +38,5 @@ test('ordinary member can save operational data',async()=>{const f=await fixture
 test('stale versions cannot overwrite a newer workspace',async()=>{const f=await fixture({version:2});const res=await f.request('workspace','PUT',{version:1,state:f.state});assert.equal(res.status,409);assert.equal(f.writes,0);});
 test('concurrent saves permit only one write for each version',async()=>{const f=await fixture();const results=await Promise.all([f.request('workspace','PUT',{version:1,state:f.state}),f.request('workspace','PUT',{version:1,state:f.state})]);assert.deepEqual(results.map(r=>r.status).sort(),[200,409]);assert.equal(f.writes,1);});
 test('member cannot set integration secrets',async()=>{const f=await fixture({role:'member'});const res=await f.request('integrations/openai','PUT',{config:{key:'test'}});assert.equal(res.status,403);assert.equal(f.calls.length,0);});
+test('member cannot trigger Granatum sync or restart',async()=>{const f=await fixture({role:'member'});const res=await f.request('finance/granatum/sync','POST',{restart:true});assert.equal(res.status,403);assert.equal(f.calls.length,0);});
+test('Granatum cron refuses requests without its dedicated credential',async()=>{const f=await fixture();const res=await f.request('cron/granatum','POST',{});assert.equal(res.status,401);assert.equal(f.calls.length,0);});

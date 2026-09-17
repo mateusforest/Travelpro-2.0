@@ -26,9 +26,9 @@ Uma baixa antiga sem data continua marcada como realizada no lançamento, mas n�
 - Gravações usam versão por registro. Criação de parcelas usa uma chave de operação e transação única para evitar duplicação em tentativas repetidas.
 - Os valores são representados em centavos. IDs externos e origem possuem restrição de unicidade por agência, preparando a futura importação.
 
-## Próxima etapa: Granatum
+## Granatum
 
-A conexão ainda não está implementada. A base permite preservar origem e ID externo e distinguir registros importados. Será necessário mapear contas/categorias/contatos, centros de custo e demais campos, importar em lotes com checkpoints e reconciliar alterações e exclusões antes de habilitar uma sincronização contínua. Nenhum token Granatum é solicitado ou utilizado nesta etapa.
+A integração de leitura está implementada, com atualização periódica, histórico e preservação dos IDs. Veja [configuração, operação e limites](granatum.md).
 
 ## Validação
 

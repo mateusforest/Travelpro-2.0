@@ -14,6 +14,8 @@ Consulte [DEPLOY.md](DEPLOY.md) para publicar na Vercel com Supabase e [BACKEND.
 
 O financeiro possui contas e saldos, categorias, clientes/fornecedores, parcelas, baixas parciais, estornos, transferências internas, fluxo de caixa e exportação CSV. Veja [o guia financeiro](docs/financeiro.md), incluindo a migração do histórico anterior e a preparação para o Granatum.
 
+A [integração Granatum](docs/granatum.md) importa o histórico e os compromissos futuros já disponíveis, com atualização periódica e credencial cifrada por agência.
+
 O portal usa a mesma API `/api/` localmente e na Vercel. Supabase fornece autenticação, sessões, banco e arquivos privados. Sem as três variáveis do Supabase, o servidor local usa o SQLite anterior; as contas e dados de SQLite não são migrados automaticamente. IA e operadora dependem da configuração das integrações. No modo Supabase, os rascunhos do WhatsApp são processados durante a invocação do webhook, sem a fila persistente do modo SQLite.
 
 Pagamentos, assinatura eletrônica, MFA, geração de imagens/vídeos e emissão de viagens ainda não estão implementados. Planos, Travel Match e Vuei seguem como demonstrações. O financeiro registra lançamentos internos sem movimentar dinheiro.
