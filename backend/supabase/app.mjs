@@ -1,10 +1,14 @@
+import {cosSupport,cosContext,documentOperation,applyDocumentOperation} from '../cos-support.mjs';
+import {analyzeIntake,applyIntake} from '../intake.mjs';
+import {proposalPreview,deliverProposal} from '../proposal-delivery.mjs';
+import {isPlatformAdmin,requirePlatformAdmin,integrationView} from '../integration-access.mjs';
 import {randomUUID,randomBytes,createCipheriv,createDecipheriv,createHmac,createHash,timingSafeEqual} from 'node:crypto';
 import {ApiResponse,after,cookies} from './runtime.mjs';
 import {createClient} from '@supabase/supabase-js';
 import {createSupabaseServerClient,createSupabaseAdminClient,supabaseConfigured} from './clients.mjs';
 import {getUserAccessForUser,ensureAppAccessForUser,canManageWorkspace,resolvePostAuthPath} from './access.mjs';
 import seed from '../initial-state.json' with {type:'json'};
-import {fail,validateState,collections} from '../validation.mjs';
+import {fail,validateState,collections,salesFlow,itineraryModels,validateSalesTransition,operatorRequest,operatorResult} from '../validation.mjs';
 import {cosReply,remote,safeEndpoint,providerNames,connectionStatus} from '../providers.mjs';
 import {handleFinance,supabaseRepository} from '../finance-api.mjs';
 import {granatumStatus,runGranatum} from '../granatum.mjs';
@@ -24,6 +28,17 @@ async function actor(){
   return {supabase,user,access,db:admin(),wid:access.workspace.id};
 }
 function requireManager(a){if(!canManageWorkspace(a.access))fail(403,'Somente o responsável pela agência pode alterar esta configuração.');}
+async function enforceIdle(a,request){
+  if(process.env.TRAVELPRO_SERVER_IDLE_ENFORCEMENT!=='true')return;
+  // getUser() above validates the token before we read its session identifier.
+  const {data}=await a.supabase.auth.getSession();let session;
+  try{session=JSON.parse(Buffer.from(data.session.access_token.split('.')[1],'base64url')).session_id;}catch{}
+  if(!/^[a-f0-9-]{36}$/i.test(session||''))fail(401,'Entre novamente para iniciar uma sessão protegida.');
+  const row=await workspace(a),minutes=Math.min(60,Math.max(15,Number(row.state.security?.timeout)||30));
+  const result=await a.db.rpc('travelpro_touch_session',{p_session:session,p_user:a.user.id,p_workspace:a.wid,p_minutes:minutes,p_active:request.headers.get('x-travelpro-background')!=='1'});
+  if(result.error)fail(503,'A proteção de sessão precisa da migração 20260929_session_activity.sql.');
+  if(!result.data){await a.supabase.auth.signOut({scope:'local'});fail(401,'Sessão encerrada por inatividade. Entre novamente.');}
+}
 async function rate(a,key,max){const {data,error}=await a.db.rpc('travelpro_rate_limit',{p_key:a.user.id+':'+key,p_limit:max});dbError(error);if(!data)fail(429,'Muitas solicitações. Aguarde um minuto.');}
 async function audit(a,action){const {error}=await a.db.from('travelpro_audit').insert({workspace_id:a.wid,user_id:a.user?.id||null,action});dbError(error);}
 function encryptionKey(){const value=process.env.TRAVELPRO_ENCRYPTION_KEY;if(!/^[a-f0-9]{64}$/i.test(value||''))fail(503,'Configure TRAVELPRO_ENCRYPTION_KEY no servidor para guardar as credenciais com segurança.');return Buffer.from(value,'hex');}
@@ -50,7 +65,7 @@ async function workspace(a){
 async function save(a,state,version){
   if(!Number.isInteger(version))fail(422,'Versão dos dados ausente.');validateState(state);
   const current=await workspace(a);
-  if(current.version!==version)fail(409,'Os dados mudaram em outro acesso. Recarregue antes de salvar.');
+  if(current.version!==version)fail(409,'Os dados mudaram em outro acesso. Recarregue antes de salvar.');validateSalesTransition(current.state,state);
   if(!canManageWorkspace(a.access)&&JSON.stringify([state.agency,state.billing,state.plan,state.security,state.profile,state.whatsapp.config])!==JSON.stringify([current.state.agency,current.state.billing,current.state.plan,current.state.security,current.state.profile,current.state.whatsapp.config]))fail(403,'Somente o responsável pode alterar as configurações da agência.');
   const {data,error}=await a.db.rpc('travelpro_save_state',{p_workspace:a.wid,p_version:version,p_data:state,p_user:a.user?.id||null});dbError(error);return data;
 }
@@ -112,7 +127,7 @@ export async function handle(request){
   if(!['GET','HEAD'].includes(method)){
     if(request.headers.get('origin')!==requestOrigin(request))fail(403,'Origem não autorizada. Reabra o TravelPro neste endereço.');
     if(!request.headers.get('content-type')?.startsWith('application/json'))fail(415,'Formato de solicitação inválido.');
-    const raw=await request.text();if(Buffer.byteLength(raw)>4200000)fail(413,'Use um arquivo de até 3 MB ou reduza o conteúdo.');try{data=raw?JSON.parse(raw):{};}catch{fail(400,'Dados inválidos.');}
+    const raw=await request.text();if(Buffer.byteLength(raw)>4400000)fail(413,'Use um arquivo de até 3 MB ou reduza o conteúdo.');try{data=raw?JSON.parse(raw):{};}catch{fail(400,'Dados inválidos.');}
   }
   if(['auth/login','auth/register','auth/reset-request'].includes(path)&&method==='POST')return await authFlow(path,request,data);
   if(path==='auth/reset-confirm'&&method==='POST'){
@@ -122,6 +137,13 @@ export async function handle(request){
     const {error}=await supabase.auth.updateUser({password:data.password});if(error)fail(400,'Não foi possível atualizar a senha. Escolha uma senha diferente.');jar.delete('tp-recovery');await supabase.auth.signOut();return json({ok:true});
   }
   const a=await actor();
+  if(path!=='auth/logout')await enforceIdle(a,request);
+  if(path==='proposals/preview'&&method==='POST'){await rate(a,'proposal_pdf',20);return json(await proposalPreview((await workspace(a)).state,data.id,await cfg(a,'whatsapp')));}
+  if(path==='proposals/send'&&method==='POST'){
+    await rate(a,'proposal_send',10);
+    const repo={scope:a.wid,load:()=>workspace(a),save:(state,version)=>save(a,state,version),find:async id=>{const r=await a.db.from('travelpro_outbox').select('status,remote_id').eq('workspace_id',a.wid).eq('id',id).maybeSingle();dbError(r.error);return r.data;},claim:async id=>{const r=await a.db.from('travelpro_outbox').insert({workspace_id:a.wid,id});if(r.error?.code==='23505')return false;dbError(r.error);return true;},update:async(id,status,remote_id=null)=>{const r=await a.db.from('travelpro_outbox').update({status,remote_id}).eq('workspace_id',a.wid).eq('id',id);dbError(r.error);}};
+    return json(await deliverProposal(repo,data,await cfg(a,'whatsapp')));
+  }
   if(path==='finance/granatum'&&method==='GET')return json(await granatumStatus(a.db,a.wid));
   if(path==='finance/granatum/sync'&&method==='POST'){
     requireManager(a);await rate(a,'granatum_sync',4);
@@ -139,36 +161,37 @@ export async function handle(request){
   }
   if(path==='auth/sessions'&&method==='GET')return json({sessions:[{id:'current',current:true,user_agent:request.headers.get('user-agent')||'Este navegador',last_seen:Date.now()}]});
   if(path.startsWith('auth/sessions/'))fail(501,'Os outros dispositivos são administrados pelo Supabase. Altere a senha para encerrar os demais acessos.');
-  if(path==='workspace'&&method==='GET')return json({...await workspace(a),services:await services(a)});
-  if(path==='workspace'&&method==='PUT')return json({version:await save(a,data.state,data.version)});
-  if(path==='integrations'&&method==='GET')return json({agencyId:a.wid,services:await services(a)});
+  if(path==='workspace'&&method==='GET')return json({...await workspace(a),services:integrationView(await services(a),isPlatformAdmin(a.user.id)),capabilities:{platformAdmin:isPlatformAdmin(a.user.id)}});
+  if(path==='workspace'&&method==='PUT'){const current=await workspace(a);if(data.state&&typeof data.state==='object'){if(current.state.intakeReceipts)data.state.intakeReceipts=current.state.intakeReceipts;else delete data.state.intakeReceipts;}return json({version:await save(a,data.state,data.version)});}
+  if(path==='integrations'&&method==='GET')return json({agencyId:a.wid,services:integrationView(await services(a),isPlatformAdmin(a.user.id)),capabilities:{platformAdmin:isPlatformAdmin(a.user.id)}});
   if(path.startsWith('integrations/')&&method==='PUT'){
-    requireManager(a);const service=path.split('/')[1];if(!providerNames.includes(service))fail(404,'Serviço não encontrado.');const old=await cfg(a,service),input=data.config||{},pub={},secrets={};
+    requirePlatformAdmin(a.user.id);const service=path.split('/')[1];if(!providerNames.includes(service))fail(404,'Serviço não encontrado.');const old=await cfg(a,service),input=data.config||{},pub={},secrets={};
     for(const key of ['key','token','appSecret','verifyToken'])if(clean(input[key],10000)||old[key])secrets[key]=clean(input[key],10000)||old[key];
     for(const key of ['endpoint','model','phoneId','version'])if(clean(input[key])||old[key])pub[key]=clean(input[key])||old[key];
     if(pub.endpoint)pub.endpoint=safeEndpoint(pub.endpoint);if(pub.phoneId&&!/^\d+$/.test(pub.phoneId))fail(422,'ID do telefone inválido.');if(pub.version&&!/^v\d+\.\d+$/.test(pub.version))fail(422,'Use a versão Graph no formato vNN.N.');
     const {error}=await a.db.from('travelpro_integrations').upsert({workspace_id:a.wid,service,config:pub,secret:encrypt(secrets)});if(error?.code==='23505')fail(409,'Este telefone já está vinculado a outra agência.');dbError(error);await audit(a,'integration.configured.'+service);return json(connectionStatus(service,{...pub,...secrets}));
   }
+  if(path==='cos/intake/analyze'&&method==='POST'){await rate(a,'intake-analyze',10);return json(await analyzeIntake(await cfg(a,'openai'),data));}
+  if(path==='cos/intake/execute'&&method==='POST'){await rate(a,'intake-execute',20);const row=await workspace(a);const result=applyIntake(row.state,data.review);if(result.replayed)return json({...result,version:row.version});if(row.version!==data.version)fail(409,'Os dados mudaram. Atualize a agência e revise o pedido antes de executar.');const version=await save(a,result.state,row.version);return json({...result,version},201);}
+  if(path==='cos/documents/organize'&&method==='POST'){await rate(a,'cos-document',20);const row=await workspace(a);if(data.version!==row.version)fail(409,'Os dados mudaram. Atualize e confira a operação.');const result=applyDocumentOperation(row.state,data.operation);return json({documentId:result.documentId,version:await save(a,result.state,row.version)});}
   if(path==='cos/chat'&&method==='POST'){
+
     await rate(a,'cos',20);const row=await workspace(a);if(row.version!==data.version)fail(409,'O contexto mudou. Recarregue antes de conversar.');const text=clean(data.text,10000);if(!text)fail(422,'Escreva seu pedido.');const messages=[...row.state.messages,{role:'user',text}];
-    const answer=await cosReply(await cfg(a,'openai'),messages,{agency:row.state.agency,clients:row.state.clients.map(c=>({id:c.id,name:c.name})),trips:row.state.trips.map(t=>({title:t.title,destination:t.destination,status:t.status})),events:row.state.events});
-    const q=text.toLowerCase(),[action,label]=/cliente|lead/.test(q)?['new-client','Cadastrar cliente']:/roteiro/.test(q)?['new-itinerary','Preparar roteiro']:/cota|orçamento/.test(q)?['open-quote','Abrir cotação']:/campanha|post|instagram/.test(q)?['new-campaign','Abrir Studio']:['new-trip','Preparar viagem'];
-    const response={role:'cos',text:answer||'Posso ajudar a organizar este pedido. Use a ação abaixo para continuar. A conversa livre depende da conexão de IA em Integrações.',action,label,mode:answer?'ai':'guided'};row.state.messages=[...messages,response];const version=await save(a,row.state,row.version);return json({response,messages:row.state.messages,version,mode:response.mode});
+    const operation=documentOperation(row.state,data);const intake=(!operation||data.image)&&/^\s*(extraia|extrair|identifique|identificar|cadastre|cadastrar|crie(?: um)? (?:novo )?atendimento)\b/i.test(text)?await analyzeIntake(await cfg(a,'openai'),{text,...(data.image?{image:data.image}:{})}):null;const guide=cosSupport(text,row.state),answer=operation||intake?null:await cosReply(await cfg(a,'openai'),messages,cosContext(row.state));const response=intake?{role:'cos',text:intake.summary,mode:'ai',intake,action:'cos-review-intake',label:'Conferir e executar cadastro'}:operation?{role:'cos',text:'O arquivo já está guardado. Preparei a organização do documento. Confira o tipo, o cliente e a viagem antes de executar. O conteúdo do arquivo não foi interpretado nesta operação.',mode:'operational',operation,action:'cos-review-document',label:'Conferir e organizar arquivo'}:{role:'cos',...guide,text:answer||guide.text,mode:answer?'ai':'guided'};row.state.messages=[...messages,response];const version=await save(a,row.state,row.version);return json({response,messages:row.state.messages,version,mode:response.mode});
   }
   if(['ai/itinerary','ai/campaign'].includes(path)&&method==='POST'){
     await rate(a,'content',10);const row=await workspace(a);if(row.version!==data.version)fail(409,'Os dados mudaram. Recarregue antes de gerar.');
-    if(path==='ai/campaign'){const answer=await cosReply(await cfg(a,'openai'),[{role:'user',text:'Escreva uma legenda para '+row.state.studio.title+'. '+row.state.studio.subtitle+'. Não invente tarifas ou disponibilidade.'}],{agency:row.state.agency});if(!answer)fail(503,'Conecte a IA em Integrações.');row.state.studio.caption=answer.slice(0,3000);return json({caption:row.state.studio.caption,version:await save(a,row.state,row.version)});}
-    const template=row.state.templates.find(t=>t.id===data.template),trip=row.state.trips.find(t=>t.id===data.trip);if(!template||!clean(data.name)||!clean(data.destination)||(data.trip&&!trip))fail(422,'Confira o nome, destino, modelo e viagem.');
-    const answer=await cosReply(await cfg(a,'openai'),[{role:'user',text:'Crie sugestões para um roteiro em '+clean(data.destination,200)+'. Responda somente JSON {"days":[{"period":"Dia 1","title":"...","text":"..."}]}, de 1 a 30 etapas. Não invente reservas, tarifas ou voos.'}],{agency:row.state.agency,template:{name:template.name,sections:(template.days||[]).map(d=>({title:d.title,period:d.period,structure:d.text}))},trip:trip?{start:trip.start,end:trip.end,travelers:trip.travelers}:null});if(!answer)fail(503,'Conecte a IA ou crie um roteiro editável com o modelo.');
+    if(path==='ai/campaign'){const answer=await cosReply(await cfg(a,'openai'),[{role:'user',text:'Escreva uma legenda para '+row.state.studio.title+'. '+row.state.studio.subtitle+'. Não invente tarifas ou disponibilidade.'}],{agency:row.state.agency});if(!answer)fail(503,'A IA aguarda ativação pela equipe TravelPro.');row.state.studio.caption=answer.slice(0,3000);return json({caption:row.state.studio.caption,version:await save(a,row.state,row.version)});}
+    const template=itineraryModels.catalog(row.state.templates).find(t=>t.id===data.template),trip=row.state.trips.find(t=>t.id===data.trip);if(!template||!clean(data.name)||!clean(data.destination)||(data.trip&&!trip))fail(422,'Confira o nome, destino, modelo e viagem.');if(trip&&!salesFlow.canItinerary(trip))fail(422,'Confirme reserva, pagamento e emissão antes de preparar o roteiro.');
+    const answer=await cosReply(await cfg(a,'openai'),[{role:'user',text:'Crie sugestões para um roteiro em '+clean(data.destination,200)+'. Responda somente JSON {"days":[{"period":"Dia 1","title":"...","text":"..."}]}, de 1 a 30 etapas. Não invente reservas, tarifas ou voos.'}],{agency:row.state.agency,template:{name:template.name,sections:(template.days||[]).map(d=>({title:d.title,period:d.period,structure:d.text}))},trip:trip?{start:trip.start,end:trip.end,travelers:trip.travelers}:null});if(!answer)fail(503,'A IA aguarda ativação pela equipe TravelPro. Você pode criar um roteiro editável com o modelo.');
     let parsed;try{parsed=JSON.parse(answer.replace(/^```(?:json)?\s*/,'').replace(/\s*```$/,''));}catch{fail(502,'A IA retornou um roteiro inválido. Nenhum roteiro foi criado.');}if(!Array.isArray(parsed.days)||!parsed.days.length||parsed.days.length>30||parsed.days.some(d=>!clean(d.period)||!clean(d.title)||typeof d.text!=='string'))fail(502,'O roteiro retornou incompleto.');
     const id=randomUUID();row.state.itineraries.push({id,name:clean(data.name,150),destination:clean(data.destination,200),template:template.id,trip:trip?.id||'',days:parsed.days.map(d=>({period:clean(d.period,100),title:clean(d.title,200),text:clean(d.text,10000)})),generated:true});return json({id,version:await save(a,row.state,row.version)},201);
   }
   if(path==='operator/quote'&&method==='POST'){
-    await rate(a,'operator',15);const c=await cfg(a,'operator');if(!c.endpoint||!c.key)fail(503,'Operadora não conectada. Você pode criar um orçamento manual.');const result=await remote(safeEndpoint(c.endpoint),{method:'POST',headers:{Authorization:'Bearer '+c.key,'Content-Type':'application/json'},body:JSON.stringify({type:'quote',request:data.request})});
-    if(result.currency!=='BRL'||!Array.isArray(result.offers)||result.offers.some(o=>typeof o.name!=='string'||!Number.isFinite(o.total)||o.total<0||!Array.isArray(o.inclusions)||o.inclusions.some(i=>typeof i!=='string')))fail(502,'A operadora retornou um formato incompatível com o adaptador.');return json({offers:result.offers,validUntil:result.validUntil||null,source:'operator'});
+    await rate(a,'operator',15);const c=await cfg(a,'operator');if(!c.endpoint||!c.key)fail(503,'A conexão com a Europlus aguarda ativação pela equipe TravelPro. Você pode registrar a cotação recebida por e-mail.');const request=operatorRequest(data.request,(await workspace(a)).state);const result=await remote(safeEndpoint(c.endpoint),{method:'POST',headers:{Authorization:'Bearer '+c.key,'Content-Type':'application/json'},body:JSON.stringify({type:'quote',request})});return json(operatorResult(result));
   }
   if(path==='files'&&method==='POST'){
-    await rate(a,'upload',20);const name=clean(data.name,200),ext=name.split('.').pop().toLowerCase();if(!['pdf','docx','txt','md','png','jpg','jpeg'].includes(ext)||typeof data.base64!=='string')fail(422,'Arquivo não permitido.');const bytes=Buffer.from(data.base64,'base64');if(!bytes.length||bytes.length>3*1024*1024)fail(413,'Use um arquivo de até 3 MB.');
+    await rate(a,'upload',20);const name=clean(data.name,200),ext=name.split('.').pop().toLowerCase();if(!['pdf','docx','txt','md','png','jpg','jpeg','webp'].includes(ext)||typeof data.base64!=='string')fail(422,'Arquivo não permitido.');const bytes=Buffer.from(data.base64,'base64');if(!bytes.length||bytes.length>3*1024*1024)fail(413,'Use um arquivo de até 3 MB.');
     const id=randomUUID()+'/'+encodeURIComponent(name);const {error}=await a.db.storage.from('travelpro-private').upload(a.wid+'/'+id,bytes,{contentType:'application/octet-stream',upsert:false});if(error)fail(503,'Não foi possível guardar o arquivo. Confira se a migração criou o armazenamento privado.');return json({id,name,size:bytes.length,type:'application/octet-stream',url:'/api/files/'+id},201);
   }
   if(path.startsWith('files/')&&method==='GET'){
@@ -186,7 +209,7 @@ export async function handle(request){
  }catch(error){if(!error.status)console.error('TravelPro API:',error.code||error.name);return json({error:error.status?error.message:'Não foi possível concluir a operação. Tente novamente.'},error.status||500);}
 }
 
-async function draft(a,threadId){const row=await workspace(a),thread=row.state.whatsapp.threads.find(t=>t.id===threadId);if(!thread)fail(404,'Conversa não encontrada.');if(thread.mode!=='cos')fail(409,'O agente está pausado neste atendimento.');const answer=await cosReply(await cfg(a,'openai'),thread.messages.map(m=>({role:m.role==='customer'?'user':'cos',text:m.text})),{agency:row.state.agency,traveler:thread.profile,instructions:row.state.whatsapp.config.instructions});if(!answer)fail(503,'Conecte a IA para preparar respostas.');thread.draft=answer;return {draft:answer,version:await save(a,row.state,row.version)};}
+async function draft(a,threadId){const row=await workspace(a),thread=row.state.whatsapp.threads.find(t=>t.id===threadId);if(!thread)fail(404,'Conversa não encontrada.');if(thread.mode!=='cos')fail(409,'O agente está pausado neste atendimento.');const answer=await cosReply(await cfg(a,'openai'),thread.messages.map(m=>({role:m.role==='customer'?'user':'cos',text:m.text})),{agency:row.state.agency,traveler:thread.profile,instructions:row.state.whatsapp.config.instructions,agent:{name:row.state.whatsapp.config.name,tone:row.state.whatsapp.config.tone,welcome:row.state.whatsapp.config.welcome}});if(!answer)fail(503,'Conecte a IA para preparar respostas.');thread.draft=answer;return {draft:answer,version:await save(a,row.state,row.version)};}
 async function sendWhatsApp(a,input){
  await rate(a,'send',30);const row=await workspace(a),t=row.state.whatsapp.threads.find(t=>t.id===input.threadId),text=clean(input.text,4000),id=clean(input.requestId,100);
  if(!t||t.channel!=='live'||t.mode==='closed'||!text||!id)fail(422,'Escolha uma conversa real aberta e escreva a resposta.');if(!t.lastInbound||Date.now()-t.lastInbound>86400000)fail(422,'A janela de resposta terminou. O envio por template ainda não está integrado.');const c=await cfg(a,'whatsapp');if(!connectionStatus('whatsapp',c).configured)fail(503,'WhatsApp não configurado.');
@@ -206,6 +229,7 @@ async function whatsappWebhook(request){
   for(const message of value.messages||[]){if(!message.id||!message.from)continue;
    for(let attempt=0;attempt<3;attempt++){try{const existing=await db.from('travelpro_state').select('data,version').eq('workspace_id',a.wid).maybeSingle();dbError(existing.error);if(!existing.data)fail(503,'Abra a agência uma vez antes de ativar o webhook.');const row={state:existing.data.data,version:existing.data.version};if(row.state.whatsapp.threads.some(t=>t.messages.some(m=>m.id===message.id)))break;
      let t=row.state.whatsapp.threads.find(t=>t.phone.replace(/\D/g,'')===message.from);if(!t){t={id:randomUUID(),name:clean(value.contacts?.find(c=>c.wa_id===message.from)?.profile?.name)||message.from,phone:message.from,mode:'cos',channel:'live',profile:{},messages:[],events:[],draft:''};row.state.whatsapp.threads.push(t);}
+     if(row.state.whatsapp.config.autoLead)t.lead=true;
      if(row.state.whatsapp.config.autoLead&&!t.clientId){let client=row.state.clients.find(c=>c.phone.replace(/\D/g,'')===message.from);if(!client){client={id:randomUUID(),name:t.name,phone:message.from,email:'',origin:'WhatsApp',tag:'Lead',notes:''};row.state.clients.push(client);}t.clientId=client.id;}
      t.lastInbound=Number(message.timestamp)*1000||Date.now();t.messages.push({id:message.id,role:'customer',text:clean(message.text?.body,10000)||'[Mensagem não textual recebida. Confira o WhatsApp.]',time:new Date(t.lastInbound).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})});await save(a,row.state,row.version);if(row.state.whatsapp.config.autoDraft&&t.mode==='cos'){const threadId=t.id;after(async()=>{try{await draft(a,threadId);}catch(error){console.error('TravelPro draft pending:',error.status||error.name);}});}break;
     }catch(error){if(error.status!==409||attempt===2)throw error;}}

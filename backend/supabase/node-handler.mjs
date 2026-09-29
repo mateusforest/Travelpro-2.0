@@ -31,8 +31,8 @@ export default async function nodeHandler(req,res){
     let body;
     if(!['GET','HEAD'].includes(req.method)){
       if(req.body!==undefined)body=typeof req.body==='string'||Buffer.isBuffer(req.body)?req.body:JSON.stringify(req.body);
-      else {const parts=[];let size=0;for await(const part of req){size+=part.length;if(size>4200000)throw Object.assign(new Error('Solicitação muito grande.'),{status:413});parts.push(part);}body=Buffer.concat(parts);}
-      if(Buffer.byteLength(body)>4200000)throw Object.assign(new Error('Solicitação muito grande.'),{status:413});
+      else {const parts=[];let size=0;for await(const part of req){size+=part.length;if(size>4400000)throw Object.assign(new Error('Solicitação muito grande.'),{status:413});parts.push(part);}body=Buffer.concat(parts);}
+      if(Buffer.byteLength(body)>4400000)throw Object.assign(new Error('Solicitação muito grande.'),{status:413});
     }
     response=await withRequest(new Request(url,{method:req.method,headers,body}),handle);
   }catch(error){

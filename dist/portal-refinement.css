@@ -1,0 +1,38 @@
+/* A restrained raised/inset system, with visible borders and focus. */
+:root{--portal-surface:#f5f6f2;--portal-raised:5px 5px 14px #24372a0c,-5px -5px 14px #fff;--portal-inset:inset 2px 2px 5px #25372c0b,inset -2px -2px 5px #fff}
+body{background:var(--portal-surface)}
+.portal-header a.travelpro-brand{width:190px;height:64px;aspect-ratio:auto;display:flex;align-items:center;overflow:visible;mix-blend-mode:multiply}
+.portal-header a.travelpro-brand>img{position:static;width:100%;height:100%;object-fit:contain;transform:none}
+:where(.commerce-panel,.attendance-card,.conn-card,.conn-channel-card,.conn-small-card,.client-identity,.relationship-trip,.intake-card,.finance-card,.stat-card,.billing-overview,.plan-current,.ops-card,.ops-client-card,.ops-metric,.fin-panel,.fin-summary>article,.document-properties,.document-paper,.agent-panel){background:linear-gradient(135deg,#fff,#f5f6f2);border:1px solid #dfe4db;box-shadow:var(--portal-raised);border-radius:18px}
+:where(.primary-button,.outline-button,.conn-button,.conn-admin-button,.quiet-button,.finance-button,.assistant-launcher,.ops-button,.fin-primary,.fin-actions button){border-radius:12px;box-shadow:3px 3px 8px #20372a12,-3px -3px 8px #fff8;min-height:40px}
+:where(.primary-button,.outline-button,.conn-button,.quiet-button):active{box-shadow:var(--portal-inset)}
+:where(input:not([type=checkbox]):not([type=radio]):not([type=color]):not([type=hidden]),textarea,select){background:#f7f8f5;border:1px solid #cfd8cd;border-radius:12px;box-shadow:var(--portal-inset);min-height:44px}
+:where(input,textarea,select,button,a):focus-visible{outline:3px solid #c26732;outline-offset:3px}
+dialog{background:#f8f9f6;border:1px solid #e2e7de;border-radius:24px;box-shadow:0 24px 80px #17291d33;max-width:min(820px,calc(100vw - 24px))}
+dialog::backdrop{background:#15221db0;backdrop-filter:blur(4px)}
+.document-client-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;max-height:240px;overflow:auto;padding:12px 2px}
+.document-client-options label{display:flex;align-items:center;gap:10px;min-height:40px;padding:8px;background:#fff;border:1px solid #dfe4db;border-radius:10px}
+.document-client-options input{width:18px;height:18px;accent-color:#274132}
+.portal-currency{position:relative;display:block}.portal-currency>span{position:absolute;left:15px;top:50%;transform:translateY(-50%);color:#536154;pointer-events:none}.portal-currency>input{padding-left:44px!important;width:100%}
+.select-search{margin:0 0 8px!important;width:100%;font-size:13px!important;min-height:36px!important}
+.notice-list{display:grid;gap:12px}.notice-item{display:flex;align-items:center;gap:15px;padding:16px;border:1px solid #dde4d8;border-radius:14px;background:#fff;color:inherit;text-decoration:none}.notice-item div{flex:1}.notice-item p{margin:0 0 5px}.notice-item small{color:#647063}
+.connection-steps{display:grid;gap:14px}.connection-steps li{padding-left:5px;line-height:1.7}.assistant-shortcuts{display:flex;gap:6px;flex-wrap:wrap;padding:10px 16px;border-bottom:1px solid #e0e4dc}.assistant-shortcuts button{font-size:12px}
+.idle-warning{position:fixed;z-index:1000;left:50%;bottom:24px;transform:translateX(-50%);padding:16px 24px;background:#203c2c;color:#fff;border-radius:14px;box-shadow:0 8px 24px #0003}
+@media(max-width:700px){.portal-header a.travelpro-brand{width:152px;height:55px}.document-client-options{grid-template-columns:1fr}dialog{padding:18px}.idle-warning{width:calc(100% - 32px);bottom:86px}.notice-item{padding:12px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+.workspace-main :is(.ops-card,.ops-client-card,.ops-metric,.attendance-card,.commerce-panel,.conn-card,.conn-channel-card,.conn-small-card,.fin-panel,.document-paper,.document-properties),.workspace-main .fin-summary>article{box-shadow:var(--portal-raised);background:linear-gradient(135deg,#fff,#f4f5f0);border:1px solid #dce3d7;border-radius:18px}
+.workspace-main :is(.primary-button,.outline-button,.ops-button,.fin-primary),dialog :is(.primary-button,.outline-button,.fin-primary){box-shadow:3px 3px 8px #20372a16,-3px -3px 8px #fff9;border-radius:12px}
+.workspace-main .fin-primary,dialog .fin-primary{background:#294332;color:white;border-color:#294332}
+.workspace-main :is(input:not([type=checkbox]):not([type=radio]):not([type=color]):not([type=hidden]),textarea,select),dialog :is(input:not([type=checkbox]):not([type=radio]):not([type=color]):not([type=hidden]),textarea,select){box-shadow:var(--portal-inset);border:1px solid #ccd6c8;border-radius:12px;background:#f7f8f4}
+.portal-header a.travelpro-brand>img{filter:brightness(1.055);mix-blend-mode:multiply}
+
+.toolbar .tab-list{overflow-x:auto;max-width:100%}.document-properties{padding:22px}.document-properties>.form-field{margin-bottom:18px}.fin-summary>article{padding:22px} .document-row{box-shadow:var(--portal-raised);border-radius:14px;margin-bottom:10px}
+/* Preview is the same printable document, isolated from portal controls. */
+.itinerary-model-preview{display:block;width:100%;height:65vh;min-height:380px;border:1px solid #dce2d7;border-radius:18px;margin:22px 0;background:#f7f8f4}
+#portal-dialog:has(.itinerary-model-preview){width:min(1000px,94vw);max-width:1000px}
+.paper-footer .partners{display:flex;justify-content:space-between;align-items:center;gap:24px;padding:20px;text-align:left}
+.paper-footer .partners>div{display:flex;gap:28px;align-items:center}
+.paper-footer .partners figure{margin:0;display:grid;gap:8px}
+.paper-footer .partners small{font-size:9px;text-transform:uppercase;letter-spacing:1px}
+.paper-footer .partners img{width:110px;height:34px;object-fit:contain;mix-blend-mode:multiply}
+@media(max-width:600px){.paper-footer .partners{display:grid}.itinerary-model-preview{height:60vh}}

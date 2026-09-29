@@ -9,13 +9,14 @@
   "scripts": {
     "dev": "node server.mjs",
     "start": "node server.mjs",
-    "test": "node --experimental-vm-modules --test --test-isolation=none tests/backend.test.mjs tests/frontend.test.mjs tests/supabase.test.mjs tests/runtime.test.mjs tests/finance.test.mjs tests/finance-ui.test.mjs tests/granatum.test.mjs tests/agency-import.test.mjs",
+    "test": "node --experimental-vm-modules --test --test-isolation=none tests/backend.test.mjs tests/frontend.test.mjs tests/supabase.test.mjs tests/runtime.test.mjs tests/finance.test.mjs tests/finance-ui.test.mjs tests/granatum.test.mjs tests/agency-import.test.mjs tests/operations.test.mjs tests/portal-operations.test.mjs tests/intake.test.mjs tests/integration-access.test.mjs tests/intake-ui.test.mjs tests/connections-ui.test.mjs tests/sales-flow.test.mjs tests/proposal-delivery.test.mjs tests/portal-fields.test.mjs tests/cos-support.test.mjs tests/session-activity.test.mjs tests/itinerary-models.test.mjs",
     "check": "node scripts/check.mjs",
     "test:supabase:live": "node scripts/verify-supabase.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.3",
-    "@supabase/supabase-js": "^2.108.0"
+    "@supabase/supabase-js": "^2.108.0",
+    "pdfkit": "^0.20.2"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.8",

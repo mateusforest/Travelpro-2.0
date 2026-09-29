@@ -4,9 +4,15 @@
   "buildCommand": "",
   "outputDirectory": "dist",
   "functions": {
-    "api/index.mjs": { "maxDuration": 60 }
+    "api/index.mjs": {
+      "maxDuration": 60,
+      "includeFiles": "{dist/assets/europlus-logo.png,dist/assets/travelpro-assinatura-final.png,node_modules/pdfkit/js/data/**}"
+    }
   },
   "rewrites": [
-    { "source": "/api/:path*", "destination": "/api/index?route=:path*" }
+    {
+      "source": "/api/:path*",
+      "destination": "/api/index?route=:path*"
+    }
   ]
 }

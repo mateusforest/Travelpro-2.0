@@ -12,3 +12,6 @@ data/
 *.sqlite-shm
 *.key
 supabase/.temp/
+tmp/
+output/
+.local-backups/
