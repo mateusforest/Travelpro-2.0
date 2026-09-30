@@ -1,3 +1,4 @@
+import {extractTemplate} from '../template-extraction.mjs';
 import {cosSupport,cosContext,documentOperation,applyDocumentOperation} from '../cos-support.mjs';
 import {analyzeIntake,applyIntake} from '../intake.mjs';
 import {proposalPreview,deliverProposal} from '../proposal-delivery.mjs';
@@ -189,6 +190,15 @@ export async function handle(request){
   }
   if(path==='operator/quote'&&method==='POST'){
     await rate(a,'operator',15);const c=await cfg(a,'operator');if(!c.endpoint||!c.key)fail(503,'A conexão com a Europlus aguarda ativação pela equipe TravelPro. Você pode registrar a cotação recebida por e-mail.');const request=operatorRequest(data.request,(await workspace(a)).state);const result=await remote(safeEndpoint(c.endpoint),{method:'POST',headers:{Authorization:'Bearer '+c.key,'Content-Type':'application/json'},body:JSON.stringify({type:'quote',request})});return json(operatorResult(result));
+  }
+  if(path==='templates/extract'&&method==='POST'){
+    await rate(a,'template-extract',10);
+    const relative=typeof data.fileId==='string'?data.fileId:'';
+    if(!/^[a-f0-9-]{36}\/[^/\\]+$/i.test(relative)||relative.includes('..'))fail(404,'Arquivo não encontrado.');
+    const {data:file,error}=await a.db.storage.from('travelpro-private').download(a.wid+'/'+relative);
+    if(error||!file)fail(404,'Arquivo não encontrado nesta agência.');
+    const name=decodeURIComponent(relative.split('/')[1]);
+    return json(await extractTemplate({bytes:Buffer.from(await file.arrayBuffer()),name,config:await cfg(a,'openai')}));
   }
   if(path==='files'&&method==='POST'){
     await rate(a,'upload',20);const name=clean(data.name,200),ext=name.split('.').pop().toLowerCase();if(!['pdf','docx','txt','md','png','jpg','jpeg','webp'].includes(ext)||typeof data.base64!=='string')fail(422,'Arquivo não permitido.');const bytes=Buffer.from(data.base64,'base64');if(!bytes.length||bytes.length>3*1024*1024)fail(413,'Use um arquivo de até 3 MB.');

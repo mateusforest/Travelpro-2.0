@@ -6,7 +6,7 @@
   "functions": {
     "api/index.mjs": {
       "maxDuration": 60,
-      "includeFiles": "{dist/assets/europlus-logo.png,dist/assets/travelpro-assinatura-final.png,node_modules/pdfkit/js/data/**}"
+      "includeFiles": "{dist/assets/europlus-logo.png,dist/assets/travelpro-assinatura-final.png,node_modules/pdfkit/js/data/**,node_modules/pdf-parse/dist/**,node_modules/pdfjs-dist/legacy/build/**}"
     }
   },
   "rewrites": [

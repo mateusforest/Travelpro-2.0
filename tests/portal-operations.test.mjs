@@ -16,7 +16,7 @@ async function waitFor(predicate,label){
   throw new Error('Portal did not reach expected state: '+label);
 }
 
-async function fixture(t,{pathname='/portal.html',workspace,chatGate,intake=false,intakeGate,dropFirstIntakeResponse=false}={}){
+async function fixture(t,{pathname='/portal.html',workspace,chatGate,intake=false,intakeGate,dropFirstIntakeResponse=false,extractError=false}={}){
   let saved=clone(workspace||JSON.parse(read('backend/initial-state.json'))),version=1;
   saved.agency='Agência de teste isolada';
   const writes=[],chats=[],uploads=[],intakes=[];
@@ -53,6 +53,10 @@ async function fixture(t,{pathname='/portal.html',workspace,chatGate,intake=fals
         uploads.push({name:options.body.name});
         return {id:'test-upload-'+uploads.length+'/original.pdf',name:options.body.name,size:10,type:'application/octet-stream'};
       }
+      if(route==='/templates/extract'){
+        if(extractError)throw Error('Leitura por IA aguarda ativação. Original preservado.');
+        return {days:[{period:'Dia 1',title:'Roma',text:'Transfer contratado às 08:00.'},{period:'Dia 2',title:'Florença',text:'Trem confirmado às 09:00.'}],method:'pdf',warnings:['Confira os horários.']};
+      }
       if(route==='/cos/chat'&&options.method==='POST'){
         assert.equal(options.body.version,version,'chat uses current server version');
         chats.push(clone(options.body));
@@ -66,6 +70,7 @@ async function fixture(t,{pathname='/portal.html',workspace,chatGate,intake=fals
   };
   w.TravelAPI=api;
   w.eval(read('dist/operations.js'));
+  w.eval(read('dist/portal-workflow.js'));
   w.eval(read('dist/sales-flow.js'));
   w.eval(read('dist/proposal-brand.js'));
   w.eval(read('dist/itinerary-models.js'));
@@ -73,7 +78,7 @@ async function fixture(t,{pathname='/portal.html',workspace,chatGate,intake=fals
   w.eval(read('dist/sales-flow-ui.js'));
   if(intake)w.eval(read('dist/intake.js'));
   const source=read('dist/portal.js').replace(/\}\)\(\);\s*$/,
-    'window.__portalTests={state,render,workspaceSubmit,workspaceAction,sendCos,executeIntake,readRoute,flush};})();');
+    'window.__portalTests={state,render,workspaceSubmit,workspaceAction,sendCos,executeIntake,readRoute,flush,acceptFile};})();');
   w.eval(source);
   await waitFor(()=>w.__portalTests.state.agency==='Agência de teste isolada'&&d.querySelector('#portal-main').children.length>0,'authenticated workspace boot');
   return {w,d,api,portal:w.__portalTests,writes,chats,uploads,intakes,remoteUpdate(change){change(saved);validateState(saved);version++;},get saved(){return clone(saved);},get version(){return version;}};
@@ -83,6 +88,44 @@ function click(f,action){
   const button=f.d.querySelector('[data-action="'+action+'"]');
   assert.ok(button,'portal action exists: '+action);button.click();return button;
 }
+
+test('home steps and quote CTA open real operational routes; trips filter existing records',async t=>{
+  const f=await fixture(t);
+  assert.equal(f.d.querySelectorAll('.workflow-steps button').length,5);
+  assert.ok(f.d.querySelector('#portal-dock a[href="cotacao.html"]'));
+  assert.ok(f.d.querySelector('#portal-dock a[href="viagens.html"]'));
+  await f.portal.workspaceAction('workflow-quote');assert.equal(f.d.querySelector('#dialog-title').textContent,'Gerar cotação');
+  assert.ok(f.d.querySelector('#dialog-body [data-action="new-attendance"]'));
+  await f.portal.workspaceAction('workflow-proposals');assert.equal(f.portal.readRoute()[0],'orcamentos');
+  await f.portal.workspaceAction('workflow-approval');assert.equal(f.portal.state.budgetFilter,'Aguardando aprovação');
+  await f.portal.workspaceAction('workflow-reservations');assert.match(f.d.querySelector('#dialog-body').textContent,/Nenhuma proposta aprovada/);
+  await f.portal.workspaceAction('workflow-itineraries');assert.equal(f.portal.readRoute()[0],'roteiros');
+  f.w.history.pushState({},'','/cotacao.html');f.portal.render();assert.ok(f.d.querySelector('.page-actions [data-action="workflow-quote"]'));
+  f.w.history.pushState({},'','/viagens.html?id=emitidas');f.portal.render();assert.match(f.d.querySelector('.page-title').textContent,/Viagens/);
+  assert.match(f.d.querySelector('.trip-stage-tabs [aria-current="page"]').textContent,/Emitidas/);
+  assert.equal(f.saved.trips.length,0,'navigation never creates fake trips');
+});
+
+test('dedicated agency template upload extracts, reviews and reuses actual content',async t=>{
+  const f=await fixture(t,{pathname:'/roteiros.html'});
+  await f.portal.acceptFile(new f.w.File(['test-pdf'],'Meu roteiro.pdf',{type:'application/pdf'}),'template');
+  const model=f.saved.templates.find(m=>m.file);assert.ok(model);assert.equal(model.days.length,0,'unreviewed text is not silently approved');
+  assert.equal(model.extractedDraft.days.length,2);
+  const form=f.d.querySelector('[data-form="template-review"]');assert.ok(form);assert.match(form.querySelector('[name="text0"]').value,/Transfer contratado/);
+  await f.portal.workspaceSubmit('template-review',{id:model.id,name:'Modelo aprovado',period0:'Dia 1',title0:'Roma',text0:'Transfer revisado às 08:30.',period1:'Dia 2',title1:'Florença',text1:'Trem confirmado às 09:00.'});
+  const saved=f.saved.templates.find(m=>m.id===model.id);assert.equal(saved.extractionStatus,'reviewed');assert.equal(saved.file.name,'Meu roteiro.pdf');
+  await f.portal.workspaceSubmit('new-itinerary',{name:'Viagem teste',destination:'Itália',trip:'',template:model.id});
+  assert.equal(f.saved.itineraries.at(-1).days[0].text,'Transfer revisado às 08:30.');
+});
+
+test('failed extraction preserves original and exposes retry instead of a fake model',async t=>{
+  const f=await fixture(t,{pathname:'/roteiros.html',extractError:true});
+  await f.portal.acceptFile(new f.w.File(['image'],'Meu roteiro.png',{type:'image/png'}),'template');
+  const model=f.saved.templates.find(m=>m.file);assert.ok(model);assert.equal(model.days.length,0);assert.equal(model.extractionStatus,'pending');
+  assert.match(f.d.querySelector('#dialog-body').textContent,/aguarda ativação/);assert.ok(f.d.querySelector('[data-action="extract-template"]'));
+  await f.portal.workspaceSubmit('new-itinerary',{name:'Teste',destination:'Brasil',trip:'',template:model.id});
+  assert.equal(f.saved.itineraries.length,0);
+});
 
 test('itinerary gallery previews both branded models and offers agency upload inside its card',async t=>{
  const f=await fixture(t,{pathname:'/roteiros.html'});
