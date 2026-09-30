@@ -47,7 +47,7 @@
     document.querySelectorAll('.auth-step').forEach((step, i) => { step.hidden = i !== index; step.classList.toggle('is-entering', i === index); });
     document.querySelectorAll('.auth-stepper > span').forEach((step, i) => { step.classList.toggle('is-current', i === index); step.classList.toggle('is-done', i < index); if (i === index) step.setAttribute('aria-current','step'); else step.removeAttribute('aria-current'); });
     document.querySelector('#signup-title').textContent = index ? 'Seu espaço, seu acesso.' : 'Sua agência começa aqui.';
-    document.querySelector('#signup-subtitle').textContent = index ? 'Defina uma senha para o seu perfil.' : 'Vamos preparar o próximo capítulo da sua agência.';
+    document.querySelector('#signup-subtitle').textContent = index ? 'Defina uma senha para o seu perfil.' : 'Comece com os dados da sua agência. É rápido.';
     document.querySelectorAll('.auth-step')[index].querySelector('input')?.focus();
   }
   async function finish(form) {
@@ -102,6 +102,7 @@
   });
   const params=new URLSearchParams(location.search);
   const token=params.get('reset')||params.get('recovery');
+  if(params.get('expired')==='1'&&page==='login'){const notice=document.getElementById('session-notice');if(notice)notice.hidden=false;}
   if(params.has('erro')){const output=document.getElementById('login-result');if(output){output.hidden=false;output.textContent='Este link é inválido ou expirou. Solicite um novo link de acesso.';}}
   if(token&&page==='login'){
     showPanel('reset-panel');document.getElementById('reset-title').textContent='Crie uma nova senha';

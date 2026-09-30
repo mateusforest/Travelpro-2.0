@@ -1,63 +1,20 @@
-/* The access pages share the landing identity; form behavior stays in auth.js. */
-body.auth-page { background: var(--paper); height: auto; }
-.auth-page .header { padding: 0; }
-.auth-page .header-actions { color: var(--muted); font-size: 12px; }
-.auth-page .header-actions > a:not(.primary-cta) { color: var(--ink); }
-.auth-page .header-actions > a:not(.primary-cta):hover { color: var(--orange); }
-.auth-layout { max-width: 1600px; min-height: calc(100svh - 53px); padding: 137px var(--gutter) 40px; gap: 10%; }
-.auth-story { height: min(650px, calc(100svh - 215px)); min-height: 450px; }
-.auth-photo-window { width: 100%; height: 100%; border-radius: 7px; box-shadow: none; transform: none; animation: access-photo-in 1s var(--ease) both; }
-.auth-photo-window > img { animation: photo-drift 30s ease-in-out infinite alternate; }
-.auth-photo-window::after { background: linear-gradient(180deg, #1b343c33, #152b3008 30%, #172b34bd); }
-.auth-story-caption { left: 33px; right: 25px; bottom: 37px; }
-.auth-story-caption small { font-size: 8px; letter-spacing: .13em; }
-.auth-story-caption h2 { font: 400 clamp(38px, 3.7vw, 58px)/1.06 'Manrope', sans-serif; letter-spacing: -.065em; margin-top: 19px; }
-.auth-story-caption p { font-size: 11px; }
-.auth-orbit, .auth-story-note { display: none; }
-.cos-welcome { top: 25px; left: 27px; right: 27px; padding: 0 0 17px; border: 0; border-bottom: 1px solid #ffffff40; background: none; backdrop-filter: none; border-radius: 0; box-shadow: none; rotate: none; animation: none; }
-.cos-welcome > span { width: 27px; height: 27px; border-radius: 6px; font-size: 14px; background: #f45b2a; }
-.cos-welcome p { color: #ffffffc7; font-size: 10px; }
-.cos-welcome p strong { color: white; font-size: 8px; letter-spacing: .1em; }
-.auth-surface { max-width: 395px; animation: form-arrive .6s .05s both; }
-.auth-kicker { color: var(--orange); font-size: 9px; }
-.auth-surface h1 { font-weight: 500; font-size: clamp(33px, 3vw, 46px); line-height: 1.08; }
-.auth-subtitle { font-size: 14px; color: var(--muted); margin-bottom: 29px; }
-.field > label { font-size: 12px; color: var(--ink); }
-.field input { border-radius: 5px; border-color: #d9dbd0; background: #ffffff91; height: 50px; font-size: 15px; }
-.field input::placeholder { font-size: 13px; color: #9da18f; }
-.field input:focus { border-color: #9ca38b; box-shadow: 0 0 0 3px #868e730c; }
-.password-toggle { border-radius: 4px; color: #959b87; }
-.subtle-button { color: var(--muted); font-size: 12px; }
-.auth-form .submit-button { height: 50px; border-radius: 5px; font-size: 13px; background: var(--ink); color: white; }
-.auth-form .submit-button:hover { background: var(--orange); }
-.auth-switch { font-size: 12px; color: var(--muted); }
-.auth-switch a { color: var(--ink); }
-.auth-switch a:hover { color: var(--orange); }
-.preview-notice { font-size: 10px; color: #919784; border-color: var(--line); line-height: 1.6; }
-.auth-stepper { color: #939887; }
-.auth-stepper .is-current { color: var(--ink); }
-.auth-stepper .is-current b { background: var(--ink); color: white; border-color: var(--ink); }
-.auth-stepper .is-done b { background: #8c9878; border-color: #8c9878; }
-.form-result { border-radius: 5px; }
-.auth-bottom { position: relative; left: auto; right: auto; bottom: auto; margin: 0 var(--gutter); min-height: 53px; padding: 17px 0; align-items: center; border-top: 1px solid var(--line); font-size: 9px; color: #969b8c; }
-@keyframes access-photo-in { from { opacity: 0; translate: 0 18px; } to { opacity: 1; translate: 0 0; } }
-@media (max-height: 800px) and (min-width: 761px) {
-  .auth-layout { padding-top: 116px; padding-bottom: 35px; }
-  .auth-story { min-height: 440px; height: calc(100svh - 220px); }
-  .auth-surface h1 { font-size: 37px; }
-  .auth-subtitle { margin-bottom: 22px; }
-  .preview-notice { margin-top: 20px; }
-  .auth-stepper { margin-bottom: 18px; }
-  .auth-kicker { margin-bottom: 14px; }
-  .field { margin-bottom: 16px; }
-}
-@media (max-width: 760px) {
-  .auth-page .brand { width: auto; }
-  .auth-page .header { padding: 0; }
-  .auth-layout { padding: 118px 25px 75px; }
-  .auth-surface h1 { font-size: 39px; }
-  .auth-story { display: none; }
-  .auth-bottom { font-size: 8px; margin: 0 25px; padding: 17px 0; }
-  .auth-page .header-actions > a { font-size: 11px; }
-  .field input { font-size: 16px; }
-}
+/* Access screens share the current TravelPro identity independently of the landing. */
+@font-face{font-family:Travel;src:local('Aptos'),local('Inter'),local('Arial');font-display:swap}
+:root{--paper:#f4f1ea;--ink:#28231f;--muted:#70665e;--orange:#f56620;--line:#e4d9cf;color-scheme:light;font-family:Travel,Arial,sans-serif;font-synthesis:none;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}body.auth-page{margin:0;min-height:100svh;height:auto;background:var(--paper);color:var(--ink)}button,input{font:inherit}button{color:inherit;border:0;background:none;cursor:pointer}a{color:inherit;text-decoration:none}button,a{-webkit-tap-highlight-color:transparent}img{display:block;max-width:100%}h1,h2,p{margin:0}button:focus-visible,a:focus-visible{outline:3px solid var(--orange);outline-offset:5px}button:disabled{opacity:.6;cursor:wait}[hidden]{display:none!important}::selection{background:#f5662033}
+.skip{position:fixed;top:-90px;left:24px;z-index:40;background:white;padding:14px;border-radius:10px}.skip:focus{top:14px}.moving-backdrop{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse at 95% 15%,#ffc89b22,transparent 50%)}.backdrop-light,.backdrop-line{display:none}
+.auth-page .header{position:relative;inset:auto;z-index:3;width:min(1600px,100%);margin:auto;height:100px;padding:0 4.5%;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)}.auth-page a.travelpro-brand{display:block;width:195px;height:auto;background:transparent}.auth-page a.travelpro-brand img{position:static;width:100%;height:auto;object-fit:contain}.auth-page .header-actions{display:flex;align-items:center;gap:23px;font-size:13px;color:var(--muted)}.auth-page .header-actions>a:not(.primary-cta){font-size:14px;font-weight:600;color:var(--ink);padding:14px 21px;border:1px solid #fff;border-radius:13px;background:var(--paper);box-shadow:5px 5px 12px #c1b2a02b,-5px -5px 12px #ffffffcf}
+.primary-cta{display:inline-flex;align-items:center;justify-content:space-between;gap:26px;min-height:47px;padding:0 22px;border:1px solid #ed772f;border-radius:14px;background:linear-gradient(145deg,#ff984f,#ff772d);color:#34200f;font-size:13px;font-weight:600;box-shadow:inset 1px 1px 2px #ffffff6b,5px 7px 15px #9a552b23,-4px -4px 12px #fff9;transition:transform .2s,box-shadow .2s}.primary-cta:hover{transform:translateY(-2px);box-shadow:inset 1px 1px 2px #ffffff6b,5px 10px 19px #9a552b33}.primary-cta>span{font-size:21px;font-weight:400}
+.auth-layout{position:relative;width:min(1600px,100%);min-height:calc(100svh - 163px);margin:auto;padding:35px 4.5% 39px;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);align-items:center;gap:7%}
+.auth-story{height:clamp(610px,calc(100svh - 238px),830px);min-height:0;position:relative;display:block;isolation:isolate}.auth-photo-window{width:100%;height:100%;border-radius:28px;border:1px solid #fff9;transform:none;background:#eee6d9;box-shadow:10px 12px 28px #9c89721d,-6px -6px 18px #fff;animation:access-arrive .7s both;overflow:hidden;position:relative}.auth-photo-window>img{width:100%;height:100%;object-fit:cover;object-position:76% center;transform:none;animation:none}.auth-photo-window:after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,#f4f1eaf5 0%,#f4f1eae0 17%,#f4f1ea60 37%,transparent 57%,#32221418 100%);pointer-events:none}.auth-story-caption{position:absolute;z-index:2;top:40px;left:38px;right:32px;bottom:auto;color:var(--ink)}.auth-story-caption small{font-size:9px;font-weight:600;letter-spacing:1.7px;color:#8c4c2b}.auth-story-caption h2{font:400 clamp(36px,3.4vw,57px)/1.08 Georgia,'Times New Roman',serif;letter-spacing:-1.8px;margin:23px 0 19px}.auth-story-caption h2 em{font-style:normal;color:#b54616}.auth-story-caption p{font-size:14px;color:#685a4c;line-height:1.65}
+.auth-story-note{position:absolute;left:27px;right:27px;bottom:27px;padding:22px 24px;background:#f9f6efe8;backdrop-filter:blur(14px);border:1px solid #fff;border-radius:20px;display:flex;align-items:flex-start;gap:14px;box-shadow:5px 8px 24px #48372319,inset 1px 1px 2px #fff;rotate:none;animation:none;font-size:13px;color:var(--ink)}.story-dot{width:10px;height:10px;background:var(--orange);border-radius:50%;box-shadow:0 0 0 6px #f5662012;flex-shrink:0;margin-top:4px}.auth-story-note strong{font-weight:600;font-size:15px}.auth-story-note p{color:#746657;font-size:12px;line-height:1.6;margin-top:6px}.story-stages{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:15px}.story-stages span{padding:7px 11px;border-radius:8px;background:#f7f3ec;border:1px solid #fff;box-shadow:3px 3px 8px #a394801d,-3px -3px 8px #fff;font-size:10px}.story-stages i{font-style:normal;color:#9f8a79}
+.auth-surface{width:100%;max-width:432px;justify-self:center;animation:access-arrive .65s .08s both}.auth-kicker{font-size:10px;font-weight:600;letter-spacing:1.9px;color:#a8491f;margin-bottom:18px}.auth-surface h1{font:500 clamp(31px,2.7vw,42px)/1.12 Travel,Arial,sans-serif;letter-spacing:-1.4px;margin:0 0 13px}.auth-subtitle{font-size:15px;line-height:1.65;color:var(--muted);margin-bottom:31px;max-width:100%}
+.field{margin-bottom:22px}.field>label{font-size:13px;font-weight:500;color:#55483f;margin-bottom:10px}.field input{height:55px;border:1px solid #e2d9cf;border-radius:14px;background:#f3f0ea;font:400 16px Travel,Arial,sans-serif;color:var(--ink);padding:0 17px;box-shadow:inset 4px 4px 9px #a9988514,inset -4px -4px 9px #ffffffd4;transition:background .2s,border-color .2s,box-shadow .2s}.field input::placeholder{font-size:14px;color:#8c8278}.field input:focus{background:#fffaf5;border-color:#d9692e;box-shadow:0 0 0 3px #f5662014,inset 2px 2px 5px #c3a9910a}.field input[aria-invalid=true]{border-color:#b8472c;background:#fff5ef}.input-wrap input{padding-right:58px}.password-toggle{right:7px;top:7px;width:41px;height:41px;border-radius:10px;color:#837468}.password-toggle:hover{background:#e9ded1;color:#a34218}.field-error{font-size:12px;color:#a3361d}.field-hint{color:#766c62}.field-hint.is-met{color:#80502c}.form-options{margin:-3px 0 25px}.subtle-button,.back-step{font-size:13px;color:#80624e}.subtle-button:hover,.back-step:hover{color:#a23e13}.submit-button{height:55px;width:100%;border:1px solid #ed772f;border-radius:14px;padding:0 20px;font-size:14px}.auth-switch{margin-top:27px;font-size:13px;color:var(--muted);line-height:1.6}.auth-switch a{font-weight:600;color:#a34218;margin-left:6px}.preview-notice{margin-top:28px;padding-top:20px;border-top:1px solid var(--line);font-size:11px;line-height:1.65;color:#807467}.preview-notice svg{color:#9a7d64}.auth-bottom{position:relative;inset:auto;width:min(1600px,100%);margin:auto;padding:22px 4.5%;min-height:63px;display:flex;align-items:center;justify-content:space-between;gap:20px;border-top:1px solid var(--line);font-size:11px;color:#827263}.auth-bottom a:hover{color:#a34218}
+.auth-stepper{margin-bottom:28px;gap:12px;font-size:12px;color:#827567}.auth-stepper i{width:30px;background:#d9ccbd}.auth-stepper b{width:28px;height:28px;border-color:#d8cbbb;background:#f4f1ea;box-shadow:3px 3px 7px #a998851a,-3px -3px 7px #fff;color:#77695c}.auth-stepper .is-current{color:#a34218}.auth-stepper .is-current b{background:#ff8e45;border-color:#f47b31;color:#34200f}.auth-stepper .is-done b{background:#e7d6c4;border-color:#d7bea6;color:#745136}.auth-stepper .is-done{color:#756354}.password-rule{background:#e5dbcf}.password-rule>span{background:#d5622b}.back-step{margin-bottom:22px}.form-result,.session-notice{border:1px solid #e7c6ab;border-radius:14px;background:#fff4e7;color:#795033;line-height:1.6;font-size:13px;padding:16px 18px}.session-notice{margin:-9px 0 25px}.form-result{margin-top:23px}.form-result:focus{outline-color:var(--orange)}.auth-page .noscript{padding:20px;text-align:center}
+@keyframes access-arrive{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@media(min-width:1600px){.auth-layout{gap:8%;max-width:1600px}.auth-surface{max-width:445px}.auth-story{height:min(830px,calc(100svh - 240px))}.auth-story-caption h2{font-size:57px}}
+@media(max-width:1100px){.auth-layout{gap:6%;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.auth-story{height:640px;min-height:0}.auth-story-caption{top:32px;left:27px;right:22px}.auth-story-caption h2{font-size:39px}.auth-story-caption p{font-size:13px}.auth-story-note{left:18px;right:18px;bottom:18px;padding:20px}.auth-surface h1{font-size:32px}.auth-story-note p{font-size:11px}.story-stages{gap:7px}.story-stages span{padding:7px 9px}}
+@media(max-height:800px) and (min-width:761px){.auth-layout{padding-top:26px;padding-bottom:26px}.auth-story{height:590px;min-height:0}.auth-subtitle{margin-bottom:24px}.field{margin-bottom:18px}.auth-kicker{margin-bottom:14px}.preview-notice{margin-top:24px}.auth-stepper{margin-bottom:24px}}
+@media(max-width:760px){.auth-page .header{height:83px;padding:0 24px}.auth-page a.travelpro-brand{width:157px}.auth-page .header-actions>span{display:none}.auth-page .header-actions{gap:0}.auth-page .header-actions>a:not(.primary-cta){font-size:12px;padding:11px 15px;border-radius:11px}.auth-page .header-actions .primary-cta{min-height:40px;padding:0 14px;font-size:12px;gap:12px;border-radius:11px}.auth-page .header-actions .primary-cta>span{font-size:18px}.auth-layout{display:block;width:100%;max-width:520px;min-height:calc(100svh - 160px);padding:48px 25px 45px}.auth-story{display:none}.auth-surface{max-width:432px;margin:auto;animation:none}.auth-surface h1{font-size:34px;letter-spacing:-1.3px}.auth-kicker{font-size:9px;letter-spacing:1.6px;margin-bottom:17px}.auth-subtitle{font-size:14px;margin-bottom:28px}.field{margin-bottom:22px}.field input{height:55px}.auth-form .primary-cta{border-radius:14px}.auth-stepper{margin-bottom:26px}.auth-bottom{padding:20px 25px;align-items:flex-start;font-size:10px;line-height:1.6}.auth-bottom>span{max-width:150px;text-align:right}.auth-page .auth-layout:has(.auth-form[data-complete=true]){min-height:calc(100svh - 160px)}.session-notice{font-size:12px}}
+@media(max-width:360px){.auth-page .header{padding:0 18px}.auth-page a.travelpro-brand{width:139px}.auth-layout{padding-left:20px;padding-right:20px}.auth-surface h1{font-size:31px}.auth-switch{font-size:12px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.auth-surface,.auth-photo-window{opacity:1;transform:none}}
