@@ -335,6 +335,67 @@ test('sales flow personalizes the proposal, records adjustment and approval, the
   assert.equal(f.saved.transactions.length,0,'operator payment does not fabricate an agency receipt');
 });
 
+test('historical confirmed attendance leads to documents without restarting a sale or changing stored data',async t=>{
+  const workspace=JSON.parse(read('backend/initial-state.json'));
+  workspace.clients=[{id:'history-client',name:'Cliente de teste',phone:'',email:''}];
+  workspace.trips=[{id:'history-trip',client:'history-client',title:'Seguro Chile 2024',destination:'Chile',start:'2024-07-30',end:'2024-08-05',travelers:1,value:0,status:'Confirmada',notes:'Período de cobertura, não datas de deslocamento.',reservations:[]}];
+  workspace.documents=[{id:'history-doc',trip:'history-trip',name:'Apólice de teste',type:'Seguro viagem',content:'Registro de teste.'}];
+  workspace.events=[{id:'old-event',trip:'history-trip',title:'Retorno anterior',date:'2024-07-20',time:'10:00',completed:false},{id:'future-event',trip:'history-trip',title:'Conferência futura',date:'2099-01-01',time:'11:00',completed:false}];
+  const f=await fixture(t,{pathname:'/viagem.html?id=history-trip',workspace});
+  const before=f.saved,panel=f.d.querySelector('#attendance-content');
+  assert.ok(panel.firstElementChild.matches('.attendance-guidance'),'guidance precedes supporting records');
+  assert.match(panel.textContent,/O período registrado já passou/);
+  assert.match(f.d.querySelector('.attendance-meta').textContent,/1 viajante/);
+  assert.doesNotMatch(panel.textContent,/Comece pela cotação|Fazer cotação/);
+  assert.equal(panel.querySelectorAll('.primary-button').length,1);
+  assert.equal(panel.querySelector('[aria-current="step"]'),null,'historical records do not invent a sales stage');
+  assert.match(panel.querySelector('.attendance-past-events').textContent,/Retorno anterior/);
+  assert.doesNotMatch(panel.querySelector('.attendance-past-events').textContent,/Conferência futura/);
+  f.d.querySelector('.attendance-guidance .primary-button').click();
+  await waitFor(()=>f.d.querySelector('#attendance-tab-materials')?.getAttribute('aria-selected')==='true','historical documents tab');
+  assert.match(f.d.querySelector('#attendance-content').textContent,/Apólice de teste/);
+  assert.equal(f.writes.length,0);assert.deepEqual(f.saved,before);
+});
+
+test('confirmed attendance without a sales history opens existing services, while a new request starts one quote',async t=>{
+  const workspace=JSON.parse(read('backend/initial-state.json'));
+  workspace.clients=[{id:'legacy-client',name:'Cliente de teste',phone:'',email:''}];
+  workspace.trips=[{id:'legacy-trip',client:'legacy-client',title:'Viagem confirmada',destination:'Chile',start:'2099-07-30',end:'2099-08-05',travelers:2,value:0,status:'Confirmada',notes:'',reservations:[]}];
+  const f=await fixture(t,{pathname:'/viagem.html?id=legacy-trip',workspace});
+  assert.match(f.d.querySelector('.attendance-guidance').textContent,/Confira os serviços já registrados/);
+  f.d.querySelector('.attendance-guidance .primary-button').click();
+  await waitFor(()=>f.d.querySelector('#attendance-tab-services')?.getAttribute('aria-selected')==='true','existing services tab');
+  assert.match(f.d.querySelector('#attendance-content').textContent,/Reservas e serviços/);
+  workspace.trips[0].status='Novo pedido';
+  const fresh=await fixture(t,{pathname:'/viagem.html?id=legacy-trip',workspace});
+  assert.equal(fresh.d.querySelectorAll('#attendance-content [data-action="sales-quote"]').length,1);
+  assert.match(fresh.d.querySelector('[aria-current="step"]').textContent,/Cotação/);
+  click(fresh,'sales-quote');await waitFor(()=>fresh.d.querySelector('[data-form="sales-request"]'),'new quote form');
+  assert.equal(f.writes.length,0);
+});
+
+test('attendance respects advanced sales evidence, pending dates and closed statuses without inventing completed steps',async t=>{
+  const workspace=JSON.parse(read('backend/initial-state.json'));
+  workspace.clients=[{id:'stage-client',name:'Cliente de teste',phone:'',email:''}];
+  workspace.trips=[{id:'stage-trip',client:'stage-client',title:'Pedido',destination:'Chile',start:'',end:'2024-08-05',datesPending:true,travelers:1,value:0,status:'Em reserva',notes:'',sales:{budgetId:'stage-budget',quotes:[]}}];
+  workspace.budgets=[{id:'stage-budget',trip:'stage-trip',client:'stage-client',name:'Proposta',status:'Aprovada',items:[]}];
+  const f=await fixture(t,{pathname:'/viagem.html?id=stage-trip',workspace});
+  const t1=f.portal.state.trips[0],b=f.portal.state.budgets[0];
+  assert.match(f.d.querySelector('.attendance-guidance').textContent,/Acompanhe a reserva/);
+  assert.match(f.d.querySelector('[aria-current="step"]').textContent,/Reserva e emissão/);
+  assert.equal(f.d.querySelector('.sales-flow li.past'),null);
+  for(const [status,action] of [['Aguardando aprovação','sales-decision'],['Rascunho','sales-budget']]){
+    b.status=status;f.portal.render();
+    assert.equal(f.d.querySelector('.attendance-guidance .primary-button').dataset.action,action);
+  }
+  b.status='Aprovada';t1.sales.fulfillment={reservation:'confirmed',payment:'paid',emission:'issued'};f.portal.render();
+  assert.equal(f.d.querySelector('.attendance-guidance .primary-button').dataset.action,'new-itinerary');
+  t1.status='Cancelada';f.portal.render();
+  assert.match(f.d.querySelector('.attendance-guidance').textContent,/Consulte o histórico/);
+  assert.equal(f.d.querySelector('[aria-current="step"]'),null);
+  assert.equal(f.writes.length,0);
+});
+
 test('uploading an attachment through COS keeps the main editor and its unsaved text',async t=>{
   const workspace=JSON.parse(read('backend/initial-state.json'));
   workspace.documents=[{id:'document-open-during-upload',name:'Documento aberto',type:'Modelo',trip:'',status:'Rascunho',content:'Texto salvo.'}];

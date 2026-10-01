@@ -12,16 +12,46 @@
     const stamp=value=>!value?'A confirmar':F.date(value)?new Date(value+'T12:00:00').toLocaleDateString('pt-BR')+' · horário não informado':new Date(value).toLocaleString('pt-BR');
     function flow(t) {
       const q=F.selected(t),b=F.currentBudget(t,state().budgets),f=t.sales?.fulfillment;
+      const now=new Date(),today=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+      const savedStatus=(t.status||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+      const closed=/cancelad|encerrad|finalizad|concluid|perdid|recusad/.test(savedStatus);
+      const historical=!t.datesPending&&F.date(t.end)&&t.end<today;
       const ready=F.canItinerary(t),approved=b?.status==='Aprovada',waiting=b?.status==='Aguardando aprovação';
-      const index=ready?4:approved?3:b?2:q?1:0;
+      const linked=state().budgets.some(item=>item.trip===t.id);
+      const existingOperation=!b&&!q&&(linked||f||/confirmad|emitid|andamento|em viagem|viajando|reserva|pagamento|emissao|proposta|aprovad/.test(savedStatus));
+      let title,description,actions,index=null,kicker='PRÓXIMA AÇÃO';
+      if(closed||historical){
+        kicker=closed?'ATENDIMENTO ENCERRADO':'REGISTRO ANTERIOR';
+        title=closed?'Consulte o histórico deste atendimento':'O período registrado já passou';
+        description=closed?'Os documentos, propostas e serviços continuam disponíveis para consulta.':'Confira os documentos e serviços deste registro. As datas, por si só, não confirmam a conclusão da viagem ou do serviço.';
+        actions=btn('Ver documentos e propostas','attendance-tab','materials',true);
+      }else if(ready){
+        index=4;title='Prepare o roteiro da viagem';description='Reserva, pagamento e emissão estão registrados como confirmados. Reúna os serviços no roteiro do cliente.';
+        actions=btn('Preparar roteiro','new-itinerary',t.id,true)+(approved?btn('Ver confirmação','sales-fulfillment',t.id):'');
+      }else if(approved){
+        index=3;title='Acompanhe a reserva e a emissão';description='A proposta foi aprovada. Consulte a operadora e registre a situação da reserva, do pagamento e da emissão.';
+        actions=btn('Acompanhar reserva','sales-fulfillment',t.id,true);
+      }else if(b){
+        index=waiting?2:1;title=waiting?'Registre a resposta do cliente':b.status==='Ajuste solicitado'?'Revise o ajuste solicitado':'Revise e envie a proposta';
+        description=waiting?'A proposta está aguardando aprovação. Registre a resposta quando o cliente retornar.':'Confira os valores, os serviços e a apresentação antes de compartilhar com o cliente.';
+        actions=waiting?btn('Registrar resposta','sales-decision',b.id,true)+btn('Abrir proposta','sales-budget',b.id):btn('Abrir proposta','sales-budget',b.id,true);
+      }else if(existingOperation){
+        kicker='SITUAÇÃO DO ATENDIMENTO';title='Confira os serviços já registrados';
+        description='Este atendimento está marcado como “'+(t.status||'Em acompanhamento')+'”. Consulte as reservas e os documentos para conferir os detalhes. O histórico de cotação e aprovação não está completo aqui.';
+        actions=btn('Ver reservas e serviços','attendance-tab','services',true);
+      }else if(q||(t.sales?.quotes||[]).length){
+        index=1;title=q&&F.expired(q.validUntil)?'Confira a validade da cotação':'Escolha a cotação e monte a proposta';
+        description=q&&F.expired(q.validUntil)?'A validade registrada já passou. Solicite uma atualização à operadora antes de preparar a proposta.':'Abra as opções recebidas da operadora e escolha a que vai apresentar ao cliente.';
+        actions=btn('Ver cotações','sales-quotes',t.id,true);
+      }else{
+        index=0;title='Comece pela cotação';description='Use o pedido do cliente para consultar a operadora ou registrar uma cotação que você já recebeu.';
+        actions=btn('Fazer cotação','sales-quote',t.id,true);
+      }
       const labels=['Cotação','Proposta','Aprovação','Reserva e emissão','Roteiro'];
-      let body='';
-      if(!q)body='<h2>Comece pela cotação</h2><p>Leve o pedido à Europlus. A resposta alimenta os valores e serviços da proposta.</p>'+btn('Fazer cotação','sales-quote',t.id,true);
-      else if(!b)body='<h2>Cotação recebida</h2><p>'+e(q.offers.length)+' opção(ões) · validade: '+e(stamp(q.validUntil))+(F.expired(q.validUntil)?' · Confira a validade antes de continuar.':'')+'</p>'+btn('Ver cotação e preparar proposta','sales-quotes',t.id,true);
-      else if(ready)body='<h2>Viagem confirmada, paga e emitida</h2><p>Agora prepare o roteiro com os serviços confirmados.</p>'+btn('Preparar roteiro','new-itinerary',t.id,true)+btn('Ver confirmação','sales-fulfillment',t.id);
-      else if(approved)body='<h2>Reserva, pagamento e emissão</h2><p>Registre as confirmações da Europlus e acompanhe o prazo da reserva.</p>'+(f?.deadline?'<p class="sales-deadline">Prazo de emissão: '+e(stamp(f.deadline))+(F.expired(f.deadline)&&f.emission!=='issued'?' · Prazo encerrado: consulte a operadora.':'')+'</p>':'')+btn('Acompanhar na operadora','sales-fulfillment',t.id,true);
-      else body='<h2>'+(waiting?'Aguardando o cliente':b.status==='Ajuste solicitado'?'Ajustar a proposta':'Personalize a proposta')+'</h2><p>'+(waiting?'Registre a aprovação ou o pedido de ajuste recebido.':'Valores e inclusões vêm da cotação. Revise a apresentação antes de enviar.')+'</p>'+btn('Abrir proposta','sales-budget',b.id,true)+(waiting?btn('Registrar resposta','sales-decision',b.id):btn('Registrar envio','sales-decision',b.id));
-      return `<section class="attendance-card sales-flow"><ol aria-label="Etapas do atendimento">${labels.map((l,i)=>`<li class="${i===index?'current':i<index?'past':''}" ${i===index?'aria-current="step"':''}><span>${i+1}</span>${l}</li>`).join('')}</ol><div class="sales-next">${body}${approved&&f?.paymentUrl?'<p><a href="'+e(f.paymentUrl)+'" target="_blank" rel="noopener noreferrer">Abrir link de pagamento da operadora ↗</a></p>':''}</div><div class="sales-links">${btn('Cotações ('+(t.sales?.quotes?.length||0)+')','sales-quotes',t.id)}<small>Confirmações registradas pela agência. Reserva e pagamento acontecem na operadora.</small></div></section>`;
+      const progress=index===null?'':`<ol aria-label="Etapas do atendimento">${labels.map((label,i)=>`<li class="${i===index?'current':''}" ${i===index?'aria-current="step"':''}><span>${i+1}</span>${label}</li>`).join('')}</ol>`;
+      const deadline=!closed&&!historical&&approved&&f?.deadline?'<p class="sales-deadline">Prazo de emissão: '+e(stamp(f.deadline))+(F.expired(f.deadline)&&f.emission!=='issued'?' · Prazo encerrado: consulte a operadora.':'')+'</p>':'';
+      const quotes=index!==null&&(t.sales?.quotes||[]).length&&index!==1?'<button class="text-button" data-action="sales-quotes" data-id="'+e(t.id)+'">Consultar cotações ('+t.sales.quotes.length+')</button>':'';
+      return `<section class="attendance-card sales-flow attendance-guidance" aria-labelledby="attendance-guidance-title"><div class="sales-next"><div><span class="attendance-kicker">${kicker}</span><h2 id="attendance-guidance-title">${e(title)}</h2><p>${e(description)}</p>${deadline}</div><div class="attendance-guidance-actions">${actions}${quotes}</div></div>${progress}</section>`;
     }
     function quoteForm(t) {
       const d=t.sales?.request||t;
