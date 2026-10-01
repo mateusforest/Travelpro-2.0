@@ -17,8 +17,8 @@ export const status=(e,date=today())=>e.canceled?'canceled':paid(e)>=e.amountCen
 export function filters(input={}){
   const date=today(),from=input.from||date.slice(0,7)+'-01',to=input.to||new Date(Number(date.slice(0,4)),Number(date.slice(5,7)),0).toISOString().slice(0,10);
   if(!validDate(from)||!validDate(to)||from>to)fail(422,'Confira o período inicial e final.');
-  const out={from,to,basis:input.basis||'dueDate',type:input.type||'',status:input.status||'',accountId:text(input.accountId,100),categoryId:text(input.categoryId,100),personId:text(input.personId,100),source:input.source||'',q:text(input.q,150),today:date,page:Number(input.page||1),pageSize:50};
-  if(!['dueDate','competenceDate'].includes(out.basis)||!['','income','expense','commission','transfer','opening'].includes(out.type)||!['','open','paid','partial','overdue','canceled'].includes(out.status)||!['','manual','legacy','granatum'].includes(out.source)||!Number.isInteger(out.page)||out.page<1||out.page>1000000)fail(422,'Filtro financeiro inválido.');
+  const out={from,to,basis:input.basis||'dueDate',type:input.type||'',status:input.status||'',accountId:text(input.accountId,100),categoryId:text(input.categoryId,100),personId:text(input.personId,100),clientId:text(input.clientId,100),tripId:text(input.tripId,100),source:input.source||'',q:text(input.q,150),today:date,page:Number(input.page||1),pageSize:50};
+  if(!['dueDate','competenceDate'].includes(out.basis)||!['','income','expense','commission','consultancy','transfer','opening'].includes(out.type)||!['','open','paid','partial','overdue','canceled'].includes(out.status)||!['','manual','legacy','granatum'].includes(out.source)||!Number.isInteger(out.page)||out.page<1||out.page>1000000)fail(422,'Filtro financeiro inválido.');
   return out;
 }
 export function catalog(input,previous){
@@ -40,9 +40,9 @@ function reference(catalogs,id,kind,previousId){
 }
 export function entry(input,catalogs,previous){
   if(previous?.canceled)fail(409,'Reabra o lançamento antes de editar.');
-  const type=input.type,title=text(input.title,200),amountCents=cents(input.amount),dueDate=input.dueDate,competenceDate=input.competenceDate||dueDate;
+  const type=input.type==='consultancy'?'income':input.type,title=text(input.title,200),amountCents=cents(input.amount),dueDate=input.dueDate,competenceDate=input.competenceDate||dueDate;
   if(!title||!['income','expense','commission','transfer'].includes(type)||!validDate(dueDate)||!validDate(competenceDate))fail(422,'Confira descrição, tipo e datas do lançamento.');
-  const data={...previous,id:previous?.id||randomUUID(),title,type,amountCents,dueDate,competenceDate,accountId:reference(catalogs,input.accountId,'account',previous?.accountId),toAccountId:reference(catalogs,type==='transfer'?input.toAccountId:'','account',previous?.toAccountId),categoryId:reference(catalogs,type==='transfer'?'':input.categoryId,'category',previous?.categoryId),personId:reference(catalogs,input.personId,'person',previous?.personId),tripId:text(input.tripId,100),document:text(input.document,100),notes:text(input.notes,5000),source:previous?.source||'manual',externalId:previous?.externalId||'',payments:previous?.payments||[],canceled:false,legacyPaid:previous?.legacyPaid||false};
+  const data={...previous,id:previous?.id||randomUUID(),title,type,serviceType:input.type==='consultancy'?'consultancy':'',clientId:text(input.clientId===undefined?previous?.clientId:input.clientId,100),amountCents,dueDate,competenceDate,accountId:reference(catalogs,input.accountId,'account',previous?.accountId),toAccountId:reference(catalogs,type==='transfer'?input.toAccountId:'','account',previous?.toAccountId),categoryId:reference(catalogs,type==='transfer'?'':input.categoryId,'category',previous?.categoryId),personId:reference(catalogs,input.personId,'person',previous?.personId),tripId:text(input.tripId===undefined?previous?.tripId:input.tripId,100),document:text(input.document,100),notes:text(input.notes,5000),source:previous?.source||'manual',externalId:previous?.externalId||'',payments:previous?.payments||[],canceled:false,legacyPaid:previous?.legacyPaid||false};
   if(type==='transfer'&&(!data.accountId||!data.toAccountId||data.accountId===data.toAccountId))fail(422,'Escolha contas diferentes para origem e destino.');
   const category=catalogs.find(c=>c.id===data.categoryId),categoryType=type==='expense'?'expense':'income';
   if(category&&category.type!=='both'&&category.type!==categoryType)fail(422,'A categoria não corresponde ao tipo de lançamento.');
@@ -79,7 +79,7 @@ export function migrateLegacy(rows=[]){
 }
 export function matches(e,f,withDates=true){
   const s=status(e,f.today),date=e[f.basis],q=(f.q||'').toLocaleLowerCase('pt-BR');
-  return (!withDates||date>=f.from&&date<=f.to)&&(!f.type||e.type===f.type)&&(!f.status?!e.canceled:f.status==='open'?!e.canceled&&paid(e)<e.amountCents:f.status==='overdue'?!e.canceled&&paid(e)<e.amountCents&&e.dueDate<f.today:s===f.status)&&(!f.accountId||e.accountId===f.accountId||e.toAccountId===f.accountId)&&(!f.categoryId||e.categoryId===f.categoryId)&&(!f.personId||e.personId===f.personId)&&(!f.source||e.source===f.source)&&(!q||[e.title,e.document,e.notes].join(' ').toLocaleLowerCase('pt-BR').includes(q));
+  return (!withDates||date>=f.from&&date<=f.to)&&(!f.type||(f.type==='consultancy'?e.serviceType==='consultancy':f.type==='commission'?(e.serviceType==='commission'||e.type==='commission'&&e.serviceType!=='consultancy'):e.type===f.type))&&(!f.tripId||e.tripId===f.tripId)&&(!f.clientId||e.clientId===f.clientId)&&(!f.status?!e.canceled:f.status==='open'?!e.canceled&&paid(e)<e.amountCents:f.status==='overdue'?!e.canceled&&paid(e)<e.amountCents&&e.dueDate<f.today:s===f.status)&&(!f.accountId||e.accountId===f.accountId||e.toAccountId===f.accountId)&&(!f.categoryId||e.categoryId===f.categoryId)&&(!f.personId||e.personId===f.personId)&&(!f.source||e.source===f.source)&&(!q||[e.title,e.document,e.notes].join(' ').toLocaleLowerCase('pt-BR').includes(q));
 }
 export function report(rows,catalogs,f){
   const found=rows.filter(r=>matches(r.data||r,f)).sort((a,b)=>(a.data||a)[f.basis].localeCompare((b.data||b)[f.basis])||(a.data||a).id.localeCompare((b.data||b).id));

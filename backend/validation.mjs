@@ -13,6 +13,7 @@ export function validateState(s){
   const refs=(key,id)=>s[key].some(x=>x.id===id),num=(v,min=0)=>typeof v==='number'&&Number.isFinite(v)&&v>=min;
   const date=x=>{try{return /^\d{4}-\d{2}-\d{2}$/.test(x)&&new Date(x+'T12:00:00Z').toISOString().slice(0,10)===x;}catch{return false;}};
   for(const c of s.clients)if(typeof c.name!=='string'||!c.name.trim()||typeof c.phone!=='string'||typeof c.email!=='string')fail(422,'Cliente inválido.');
+  for(const c of s.clients){if(c.referredBy&&(c.referredBy===c.id||!refs('clients',c.referredBy)))fail(422,'Confira quem indicou o cliente.');if(c.acquisitionSource!==undefined&&(typeof c.acquisitionSource!=='string'||c.acquisitionSource.length>200))fail(422,'Informe uma origem com até 200 caracteres.');if(c.relationship&&!['Em construção','Próximo','Fidelizado','Requer atenção'].includes(c.relationship))fail(422,'Selecione o relacionamento com o cliente.');}
   for(const t of s.trips){
     const validDates=t.datesPending===true?(!t.start||date(t.start))&&(!t.end||date(t.end)):date(t.start)&&date(t.end);
     if(!refs('clients',t.client)||!t.title?.trim()||!t.destination?.trim()||!validDates||(t.start&&t.end&&t.end<t.start)||!num(t.value)||!Number.isInteger(t.travelers)||t.travelers<1)fail(422,'Revise o cliente, período e valores da viagem.');

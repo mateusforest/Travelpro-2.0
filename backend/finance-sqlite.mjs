@@ -6,6 +6,7 @@ export function sqliteFinanceRepository(db,agency,user){
   const event=(id,action,reason,previous,next)=>db.prepare('INSERT INTO finance_events(agency_id,entry_id,user_id,action,reason,previous,next,created_at) VALUES(?,?,?,?,?,?,?,?)').run(agency,id,user,action,reason,previous?JSON.stringify(previous):null,next?JSON.stringify(next):null,new Date().toISOString());
   return {
     async ready(){return Boolean(db.prepare('SELECT agency_id FROM finance_migrations WHERE agency_id=?').get(agency));},
+    async entries(){return db.prepare('SELECT data,version FROM finance_entries WHERE agency_id=?').all(agency).map(r=>({...JSON.parse(r.data),version:r.version}));},
     async get(id,kind){return get(id,kind);},async catalogs(){return catalogs();},
     async report(f){return report(db.prepare('SELECT data,version FROM finance_entries WHERE agency_id=?').all(agency).map(r=>({...r,data:JSON.parse(r.data)})),catalogs(),f);},
     async history(id){return db.prepare('SELECT * FROM finance_events WHERE agency_id=? AND entry_id=? ORDER BY id DESC LIMIT 50').all(agency,id).map(r=>({...r,previous:r.previous?JSON.parse(r.previous):null,next:r.next?JSON.parse(r.next):null}));},

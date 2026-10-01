@@ -33,10 +33,15 @@ test('Postgres migration, reports, isolation, optimistic writes and idempotency'
  const write=async(action,id,version,data)=>{const r=await db.query('select travelpro_finance_write($1,null,$2,$3,$4,$5::jsonb) result',[wid,action,id,version,JSON.stringify(data)]);return r.rows[0].result;};
  await write('bootstrap','migration',1,[]);
  await write('catalog',account.id,0,account);await write('catalog',other.id,0,other);
+ await write('catalog','operation-trip-test',0,{id:'operation-trip-test',kind:'operation',tripId:'trip-test',name:'Operação',commissionMode:'percent',commissionRate:10,costsCents:null});
+ const consultation=f.entry({title:'Consultoria',type:'consultancy',amount:'150',dueDate:'2026-05-01'},[]);
+ await write('create','consultation-test-001',0,[consultation]);
+ const consultancyReport=(await db.query('select travelpro_finance_report($1,$2::jsonb) result',[wid,JSON.stringify(f.filters({from:'2026-05-01',to:'2026-05-31'}))])).rows[0].result;
+ assert.equal(consultancyReport.summary.receivable,15000);
  const income=f.settle(base(),{amount:'40',date:'2026-02-02'});
  const transfer=f.settle(f.entry({title:'Entre contas',type:'transfer',amount:'20',accountId:account.id,toAccountId:other.id,dueDate:'2026-02-03'},[account,other]),{amount:'20',date:'2026-02-03'});
  const rows=[income,transfer];await write('create','create-test-000001',0,rows);await write('create','create-test-000001',0,rows);
- assert.equal((await db.query('select count(*)::integer n from travelpro_finance_entries')).rows[0].n,2);
+ assert.equal((await db.query('select count(*)::integer n from travelpro_finance_entries')).rows[0].n,3);
  const filters={...f.filters({from:'2026-01-01',to:'2026-03-31'}),today:'2026-09-17'};
  const data=(await db.query('select travelpro_finance_report($1,$2::jsonb) result',[wid,JSON.stringify(filters)])).rows[0].result;
  const local=f.report(rows,[account,other],filters);assert.deepEqual(data.summary,local.summary);assert.deepEqual(data.monthly,local.monthly);assert.deepEqual(data.balances.sort((a,b)=>a.id.localeCompare(b.id)),local.balances);assert.equal(data.summary.received,4000);assert.equal(data.summary.receivable,6000);assert.equal(data.total,2);

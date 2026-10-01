@@ -89,6 +89,18 @@ function click(f,action){
   assert.ok(button,'portal action exists: '+action);button.click();return button;
 }
 
+test('client referral and relationship survive editing; manual confirmation records the sale date',async t=>{
+ const f=await fixture(t);
+ await f.portal.workspaceSubmit('client',{id:'referrer',name:'Ana',phone:'',email:'',notes:''});
+ await f.portal.workspaceSubmit('client',{id:'referred',name:'Bia',phone:'',email:'',notes:'',acquisitionSource:'Indicação',referredBy:'referrer',relationship:'Próximo'});
+ const c=f.saved.clients.find(c=>c.id==='referred');assert.equal(c.referredBy,'referrer');assert.equal(c.relationship,'Próximo');
+ await f.portal.workspaceAction('edit-client','referred');assert.equal(f.d.querySelector('[name=referredBy]').value,'referrer');assert.ok(![...f.d.querySelector('[name=referredBy]').options].some(o=>o.value==='referred'));
+ await f.portal.workspaceSubmit('client',{id:'referred',name:'Bia revisada',phone:'',email:'',notes:''});assert.equal(f.saved.clients.find(c=>c.id==='referred').referredBy,'referrer');
+ await f.portal.workspaceSubmit('trip',{id:'',title:'Viagem confirmada',destination:'Lisboa',client:'referred',start:'2026-10-10',end:'2026-10-15',travelers:'1',value:'10000',status:'Confirmada'});
+ assert.ok(f.saved.trips[0].sales.confirmedAt);assert.deepEqual(f.saved.trips[0].sales.quotes,[]);
+ const invalid=clone(f.saved);invalid.clients[1].referredBy='referred';assert.throws(()=>validateState(invalid),/indicou/);
+});
+
 test('home steps and quote CTA open real operational routes; trips filter existing records',async t=>{
   const f=await fixture(t);
   assert.equal(f.d.querySelectorAll('.workflow-steps button').length,5);

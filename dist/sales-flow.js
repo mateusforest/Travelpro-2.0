@@ -58,6 +58,7 @@
     if(input.reservation==='held'&&!input.deadline)reject('Informe o prazo da reserva provisória.');
     if(input.emission==='issued'&&(input.reservation!=='confirmed'||input.payment!=='paid'))reject('Confirme reserva e pagamento antes de registrar a emissão.');
     let paymentUrl='';if(input.paymentUrl){try{const u=new URL(input.paymentUrl);if(u.protocol!=='https:'||u.username||u.password||u.hostname==='localhost'||!u.hostname.includes('.'))throw Error();paymentUrl=u.href;}catch{reject('Use o link HTTPS de pagamento fornecido pela operadora.');}}
+    if(input.reservation==='confirmed'&&!t.sales.confirmedAt)t.sales.confirmedAt=new Date(now).toISOString();
     t.sales.fulfillment={reservation:input.reservation,payment:input.payment,emission:input.emission,reference:input.reference,deadline:input.deadline||'',paymentUrl,evidence:input.evidence,source:'agency',updatedAt:new Date(now).toISOString()};
     t.status=canItinerary(t)?'Confirmada':input.payment==='paid'?'Aguardando emissão':input.reservation!=='pending'?'Aguardando pagamento':'Em reserva';
   }
