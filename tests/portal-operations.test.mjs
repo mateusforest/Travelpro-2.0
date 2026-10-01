@@ -107,7 +107,8 @@ test('home steps and quote CTA open real operational routes; trips filter existi
   assert.ok(f.d.querySelector('#portal-dock a[href="cotacao.html"]'));
   assert.ok(f.d.querySelector('#portal-dock a[href="viagens.html"]'));
   await f.portal.workspaceAction('workflow-quote');assert.equal(f.d.querySelector('#dialog-title').textContent,'Gerar cotação');
-  assert.ok(f.d.querySelector('#dialog-body [data-action="new-attendance"]'));
+  assert.ok(f.d.querySelector('#dialog-body [data-form="sales-quick"]'));
+  assert.equal(f.d.querySelector('#dialog-body [name="client"]'),null);
   await f.portal.workspaceAction('workflow-proposals');assert.equal(f.portal.readRoute()[0],'orcamentos');
   await f.portal.workspaceAction('workflow-approval');assert.equal(f.portal.state.budgetFilter,'Aguardando aprovação');
   await f.portal.workspaceAction('workflow-reservations');assert.match(f.d.querySelector('#dialog-body').textContent,/Nenhuma proposta aprovada/);
@@ -554,4 +555,56 @@ test('a pending intake review guards page unload even when the workspace itself 
   const discardedUnload=new f.w.Event('beforeunload',{cancelable:true});
   f.w.dispatchEvent(discardedUnload);
   assert.equal(discardedUnload.defaultPrevented,false,'discarding an empty review removes the warning');
+});
+test('standalone quotation persists without creating CRM records and validates totals and dates',async t=>{
+  const f=await fixture(t,{pathname:'/cotacao.html'});
+  const draft={name:'Lisboa <especial>',origin:'São Paulo',destination:'Lisboa',start:'2027-04-10',end:'2027-04-18',travelers:'2',valid:'2027-03-01',total:'12500',inclusions:'Voos\nHotel',terms:'<script>alert(1)</script>',reference:''};
+  await f.portal.workspaceSubmit('sales-quick',draft);
+  assert.equal(f.saved.clients.length,0);assert.equal(f.saved.trips.length,0);assert.equal(f.saved.budgets.length,0);
+  assert.equal(f.saved.quickQuotes.length,1);assert.equal(f.saved.quickQuotes[0].offers[0].total,12500);
+  assert.match(f.d.querySelector('#dialog-body').textContent,/12.500,00/);assert.equal(f.d.querySelector('#dialog-body script'),null);
+  const id=f.saved.quickQuotes[0].id;
+  let exported,filename;f.w.URL.createObjectURL=blob=>{exported=blob;return 'blob:test';};f.w.URL.revokeObjectURL=()=>{};f.w.HTMLAnchorElement.prototype.click=function(){filename=this.download;};
+  await f.portal.workspaceAction('sales-quick-download',id);
+  assert.equal(filename,'Lisboa especial.html');
+  const html=await new Promise(resolve=>{const reader=new f.w.FileReader();reader.onload=()=>resolve(reader.result);reader.readAsText(exported);});
+  assert.match(html,/12.500,00/);assert.ok(!html.includes('<script>alert(1)</script>'));assert.match(html,/&lt;script&gt;/);
+  await f.portal.workspaceSubmit('sales-quick',{...draft,id,total:'13000'});
+  assert.equal(f.saved.quickQuotes.length,1);assert.equal(f.saved.quickQuotes[0].offers[0].total,13000);
+  await f.portal.workspaceSubmit('sales-quick',{...draft,travelers:'1.5'});assert.equal(f.saved.quickQuotes.length,1);
+  await f.portal.workspaceSubmit('sales-quick',{...draft,end:'2027-04-01'});assert.equal(f.saved.quickQuotes.length,1);
+  const reopened=await fixture(t,{pathname:'/cotacao.html',workspace:f.saved});
+  assert.match(reopened.d.querySelector('#portal-main').textContent,/Lisboa <especial>/);
+  const invalid=clone(f.saved);invalid.quickQuotes[0].offers[0].total=-1;assert.throws(()=>validateState(invalid));
+});
+
+test('client status, search and recoverable deletion preserve trip, document and referral history',async t=>{
+  const f=await fixture(t,{pathname:'/clientes.html'});
+  await f.portal.workspaceSubmit('attendance',{client:'',name:'Ágata Costa',phone:'123',request:'Pedido',destination:'Portugal'});
+  const c=f.saved.clients[0],trip=f.saved.trips[0];
+  await f.portal.workspaceSubmit('client',{id:c.id,name:c.name,email:'',phone:'123',notes:'',status:'Inativo'});
+  await f.portal.workspaceSubmit('client',{name:'Indicada',email:'',phone:'',notes:'',referredBy:c.id});
+  await f.portal.workspaceSubmit('new-document',{name:'Documento',type:'Arquivo',trip:trip.id,base:'',_clients:[c.id]});
+  await f.portal.workspaceSubmit('delete-client',{id:c.id});
+  assert.ok(f.saved.clients.find(x=>x.id===c.id).deletedAt);assert.equal(f.saved.trips[0].client,c.id);
+  assert.equal(f.saved.documents[0].clients[0],c.id);assert.equal(f.saved.clients[1].referredBy,c.id);
+  const filter=f.d.querySelector('#operations-client-filter');filter.value='deleted';filter.dispatchEvent(new f.w.Event('change',{bubbles:true}));
+  assert.match(f.d.querySelector('#operations-client-results').textContent,/Ágata Costa/);
+  const search=f.d.querySelector('#operations-client-search');search.value='agata';search.dispatchEvent(new f.w.Event('input',{bubbles:true}));
+  assert.match(f.d.querySelector('#operations-client-results').textContent,/Restaurar/);
+  await f.portal.workspaceAction('restore-client',c.id);assert.equal(f.saved.clients[0].deletedAt,undefined);assert.equal(f.saved.clients[0].status,'Inativo');
+});
+
+test('document preview uses unsaved text without overwriting source proposal or saved document',async t=>{
+  const initial=JSON.parse(read('backend/initial-state.json'));
+  initial.clients=[{id:'c',name:'Cliente',email:'',phone:''}];
+  initial.budgets=[{id:'b',client:'c',name:'Lisboa',destination:'Lisboa',start:'2027-04-01',end:'2027-04-10',valid:'2027-03-01',travelers:2,items:[{name:'Hotel',qty:1,unit:1000}],discount:0,status:'Rascunho'}];
+  initial.documents=[{id:'d',name:'Proposta · Lisboa',budgetId:'b',type:'Proposta',content:'Texto salvo',status:'Rascunho',clients:['c'],trip:''}];
+  const f=await fixture(t,{pathname:'/documento.html?id=d',workspace:initial});
+  assert.match(f.d.querySelector('.document-source-note').textContent,/Editar proposta original/);
+  const content=f.d.querySelector('#document-content');content.value='Texto revisado <b>sem HTML</b>';
+  await f.portal.workspaceAction('preview-document');
+  assert.match(f.d.querySelector('.document-text-preview').textContent,/Texto revisado <b>sem HTML<\/b>/);
+  assert.equal(f.d.querySelector('.document-text-preview b'),null);assert.equal(content.value,'Texto revisado <b>sem HTML</b>');
+  assert.equal(f.saved.documents[0].content,'Texto salvo');assert.equal(f.saved.budgets[0].items[0].unit,1000);
 });

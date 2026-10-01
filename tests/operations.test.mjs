@@ -183,3 +183,13 @@ test('model and every render function leave persisted state unchanged and cap ov
   assert.equal((html.match(/Datas cadastradas/g) || []).length, 1);
   assert.match(html, /6 de 12 itens/);
 });
+test('calendar combines appointments with departure, travel period and return without creating events',()=>{
+  const state=base();state.trips=[trip('confirmed','Confirmada',{start:'2026-10-01',end:'2026-10-03'}),trip('pending','Novo pedido',{start:'2026-10-01',end:'2026-10-03'}),trip('canceled','Cancelada',{start:'2026-10-01',end:'2026-10-03'})];
+  state.events=[{id:'meeting',title:'Contato',date:'2026-10-02',time:'10:00',type:'Retorno'}];
+  const before=JSON.stringify(state);
+  assert.equal(operations.calendarItems(ctx(state),'2026-10-01').find(x=>x.id==='confirmed').label,'Embarque');
+  const middle=operations.calendarItems(ctx(state),'2026-10-02');
+  assert.equal(middle.length,3);assert.equal(middle[0].id,'meeting');assert.equal(middle.find(x=>x.id==='confirmed').label,'Em viagem');assert.equal(middle.find(x=>x.id==='pending').label,'Viagem prevista');
+  assert.equal(operations.calendarItems(ctx(state),'2026-10-03').find(x=>x.id==='confirmed').label,'Retorno');
+  assert.equal(operations.calendarItems(ctx(state),'2026-10-04').length,0);assert.equal(JSON.stringify(state),before);
+});

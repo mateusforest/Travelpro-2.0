@@ -12,6 +12,14 @@ export function validateState(s){
   for(const key of collections){if(!Array.isArray(s[key])||s[key].length>10000)fail(422,'Lista inválida: '+key);const ids=new Set();for(const row of s[key]){if(!object(row)||typeof row.id!=='string'||!row.id||row.id.length>100||ids.has(row.id))fail(422,'Identificador inválido em '+key);ids.add(row.id);}}
   const refs=(key,id)=>s[key].some(x=>x.id===id),num=(v,min=0)=>typeof v==='number'&&Number.isFinite(v)&&v>=min;
   const date=x=>{try{return /^\d{4}-\d{2}-\d{2}$/.test(x)&&new Date(x+'T12:00:00Z').toISOString().slice(0,10)===x;}catch{return false;}};
+  if(s.quickQuotes!==undefined){
+    if(!Array.isArray(s.quickQuotes)||s.quickQuotes.length>10000)fail(422,'Lista de cotações inválida.');
+    const ids=new Set();for(const q of s.quickQuotes){const r=q?.request;
+      if(!object(q)||typeof q.id!=='string'||!q.id||q.id.length>100||ids.has(q.id)||typeof q.name!=='string'||!q.name.trim()||q.name.length>200||!object(r)||typeof r.origin!=='string'||!r.origin.trim()||typeof r.destination!=='string'||!r.destination.trim()||!date(r.start)||!date(r.end)||r.end<r.start||!Number.isInteger(r.travelers)||r.travelers<1||r.travelers>100||q.source!=='manual')fail(422,'Revise os dados da cotação avulsa.');
+      ids.add(q.id);try{salesFlow.normalizeQuote(q);}catch(error){fail(422,error.message);}
+    }
+  }
+  for(const c of s.clients){if(c.status&&!['Ativo','Inativo','Prospect'].includes(c.status))fail(422,'Situação do cliente inválida.');if(c.deletedAt&&(typeof c.deletedAt!=='string'||!Number.isFinite(Date.parse(c.deletedAt))))fail(422,'Data de exclusão inválida.');}
   for(const c of s.clients)if(typeof c.name!=='string'||!c.name.trim()||typeof c.phone!=='string'||typeof c.email!=='string')fail(422,'Cliente inválido.');
   for(const c of s.clients){if(c.referredBy&&(c.referredBy===c.id||!refs('clients',c.referredBy)))fail(422,'Confira quem indicou o cliente.');if(c.acquisitionSource!==undefined&&(typeof c.acquisitionSource!=='string'||c.acquisitionSource.length>200))fail(422,'Informe uma origem com até 200 caracteres.');if(c.relationship&&!['Em construção','Próximo','Fidelizado','Requer atenção'].includes(c.relationship))fail(422,'Selecione o relacionamento com o cliente.');}
   for(const t of s.trips){

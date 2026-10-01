@@ -156,18 +156,32 @@
 
   function clientResults(ctx, query = '') {
     const view = model(ctx), term = normalize(query);
-    const rows = view.clients.filter(client => normalize([client.name, client.email, client.phone].join(' ')).includes(term));
+    const filter=ctx.clientFilter||'active';
+    const rows = view.clients.filter(client => (filter==='deleted'?!!client.deletedAt:!client.deletedAt&&(filter==='all'||(client.status||'Ativo')===({active:'Ativo',inactive:'Inativo',prospect:'Prospect'}[filter])))).filter(client=>normalize([client.name, client.email, client.phone].join(' ')).includes(term)).sort((a,b)=>a.name.localeCompare(b.name,'pt-BR'));
     if (!rows.length) return empty(view.clients.length ? 'Nenhum cliente encontrado.' : 'Nenhum cliente cadastrado.', view.clients.length ? 'Tente outro nome ou contato.' : 'O primeiro cliente também pode ser criado junto com um atendimento.');
     return `<div class="ops-client-grid">${rows.map(client => {
       const count = view.trips.filter(trip => trip.client === client.id || list(trip.participants).includes(client.id)).length;
       const initials = String(client.name || '?').trim().split(/\s+/).filter(Boolean).slice(0, 2).map(part => Array.from(part)[0]).join('');
-      return `<a class="ops-client-card" href="${escape(href('cliente', client.id))}"><span class="ops-avatar" aria-hidden="true">${escape(initials)}</span><div class="ops-client-copy"><h2>${escape(client.name || 'Cliente sem nome')}</h2><p>${escape(client.phone || client.email || 'Contato não informado')}</p><small>${count} ${count === 1 ? 'atendimento vinculado' : 'atendimentos vinculados'}</small></div><span class="ops-row-arrow" aria-hidden="true">${svg(ctx, 'arrow')}</span></a>`;
+      return `<article class="ops-client-card managed-client"><a class="client-profile-link" href="${escape(href('cliente', client.id))}"><span class="ops-avatar" aria-hidden="true">${escape(initials)}</span><div class="ops-client-copy"><h2>${escape(client.name || 'Cliente sem nome')}</h2><p>${escape(client.phone || client.email || 'Contato não informado')}</p><small>${count} ${count === 1 ? 'atendimento vinculado' : 'atendimentos vinculados'}</small></div></a><div class="client-management"><span class="status gray">${escape(client.deletedAt?'Excluído':client.status||'Ativo')}</span>${client.deletedAt?`<button class="text-button" data-action="restore-client" data-id="${escape(client.id)}">Restaurar</button>`:`<button class="text-button" data-action="edit-client" data-id="${escape(client.id)}">Editar / status</button><button class="text-button" data-action="delete-client" data-id="${escape(client.id)}">Excluir</button>`}</div></article>`;
     }).join('')}</div>`;
   }
 
   function clients(ctx) {
-    return `<section class="ops-page">${heading(ctx, 'Clientes', 'Contatos e histórico de relacionamento da agência.', 'new-client', 'Novo cliente')}<div class="ops-toolbar"><label class="ops-search">${svg(ctx, 'search')}<input id="operations-client-search" type="search" placeholder="Buscar nome ou contato" aria-label="Buscar cliente por nome ou contato" autocomplete="off"></label></div><div id="operations-client-results" aria-live="polite">${clientResults(ctx)}</div></section>`;
+    const active=list(ctx.state.clients).filter(c=>!c.deletedAt);
+    return `<section class="ops-page clients-page">${heading(ctx, 'Clientes', 'Contatos, viagens e histórico de relacionamento da agência.', 'new-client', 'Novo cliente')}<p class="muted-small">${active.length} clientes · ${active.filter(c=>c.relationship==='Fidelizado').length} fidelizados · ${active.filter(c=>!c.phone&&!c.email).length} sem contato cadastrado</p><div class="ops-toolbar"><label class="ops-search">${svg(ctx, 'search')}<input id="operations-client-search" type="search" value="${escape(ctx.clientQuery||'')}" placeholder="Buscar nome, telefone ou e-mail" aria-label="Buscar cliente por nome ou contato" autocomplete="off"></label><label class="client-status-filter"><span>Situação</span><select id="operations-client-filter">${[['active','Ativos'],['prospect','Prospects'],['inactive','Inativos'],['all','Todos os clientes'],['deleted','Excluídos']].map(([v,l])=>`<option value="${v}" ${v===(ctx.clientFilter||'active')?'selected':''}>${l}</option>`).join('')}</select></label></div><div id="operations-client-results" aria-live="polite">${clientResults(ctx,ctx.clientQuery||'')}</div></section>`;
   }
 
-  window.TravelOperations = Object.freeze({today, inbox, inboxResults, clients, clientResults, model});
+  function calendarItems(ctx,day) {
+    const s=ctx.state;
+    const items=list(s.events).filter(e=>e.date===day).map(e=>({...e,kind:'event',label:e.type||'Compromisso'}));
+    for(const t of list(s.trips)) {
+      if(t.datesPending||dateDay(t.start)===null||dateDay(t.end)===null||/cancelad|perdid|recusad/i.test(t.status||'')||day<t.start||day>t.end)continue;
+      const confirmed=/confirmad|emitid|andamento|em viagem|viajando|finalizad|concluid/i.test(t.status||'');
+      const label=confirmed?(day===t.start?'Embarque':day===t.end?'Retorno':'Em viagem'):'Viagem prevista';
+      if(items.some(e=>e.trip===t.id&&normalize(e.type)===normalize(label)))continue;
+      items.push({id:t.id,trip:t.id,title:t.title,time:'',kind:'trip',label,details:t.destination});
+    }
+    return items.sort((a,b)=>(a.time||'99:99').localeCompare(b.time||'99:99')||a.title.localeCompare(b.title,'pt-BR'));
+  }
+  window.TravelOperations = Object.freeze({today, inbox, inboxResults, clients, clientResults, calendarItems, model});
 })();

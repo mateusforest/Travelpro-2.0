@@ -81,7 +81,30 @@
     function presentation(b) {
       return `<article class="sales-presentation ${b.appearance==='warm'?'warm':''}"><small>${e(state().agency)}</small>${b.badge?'<span class="sales-badge">'+e(b.badge)+'</span>':''}<h1>${e(b.name)}</h1><p>Uma proposta para ${e(c.client(b.client).name)}</p><p>${e(b.introduction||'')}</p><h2>${e(b.destination)}</h2><p>${e(b.start)} a ${e(b.end)} · ${b.travelers} viajantes</p><h3>O que está incluso</h3><ul>${(b.inclusions||[]).map(v=>'<li>'+e(v)+'</li>').join('')}</ul>${b.items.map(i=>'<p>'+e(i.name)+' · '+i.qty+' × '+c.money(i.unit)+'</p>').join('')}<h2>${c.money(c.total(b).total)}</h2><p>Desconto: ${c.money(b.discount)}</p><p>Validade: ${e(stamp(b.validUntil||b.valid))}</p><p class="sales-pre">${e(b.notes)}</p><small>Sujeito à disponibilidade e às condições da operadora. A aprovação desta proposta não confirma reserva, pagamento ou emissão.</small></article>`;
     }
+    function quickForm(id='') {
+      const q=state().quickQuotes?.find(q=>q.id===id),r=q?.request||{},o=q?.offers?.[0]||{};
+      c.dialog(q?'Editar cotação avulsa':'Gerar cotação',`<form data-form="sales-quick"><input type="hidden" name="id" value="${e(q?.id||'')}"><p class="form-hint">Prepare uma cotação sem cadastrar cliente ou atendimento. Informe os valores e serviços que deseja apresentar.</p>${input('Título da cotação','name',q?.name||'')}<div class="form-grid">${input('Origem','origin',r.origin||'')}${input('Destino','destination',r.destination||'')}${input('Ida','start',r.start||'','date')}${input('Volta','end',r.end||'','date')}${input('Viajantes','travelers',r.travelers||1,'number')}${input('Válida até','valid',q?.validUntil?.slice(0,10)||'','date')}</div>${area('Serviços incluídos (um por linha)','inclusions',(o.inclusions||[]).join('\n'))}<div class="form-grid">${input('Valor total do grupo (R$)','total',o.total??'','number')}${input('Referência / fornecedor (opcional)','reference',q?.reference||'','text',false)}</div>${area('Condições, pagamento e observações','terms',o.terms||'')}<p class="form-hint">Use os preços conferidos com o fornecedor. Gerar a cotação não faz reserva nem cobrança.</p>${submit('Gerar e salvar cotação')}</form>`,'COTAÇÃO AVULSA');
+    }
+    const quickDate=value=>F.date(value)?new Date(value+'T12:00:00').toLocaleDateString('pt-BR'):stamp(value);
+    function quickPresentation(q) {
+      const r=q.request;
+      return `<article class="quick-quote-preview"><span class="eyebrow">${e(state().agency)} · COTAÇÃO</span><h2>${e(q.name)}</h2><p>${e(r.origin)} → ${e(r.destination)}</p><p>${quickDate(r.start)} a ${quickDate(r.end)} · ${r.travelers} viajante(s)</p>${q.offers.map(o=>`<section><h3>Serviços incluídos</h3><ul>${o.inclusions.map(x=>`<li>${e(x)}</li>`).join('')}</ul><p class="quick-total"><small>Total do grupo</small><strong>${c.money(o.total)}</strong><small>${c.money(o.total/r.travelers)} por viajante</small></p><h3>Condições</h3><p class="sales-pre">${e(o.terms||'Consulte a agência.')}</p></section>`).join('')}<p>Validade: ${quickDate(q.validUntil)}</p><p class="form-hint">Valores sujeitos à disponibilidade e reconfirmação. Este documento não confirma reserva ou emissão.</p></article>`;
+    }
+    function quickResult(id) {
+      const q=state().quickQuotes?.find(q=>q.id===id);if(!q)throw Error('Cotação não encontrada.');
+      c.dialog('Cotação pronta',quickPresentation(q)+'<div class="dialog-actions">'+btn('Editar cotação','sales-quick-edit',id)+btn('Baixar cotação','sales-quick-download',id,true)+'</div>','REVISAR E COMPARTILHAR');
+    }
+    function quickList() {
+      const rows=state().quickQuotes||[];
+      return `<section class="quick-quotes"><div class="section-heading"><h2>Cotações avulsas</h2><span class="muted-small">${rows.length} salva(s)</span></div>${rows.length?'<div class="budget-list">'+[...rows].reverse().map(q=>`<article class="attendance-card"><div><span class="eyebrow">${F.expired(q.validUntil)?'VALIDADE ENCERRADA':'COTAÇÃO AVULSA'}</span><h2>${e(q.name)}</h2><p>${e(q.request.destination)} · ${q.request.travelers} viajante(s)</p><p>Válida até ${quickDate(q.validUntil)}</p><strong>${c.money(q.offers[0].total)}</strong></div><div class="attendance-actions">${btn('Ver cotação','sales-quick-result',q.id,true)}${btn('Editar','sales-quick-edit',q.id)}</div></article>`).join('')+'</div>':'<div class="empty-state"><h2>Sua próxima cotação começa aqui</h2><p>Informe destino, datas, serviços e valores. O cadastro de cliente não é necessário.</p>'+btn('Gerar cotação','workflow-quote','',true)+'</div>'}</section>`;
+    }
     async function action(action,id) {
+      if(action.startsWith('sales-quick-')){
+        if(action==='sales-quick-edit')quickForm(id);
+        if(action==='sales-quick-result')quickResult(id);
+        if(action==='sales-quick-download'){const q=state().quickQuotes?.find(q=>q.id===id);if(!q)throw Error('Cotação não encontrada.');c.download(q.name,`<!doctype html><html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${e(q.name)}</title><style>body{font:16px/1.65 system-ui;color:#28323c;background:#f5f5f5;margin:0}article{max-width:760px;padding:40px;margin:auto;background:white}h2{font-size:30px}strong{font-size:28px}.quick-total>*{display:block}.sales-pre{white-space:pre-wrap}.form-hint{color:#616971}@media print{body{background:white}article{padding:0}}</style>${quickPresentation(q)}</html>`);}
+        return true;
+      }
       if(proposals&&await proposals.action(action,id))return true;
       const t=trip(id);
       if(action==='new-budget'){if(t)quotes(t);else c.dialog('Escolher atendimento','<p>A proposta começa pela cotação do atendimento.</p>'+state().trips.map(t=>'<div class="sales-links">'+btn(e(t.title),'sales-quotes',t.id)+'</div>').join('')+(!state().trips.length?btn('Novo atendimento','new-attendance','',true):''),'PROPOSTAS');return true;}
@@ -113,6 +136,15 @@
       t.sales||={quotes:[]};t.sales.quotes.push(q);t.sales.quoteId=q.id;if(!t.sales.budgetId)t.status='Cotação recebida';return q;
     }
     async function submitForm(name,d) {
+      if(name==='sales-quick'){
+        if(!d.name?.trim()||!d.destination?.trim()||!d.origin?.trim()||!F.date(d.start)||!F.date(d.end)||d.end<d.start||!F.date(d.valid)||!Number.isInteger(Number(d.travelers))||Number(d.travelers)<1||Number(d.travelers)>100||d.total===''||!Number.isFinite(Number(d.total))||Number(d.total)<0)throw Error('Confira título, origem, destino, datas, viajantes, validade e valor.');
+        const result=F.normalizeQuote({currency:'BRL',reference:d.reference?.trim()||'Cotação avulsa',validUntil:d.valid,offers:[{name:d.name.trim(),total:Number(d.total),inclusions:String(d.inclusions||'').split('\n').map(x=>x.trim()).filter(Boolean),terms:d.terms||''}]});
+        state().quickQuotes||=[];const old=state().quickQuotes.find(q=>q.id===d.id);
+        if(d.id&&!old)throw Error('Cotação não encontrada. Reabra a lista.');
+        const q={...result,id:old?.id||c.uid('aq'),name:d.name.trim(),request:{origin:d.origin.trim(),destination:d.destination.trim(),start:d.start,end:d.end,travelers:Number(d.travelers)},source:'manual',createdAt:old?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString()};
+        if(old)Object.assign(old,q);else state().quickQuotes.push(q);
+        await c.flush();c.close();c.render();quickResult(q.id);return true;
+      }
       if(proposals&&await proposals.submit(name,d))return true;
       if(!name.startsWith('sales-'))return false;
       const t=trip(d.trip);
@@ -136,7 +168,7 @@
       if(name==='sales-fulfillment'){if(!t)throw Error('Atendimento não encontrado.');F.recordFulfillment(t,F.currentBudget(t,state().budgets),{...d,deadline:d.deadline?new Date(d.deadline).toISOString():''});c.close();c.render();}
       return true;
     }
-    return {flow,decor,action,submitForm,canItinerary:F.canItinerary};
+    return {flow,decor,action,submitForm,quickForm,quickList,canItinerary:F.canItinerary};
   }
   window.TravelSalesUI={create};
 })();
