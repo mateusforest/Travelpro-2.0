@@ -197,3 +197,27 @@ dialog{background:#f7f8fa;border:1px solid #fff;box-shadow:0 22px 80px #1b273940
 @media(max-width:760px){.document-page>.page-top .page-actions{display:flex;flex-wrap:wrap;width:100%;min-width:0;gap:10px}.document-page>.page-top .page-actions button{white-space:nowrap;flex:1 1 auto}.document-page>.page-top>div:first-child{min-width:0;width:100%}#document-editor .document-paper{order:-1}.calendar-day .calendar-count{display:grid;place-items:center;position:absolute;top:auto;bottom:14px;left:calc(50% - 9px);width:18px;height:18px;border-radius:50%;font-size:10px;font-style:normal;background:#ffe8d8;color:#a63d0c}}
 @media(max-width:1100px){.calendar-layout{grid-template-columns:1fr}.day-agenda{border-left:0;padding:24px 0}.document-source-note{align-items:flex-start;flex-direction:column}#document-editor .document-workspace{grid-template-columns:260px minmax(0,1fr)}#document-editor .document-paper{padding:22px}}
 @media(max-width:760px){#document-editor .document-workspace{display:flex;flex-direction:column}#document-editor .document-properties,#document-editor .document-paper{width:100%}#document-editor .document-paper{padding:20px}.document-source-note{padding:20px}.client-status-filter{width:100%}.client-status-filter select{flex:1}.clients-page .ops-search{max-width:none;width:100%;min-width:0}.calendar-day,.calendar-blank{height:100px;padding:4px}.calendar-day small{font-size:9px}.calendar-legend{gap:8px}.quick-quotes .attendance-card{padding:22px}}
+
+/* Connected selection and optional compact rail. */
+.sidebar-toggle{align-self:flex-end;margin:0 17px 12px 0;width:30px;height:30px;display:grid;place-items:center;border:1px solid #ffffff30;border-radius:50%;color:white;background:#ffffff12;cursor:pointer}
+.sidebar-toggle svg{width:18px;height:18px}
+.sidebar-toggle:focus-visible{outline:2px solid white;outline-offset:3px}
+.ops-period-filters{display:flex;flex-wrap:wrap;gap:16px;margin:0 0 22px;padding:16px 20px;border:1px solid #dde1e7;border-radius:16px;background:#ffffff70}
+.ops-period-filters label{display:grid;gap:7px;flex:1;min-width:160px;font-size:12px;color:#637083}
+.ops-period-filters input,.ops-period-filters select{min-width:0;width:100%;height:42px;padding:8px 12px;border:1px solid #dce1e7;border-radius:10px;background:#f4f5f7;color:#283344;font:inherit;font-size:14px}
+@media(min-width:761px){
+ #portal-dock a[aria-current=page],#portal-dock a[aria-current=page]:hover{margin-right:0;border-radius:26px 0 0 26px;border-color:transparent;background:linear-gradient(90deg,#ffbb885c 0%,#f5e4d8 56%,#eff0f2 100%);color:#52290f;box-shadow:inset 4px 4px 8px #56210740,inset 0 -2px 4px #ffffff70}
+ #portal-dock a[aria-current=page] svg{color:#8d330a}
+ #portal-dock a[aria-current=page]::before,#portal-dock a[aria-current=page]::after{display:block;content:'';position:absolute;left:auto;right:0;width:18px;height:18px;background:transparent;pointer-events:none}
+ #portal-dock a[aria-current=page]::before{top:-18px;border-radius:0 0 18px 0;box-shadow:0 9px 0 #eff0f2}
+ #portal-dock a[aria-current=page]::after{bottom:-18px;border-radius:0 18px 0 0;box-shadow:0 -9px 0 #eff0f2}
+ :root.sidebar-collapsed{--portal-sidebar:78px}
+ .sidebar-collapsed #dock-area{padding-left:10px}
+ .sidebar-collapsed #portal-dock a{padding:0;justify-content:center;margin-right:10px;min-height:48px}
+ .sidebar-collapsed #portal-dock a[aria-current=page]{margin-right:0;padding-right:10px}
+ .sidebar-collapsed #portal-dock a span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+ .sidebar-collapsed .portal-footnote{display:none}
+ .sidebar-collapsed .travelpro-brand{width:42px;min-width:42px;flex-basis:42px;background:url('assets/travelpro-tp-orange.png') center/contain no-repeat}
+ .sidebar-collapsed .travelpro-brand img{visibility:hidden;width:42px}
+}
+@media(max-width:760px){.sidebar-toggle{display:none}.ops-period-filters{padding:12px;gap:12px}}

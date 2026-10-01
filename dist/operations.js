@@ -133,12 +133,15 @@
   }
 
   function inboxResults(ctx, query = '', filter = 'all') {
-    const view = model(ctx), term = normalize(query);
+    const view = model(ctx), term = normalize(query), options=ctx.options||{};
+    if(options.from&&options.to&&options.from>options.to)return empty('Confira o período.', 'A data final deve ser igual ou posterior à inicial.');
     const rows = view.trips.filter(trip => {
+      if((options.from||options.to)&&(!trip.start||(options.from&&(trip.end||trip.start)<options.from)||(options.to&&trip.start>options.to)))return false;
       if (filter === 'commercial' && (closedTrip(trip) || confirmedTrip(trip))) return false;
       if (filter === 'confirmed' && !confirmedTrip(trip)) return false;
       return normalize([trip.title, trip.destination, view.clientName(trip.client)].join(' ')).includes(term);
     });
+    rows.sort((a,b)=>{const at=Date.parse(a.createdAt)||0,bt=Date.parse(b.createdAt)||0;const order=bt-at||view.trips.indexOf(b)-view.trips.indexOf(a);return options.sort==='oldest'?-order:order;});
     if (!rows.length) return view.trips.length ? empty('Nenhum atendimento encontrado.', 'Tente outro nome, destino ou filtro.') : empty('Nenhum atendimento cadastrado.', 'Crie um pedido para reunir cliente, viagem e próximos passos.');
     return `<div class="ops-attendance-list">${rows.map(trip => {
       const upcoming = view.nextEvent(trip.id);
@@ -151,7 +154,7 @@
   }
 
   function inbox(ctx) {
-    return `<section class="ops-page">${heading(ctx, 'Atendimentos', 'Cada cliente, sua viagem e o próximo passo.', 'new-attendance', 'Novo atendimento')}<div class="ops-toolbar"><label class="ops-search">${svg(ctx, 'search')}<input id="operations-search" type="search" placeholder="Buscar cliente ou destino" aria-label="Buscar atendimento por cliente ou destino" autocomplete="off"></label><div class="ops-filters" role="group" aria-label="Filtrar atendimentos">${[['all','Todos'],['commercial','Em negociação'],['confirmed','Confirmados']].map(([id, label]) => `<button type="button" class="ops-filter" data-action="operations-filter" data-id="${id}" aria-pressed="${id === 'all'}">${label}</button>`).join('')}</div></div><div id="operations-results" aria-live="polite">${inboxResults(ctx)}</div></section>`;
+    return `<section class="ops-page">${heading(ctx, 'Atendimentos', 'Cada cliente, sua viagem e o próximo passo.', 'new-attendance', 'Novo atendimento')}<div class="ops-toolbar"><label class="ops-search">${svg(ctx, 'search')}<input id="operations-search" type="search" placeholder="Buscar cliente ou destino" aria-label="Buscar atendimento por cliente ou destino" autocomplete="off"></label><div class="ops-filters" role="group" aria-label="Filtrar atendimentos">${[['all','Todos'],['commercial','Em negociação'],['confirmed','Confirmados']].map(([id, label]) => `<button type="button" class="ops-filter" data-action="operations-filter" data-id="${id}" aria-pressed="${id === 'all'}">${label}</button>`).join('')}</div></div><div class="ops-period-filters"><label>Viagens a partir de<input type="date" data-operations-option="from" value="${escape(ctx.options?.from||'')}"></label><label>Até<input type="date" data-operations-option="to" value="${escape(ctx.options?.to||'')}"></label><label>Ordem de cadastro<select data-operations-option="sort"><option value="newest">Mais recentes primeiro</option><option value="oldest" ${ctx.options?.sort==='oldest'?'selected':''}>Mais antigos primeiro</option></select></label></div><div id="operations-results" aria-live="polite">${inboxResults(ctx)}</div></section>`;
   }
 
   function clientResults(ctx, query = '') {

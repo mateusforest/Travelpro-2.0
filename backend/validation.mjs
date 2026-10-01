@@ -1,4 +1,5 @@
 import {validateLayout} from '../dist/pdf-template-core.mjs';
+import {isDeepStrictEqual} from 'node:util';
 import '../dist/itinerary-models.js';
 import '../dist/sales-flow.js';
 import '../dist/proposal-brand.js';
@@ -48,7 +49,7 @@ export function validateState(s){
 }
 export function validateSalesTransition(previous,next){
   for(const r of next.itineraries){const old=previous.itineraries.find(x=>x.id===r.id);if(r.trip&&(!old||old.trip!==r.trip)&&!salesFlow.canItinerary(next.trips.find(t=>t.id===r.trip)))fail(422,'Confirme reserva, pagamento e emissão antes de preparar o roteiro desta viagem.');}
-  for(const t of previous.trips){for(const q of t.sales?.quotes||[]){const stored=next.trips.find(x=>x.id===t.id)?.sales?.quotes.find(x=>x.id===q.id);if(!stored||JSON.stringify(stored)!==JSON.stringify(q))fail(422,'Preserve a cotação recebida. Registre uma nova versão para atualizar valores.');}}
+  for(const t of previous.trips){for(const q of t.sales?.quotes||[]){const stored=next.trips.find(x=>x.id===t.id)?.sales?.quotes.find(x=>x.id===q.id);if(!stored||!isDeepStrictEqual(stored,q))fail(422,'Preserve a cotação recebida. Registre uma nova versão para atualizar valores.');}}
 }
 export function operatorRequest(input,state){
   if(!input||typeof input.destination!=='string'||!input.destination.trim()||typeof input.origin!=='string'||!input.origin.trim()||!salesFlow.date(input.start)||!salesFlow.date(input.end)||input.end<input.start||!Number.isInteger(Number(input.travelers))||Number(input.travelers)<1||Number(input.travelers)>100||!state.clients.some(c=>c.id===input.client))fail(422,'Confira cliente, destino, origem, datas e viajantes.');

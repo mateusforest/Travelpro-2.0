@@ -70,6 +70,14 @@
   function mount(){
     const header=$('.portal-header');if(!header||$('#market-tools'))return;
     const logo=header.querySelector('.travelpro-brand img');if(logo){logo.src='assets/travelpro-wordmark-white.png';logo.width=2172;logo.height=724;}
+    const dock=$('#dock-area');
+    if(dock){
+      const toggle=document.createElement('button');toggle.type='button';toggle.className='sidebar-toggle';
+      toggle.setAttribute('aria-controls','portal-dock');dock.prepend(toggle);
+      let collapsed=false;try{collapsed=localStorage.getItem('travelpro-sidebar-collapsed')==='true';}catch{}
+      const update=()=>{document.documentElement.classList.toggle('sidebar-collapsed',collapsed);toggle.setAttribute('aria-expanded',String(!collapsed));toggle.setAttribute('aria-label',collapsed?'Expandir menu':'Recolher menu');toggle.title=collapsed?'Expandir menu':'Recolher menu';toggle.innerHTML=glyph(collapsed?'M9 6l6 6-6 6':'M15 6l-6 6 6 6');};
+      toggle.addEventListener('click',()=>{collapsed=!collapsed;update();try{localStorage.setItem('travelpro-sidebar-collapsed',String(collapsed));}catch{}});update();
+    }
     const breadcrumbs=$('#breadcrumbs');
     if(breadcrumbs){
       const location=document.createElement('div');location.className='header-location';

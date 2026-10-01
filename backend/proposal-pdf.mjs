@@ -61,7 +61,7 @@ export async function proposalPDF(state,b){
  const pages=doc.bufferedPageRange();for(let i=0;i<pages.count;i++){
   doc.switchToPage(i);doc.save();doc.rect(0,752,596,90).fill(paper);doc.moveTo(left,750).lineTo(549,750).strokeColor('#d6dfde').stroke();
   for(const x of [left,310]){doc.save().opacity(.08).roundedRect(x+3,770,239,58,12).fill('#50666c').restore();doc.roundedRect(x,767,239,58,12).fill('#faf9f6');}
-  write('TECNOLOGIA',left+14,776,100,7,false,muted);doc.image(asset('travelpro-assinatura-final.png'),left+8,787,{fit:[187,35],align:'left',valign:'center'});
+  write('TECNOLOGIA',left+14,776,100,7,false,muted);doc.image(asset('travelpro-assinatura-transparente.png'),left+8,787,{fit:[187,35],align:'left',valign:'center'});
   write('OPERADORA',324,776,100,7,false,muted);doc.image(asset('europlus-logo.png'),324,795,{fit:[108,22]});doc.font('Helvetica').fontSize(8).fillColor(muted).text(`${i+1} / ${pages.count}`,511,798,{lineBreak:false});doc.restore();
  }
  doc.end();return done;

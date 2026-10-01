@@ -164,7 +164,7 @@
         const validUntil=d.time?new Date(d.valid+'T'+d.time).toISOString():d.valid;
         storeQuote(t,d,{currency:'BRL',reference:d.reference,validUntil,offers:[{name:d.name,total:Number(d.total),inclusions:d.inclusions.split('\n').map(s=>s.trim()).filter(Boolean),terms:d.terms}]},'manual');c.close();c.render();quotes(t);
       }
-      if(name==='sales-decision'){const b=state().budgets.find(b=>b.id===d.id),target=trip(b?.trip);if(!target)throw Error('Vincule a proposta a um atendimento.');F.recordDecision(target,b,d.event,d.note);c.close();c.render();}
+      if(name==='sales-decision'){const b=state().budgets.find(b=>b.id===d.id),target=trip(b?.trip);if(!target)throw Error('Vincule a proposta a um atendimento.');const beforeBudget=structuredClone(b),beforeTrip=structuredClone(target);F.recordDecision(target,b,d.event,d.note);try{await c.flush();}catch(error){for(const key of Object.keys(b))delete b[key];Object.assign(b,beforeBudget);for(const key of Object.keys(target))delete target[key];Object.assign(target,beforeTrip);throw error;}c.close();c.render();c.toast('Etapa registrada: '+b.status+'.');}
       if(name==='sales-fulfillment'){if(!t)throw Error('Atendimento não encontrado.');F.recordFulfillment(t,F.currentBudget(t,state().budgets),{...d,deadline:d.deadline?new Date(d.deadline).toISOString():''});c.close();c.render();}
       return true;
     }

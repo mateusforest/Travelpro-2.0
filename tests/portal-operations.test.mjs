@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {randomUUID} from 'node:crypto';
 import {JSDOM} from 'jsdom';
-import {validateState} from '../backend/validation.mjs';
+import {validateState,validateSalesTransition} from '../backend/validation.mjs';
 import {applyIntake} from '../backend/intake.mjs';
 
 const read=file=>readFileSync(new URL('../'+file,import.meta.url),'utf8');
@@ -33,7 +33,7 @@ async function fixture(t,{pathname='/portal.html',workspace,chatGate,intake=fals
     async request(route,options={}){
       if(route==='/workspace'&&options.method==='PUT'){
         assert.equal(options.body.version,version,'workspace write uses current server version');
-        const next=clone(options.body.state);validateState(next);
+        const next=clone(options.body.state);validateState(next);validateSalesTransition(saved,next);
         saved=next;writes.push(clone(next));return {version:++version};
       }
       if(route==='/workspace')return {state:clone(saved),version,services:clone(services)};

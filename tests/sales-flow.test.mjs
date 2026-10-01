@@ -12,3 +12,12 @@ test('approval, payment, reservation and emission remain separate; itinerary req
 test('server keeps received quotes immutable and blocks new or relinked itineraries before confirmation',()=>{const {s,t}=fixture();const next=structuredClone(s);next.trips[0].sales.quotes[0].offers[0].total=99;assert.throws(()=>validateSalesTransition(s,next),/Preserve/);const r=structuredClone(s);r.itineraries.push({id:'r',trip:t.id,name:'Roteiro',days:[]});assert.throws(()=>validateSalesTransition(s,r),/pagamento/);s.itineraries.push({id:'old',trip:t.id,name:'Roteiro anterior',days:[]});assert.doesNotThrow(()=>validateSalesTransition(s,structuredClone(s)),'historical material stays available');});
 
 test('structured operator details survive proposal creation without leaking internal fields or double counting fees',()=>{const {t,q}=fixture();q.offers[0].details={services:[{kind:'flight',title:'Azul 4151',lines:['Sem bagagem despachada.'],net:10}],paymentTerms:['10 parcelas'],price:{products:1400,fees:100,taxes:0},commission:50};const b=F.buildBudget(t,q,0,'b',now);assert.equal(b.details.services[0].title,'Azul 4151');assert.equal('net' in b.details.services[0],false);assert.equal('commission' in b.details,false);assert.equal(b.items.reduce((sum,i)=>sum+i.qty*i.unit,0),1500);b.details.services[0].lines.push('edited');assert.equal(q.offers[0].details.services[0].lines.length,1);q.offers[0].details.price.fees=101;assert.throws(()=>F.normalizeQuote(q),/total/);assert.throws(()=>F.normalizeDetails({services:[null]}),/serviço/);});
+
+test('quote immutability ignores JSONB object key ordering but rejects nested changes',()=>{
+ const {s}=fixture();const next=structuredClone(s);
+ const reorder=x=>Array.isArray(x)?x.map(reorder):x&&typeof x==='object'?Object.fromEntries(Object.entries(x).reverse().map(([k,v])=>[k,reorder(v)])):x;
+ next.trips[0].sales.quotes=next.trips[0].sales.quotes.map(reorder);
+ assert.doesNotThrow(()=>validateSalesTransition(s,next));
+ next.trips[0].sales.quotes[0].offers[0].inclusions.push('Changed');
+ assert.throws(()=>validateSalesTransition(s,next),/Preserve/);
+});

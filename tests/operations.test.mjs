@@ -193,3 +193,11 @@ test('calendar combines appointments with departure, travel period and return wi
   assert.equal(operations.calendarItems(ctx(state),'2026-10-03').find(x=>x.id==='confirmed').label,'Retorno');
   assert.equal(operations.calendarItems(ctx(state),'2026-10-04').length,0);assert.equal(JSON.stringify(state),before);
 });
+
+test('attendance order defaults to newest creation and period includes overlapping trips',()=>{
+ const state=base();state.trips=[trip('old','Novo pedido',{createdAt:'2026-01-01',start:'2026-10-01',end:'2026-10-12'}),trip('new','Novo pedido',{createdAt:'2026-09-01',start:'2026-10-15',end:'2026-10-20'}),trip('pending')];
+ const html=operations.inboxResults(ctx(state));assert.ok(html.indexOf('Viagem new')<html.indexOf('Viagem old'));
+ const reversed=operations.inboxResults({...ctx(state),options:{sort:'oldest'}});assert.ok(reversed.indexOf('Viagem old')<reversed.indexOf('Viagem new'));
+ const filtered=operations.inboxResults({...ctx(state),options:{from:'2026-10-10',to:'2026-10-11'}});assert.match(filtered,/Viagem old/);assert.doesNotMatch(filtered,/Viagem new|Viagem pending/);
+ assert.match(operations.inboxResults({...ctx(state),options:{from:'2026-10-12',to:'2026-10-01'}}),/Confira o período/);
+});
