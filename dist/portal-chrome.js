@@ -19,6 +19,12 @@
   function clockLabel(zone,now=new Date()) {return new Intl.DateTimeFormat('pt-BR',{timeZone:zone,hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(now);}
   function tick(){
     const now=new Date();
+    const date=$('#header-date');
+    if(date){
+      date.textContent=new Intl.DateTimeFormat('pt-BR',{day:'2-digit',month:'short',year:'numeric',timeZone:localZone}).format(now);
+      date.dateTime=[now.getFullYear(),String(now.getMonth()+1).padStart(2,'0'),String(now.getDate()).padStart(2,'0')].join('-');
+      date.title=new Intl.DateTimeFormat('pt-BR',{dateStyle:'full',timeZone:localZone}).format(now);
+    }
     for(const [key,zone] of [['local',localZone],['us',preferences.us],['eu',preferences.eu]]){
       const node=$(`[data-clock="${key}"]`);if(!node)continue;
       node.querySelector('time').textContent=clockLabel(zone,now);
@@ -64,11 +70,17 @@
   function mount(){
     const header=$('.portal-header');if(!header||$('#market-tools'))return;
     const logo=header.querySelector('.travelpro-brand img');if(logo){logo.src='assets/travelpro-wordmark-white.png';logo.width=2172;logo.height=724;}
+    const breadcrumbs=$('#breadcrumbs');
+    if(breadcrumbs){
+      const location=document.createElement('div');location.className='header-location';
+      breadcrumbs.before(location);location.append(breadcrumbs);
+      const date=document.createElement('time');date.id='header-date';location.append(date);
+    }
     const tools=document.createElement('div');tools.id='market-tools';tools.setAttribute('aria-label','Câmbio de referência e horários');
     tools.innerHTML=`<div class="market-rates"><span class="market-note">Câmbio</span>${['USD','EUR'].map(code=>`<div data-fx="${code}"><small>${code==='USD'?'Dólar':'Euro'}</small><strong>…</strong></div>`).join('')}</div><div class="market-clocks">${['local','us','eu'].map(key=>`<div data-clock="${key}"><small></small><time>--:--</time></div>`).join('')}</div><button type="button" class="market-calculator" aria-label="Abrir calculadora de câmbio e fusos horários" aria-haspopup="dialog" title="Calculadora de câmbio">${calcIcon}</button>`;
     header.insertBefore(tools,header.querySelector('.header-end'));
     const footer=document.createElement('footer');footer.className='portal-partners';footer.setAttribute('aria-label','Tecnologia e operadora');
-    footer.innerHTML='<span><img src="assets/travelpro-tp-orange.png" width="30" height="30" alt="">Tecnologia <b>TravelPro</b></span><span><img src="assets/europlus-logo.png" width="76" height="26" alt="Europlus">Operadora <b>Europlus</b></span>';
+    footer.innerHTML='<span><span class="partner-emblem"><img src="assets/travelpro-tp-orange.png" width="36" height="36" alt=""></span><span class="partner-caption">Tecnologia<b>TravelPro</b></span></span><span><span class="partner-emblem"><img src="assets/europlus-symbol.png" width="36" height="36" alt=""></span><span class="partner-caption">Operadora<b>Europlus</b></span></span>';
     $('#portal-main').after(footer);
     const dialog=document.createElement('dialog');dialog.id='exchange-dialog';dialog.setAttribute('aria-labelledby','exchange-title');
     dialog.innerHTML=`<div class="exchange-heading"><div><span class="eyebrow">FERRAMENTAS DA AGÊNCIA</span><h2 id="exchange-title">Calculadora de câmbio</h2></div><button type="button" class="icon-button" id="fx-close" aria-label="Fechar calculadora">${glyph('M6 6l12 12M18 6 6 18')}</button></div><p class="exchange-intro">Converta valores entre real, dólar e euro.</p><label class="fx-amount-label" for="fx-amount">Valor para converter</label><input id="fx-amount" type="text" inputmode="decimal" autocomplete="off" value="1.000,00" aria-describedby="fx-error" maxlength="22"><p id="fx-error" class="fx-error" role="status"></p><div class="fx-currencies"><label>De<select id="fx-from"><option value="USD">USD · Dólar</option><option value="EUR">EUR · Euro</option><option value="BRL">BRL · Real</option></select></label><button type="button" id="fx-swap" class="icon-button" aria-label="Inverter moedas">${glyph('M4 8h16m-4-4 4 4-4 4M20 16H4m4-4-4 4 4 4')}</button><label>Para<select id="fx-to"><option value="BRL">BRL · Real</option><option value="USD">USD · Dólar</option><option value="EUR">EUR · Euro</option></select></label></div><div class="fx-result-card"><span>Valor estimado</span><output id="fx-result" aria-live="polite">—</output><small id="fx-equation"></small></div><p id="fx-source" role="status"></p><p class="fx-disclaimer">Referência para planejamento, sem IOF, spread ou tarifas. A taxa final depende da operadora ou instituição de câmbio.</p><button type="button" class="outline-button" id="fx-refresh">Atualizar cotações</button><details class="clock-preferences"><summary>Horários no cabeçalho</summary><p>Local: ${localZone.replaceAll('_',' ')}. Os relógios acompanham o horário de verão de cada cidade.</p><div>${['us','eu'].map(key=>`<label>${key==='us'?'Estados Unidos':'Europa'}<select data-zone="${key}">${cities[key].map(([zone,label])=>`<option value="${zone}" ${zone===preferences[key]?'selected':''}>${label}</option>`).join('')}</select></label>`).join('')}</div></details>`;

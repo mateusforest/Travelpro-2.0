@@ -10,13 +10,12 @@ body{color:var(--ink);background:radial-gradient(ellipse at 96% 5%,#ffe7d62e,tra
 .market-rates,.market-clocks{display:flex;gap:16px;align-items:center}.market-rates>div,.market-clocks>div{display:grid;gap:3px}.market-rates small,.market-clocks small{font-size:10px;color:#c3cbd7;line-height:1.3}.market-rates strong,.market-clocks time{font-size:12px;font-weight:550;color:#f9fafb;white-space:nowrap}.market-clocks{border-left:1px solid #ffffff22;padding-left:17px}.market-note{font-size:9px;max-width:44px;line-height:1.5;color:#b5bfcb}.market-calculator{display:grid;place-items:center;width:36px;height:36px;border:1px solid #ffffff29;border-radius:11px;background:linear-gradient(145deg,#ffffff18,#ffffff08);color:#ffc5a2;box-shadow:2px 3px 6px #0002;cursor:pointer}.market-calculator svg{width:19px;height:19px}.market-calculator:hover{background:#ffffff26}
 #dock-area{width:var(--portal-sidebar);top:var(--portal-header);padding:25px 0 20px 17px;border:0;border-radius:0 0 32px 0;background:radial-gradient(ellipse at 0 0,#ff9a393b,transparent 40%),linear-gradient(170deg,#c4470b 2%,#b83e0b 34%,#773117 74%,#45291f);box-shadow:5px 2px 18px #7130110e}
 #portal-dock{padding:0;gap:8px;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:#ffffff55 transparent}
-#portal-dock a{position:relative;min-height:47px;border:1px solid #ffffff0a;padding:12px 15px;margin-right:15px;gap:13px;background:linear-gradient(100deg,#ffffff0c,#ffffff03);border-radius:24px;color:#fff;font-size:12px;isolation:isolate;flex-shrink:0}
-#portal-dock a svg{width:19px;height:19px;stroke-width:1.6;flex-shrink:0}#portal-dock a:hover{color:white;background:#ffffff1d}
-#portal-dock a[aria-current=page]{margin-right:0;border-color:transparent;border-radius:24px 0 0 24px;background:var(--portal-surface);color:#27303d;font-weight:650;overflow:visible}
-#portal-dock a[aria-current=page] svg{color:#ca470f}
-#portal-dock a[aria-current=page]::before,#portal-dock a[aria-current=page]::after{content:"";position:absolute;left:auto;right:0;width:18px;height:18px;background:transparent;pointer-events:none}
-#portal-dock a[aria-current=page]::before{top:-18px;bottom:auto;border-radius:0;box-shadow:none;background:radial-gradient(circle at 0 0,transparent 17.5px,var(--portal-surface) 18px)}
-#portal-dock a[aria-current=page]::after{bottom:-18px;border-radius:0;box-shadow:none;background:radial-gradient(circle at 0 100%,transparent 17.5px,var(--portal-surface) 18px)}
+#portal-dock a{position:relative;min-height:47px;border:1px solid #ffffff12;padding:12px 15px;margin-right:15px;gap:13px;background:linear-gradient(135deg,#ffffff0d,#00000005);border-radius:24px;color:#fff;font-size:12px;isolation:isolate;flex-shrink:0;box-shadow:1px 2px 4px #43170012,inset 0 1px 0 #ffffff08;transition:box-shadow .18s ease,background .18s ease,transform .18s ease}
+#portal-dock a svg{width:19px;height:19px;stroke-width:1.6;flex-shrink:0}
+@media(hover:hover){#portal-dock a:hover{color:white;background:linear-gradient(135deg,#ffffff16,#ffffff06);box-shadow:4px 5px 10px #43170035,-2px -2px 6px #ffcc8b1f;transform:translateY(-1px)}}
+#portal-dock a:active,#portal-dock a[aria-current=page],#portal-dock a[aria-current=page]:hover{margin-right:15px;border:1px solid #ffffff19;border-radius:24px;background:linear-gradient(145deg,#00000016,#ffffff06);color:white;font-weight:650;box-shadow:inset 4px 4px 9px #40160055,inset -3px -3px 7px #ffb77a26;transform:none}
+#portal-dock a[aria-current=page] svg{color:#fff}
+#portal-dock a[aria-current=page]::before,#portal-dock a[aria-current=page]::after{display:none}
 .portal-footnote{margin:35px 20px 0 2px;margin-top:auto;padding:22px 5px 18px;border-color:#ffffff30;color:#ffdfd0;gap:8px}.portal-footnote #agency-name-label{color:white}.portal-footnote a{color:#fff0e7}
 .backend-bar{margin-left:var(--portal-sidebar)!important;background:transparent!important;border-bottom:0;padding:10px 34px!important}.backend-bar #backend-status,.backend-bar button{color:#637083}
 #portal-main.workspace-main{max-width:none;margin:0 0 0 var(--portal-sidebar);padding:26px 34px 24px;min-height:calc(100svh - 200px)}
@@ -70,3 +69,16 @@ dialog{background:#f7f8fa;border:1px solid #fff;box-shadow:0 22px 80px #1b273940
 @media(max-width:1050px){.attendance-guidance .sales-next{grid-template-columns:1fr;gap:20px}.attendance-guidance-actions{flex-direction:row;flex-wrap:wrap;max-width:none;align-items:center}.attendance-summary-grid{grid-template-columns:1fr}}
 @media(max-width:760px){.workspace-main .attendance-guidance{padding:22px 20px}.attendance-guidance h2{font-size:21px}.attendance-guidance-actions{width:100%}.attendance-guidance-actions button{width:100%}.attendance-guidance ol{flex-wrap:nowrap;overflow-x:auto;padding-bottom:5px}.attendance-guidance li{flex:0 0 auto}.attendance-detail .attendance-meta{font-size:11px;gap:12px}.attendance-detail .attendance-tabs{gap:20px}.attendance-detail .attendance-tabs button{font-size:12px}.attendance-detail .page-actions .outline-button{font-size:12px;min-height:40px}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}.workflow-steps button{transition:none}}
+
+/* Quiet local date and matching circular partner seals. */
+.header-location{display:flex;align-items:center;gap:15px;min-width:0}.portal-header .header-location #breadcrumbs{max-width:210px;min-width:0}
+#header-date{font-size:10px;font-weight:400;color:#bdc5d0;white-space:nowrap;letter-spacing:.02em;font-variant-numeric:tabular-nums}
+.portal-partners{gap:24px}.portal-partners>span{gap:12px}.portal-partners>span+span{padding-left:24px}
+.portal-partners .partner-emblem{display:grid;place-items:center;width:52px;height:52px;flex:0 0 52px;border-radius:50%;background:linear-gradient(145deg,#fff,#e7ebef);box-shadow:4px 4px 9px #2632471c,-4px -4px 9px #fff;border:1px solid #ffffffd9}
+.portal-partners>span .partner-emblem img{display:block;width:36px;height:36px;margin:0;border-radius:50%;object-fit:contain;background:white}
+.partner-caption{display:grid;gap:4px;color:#6b7584;font-size:9px}.partner-caption b{color:#445162;font-size:11px;font-weight:550}
+@media(min-width:1181px){.portal-header .header-location #breadcrumbs{display:flex}.header-location{flex-wrap:wrap;gap:4px 13px}}
+@media(min-width:1001px) and (max-width:1180px){.portal-header{gap:13px}.portal-header a.travelpro-brand{width:150px}#header-date{font-size:9px}}
+@media(max-width:1000px){.header-location{margin-left:0}#header-date{font-size:10px}.portal-partners>span .partner-emblem img{display:block}.portal-partners>span{flex-wrap:nowrap}}
+@media(max-width:760px){.portal-header{column-gap:9px}.portal-header a.travelpro-brand{width:116px}#header-date{font-size:8px}.header-end{gap:5px}.portal-partners{gap:18px}.portal-partners>span+span{padding-left:18px}.portal-partners .partner-emblem{width:44px;height:44px;flex-basis:44px}.portal-partners>span .partner-emblem img{width:30px;height:30px}.partner-caption b{font-size:10px}#portal-dock a:active,#portal-dock a[aria-current=page],#portal-dock a[aria-current=page]:hover{margin:0;border-radius:10px}}
+@media(prefers-reduced-motion:reduce){#portal-dock a{transition:none}#portal-dock a:hover{transform:none}}
