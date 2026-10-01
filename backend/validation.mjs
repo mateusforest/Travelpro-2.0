@@ -1,3 +1,4 @@
+import {validateLayout} from '../dist/pdf-template-core.mjs';
 import '../dist/itinerary-models.js';
 import '../dist/sales-flow.js';
 import '../dist/proposal-brand.js';
@@ -32,6 +33,8 @@ export function validateState(s){
   for(const e of s.events)if(!e.title?.trim()||!date(e.date)||!/^\d{2}:\d{2}$/.test(e.time))fail(422,'Compromisso inválido.');
   for(const f of s.transactions)if(!f.title?.trim()||!num(f.amount,0.01)||!date(f.date)||!['receber','pagar','comissao'].includes(f.type))fail(422,'Lançamento inválido.');
   for(const b of s.budgets){if(!refs('clients',b.client)||!b.name?.trim()||!date(b.start)||!date(b.end)||b.end<b.start||!date(b.valid)||!Number.isInteger(b.travelers)||b.travelers<1||!Array.isArray(b.items)||!b.items.length||!num(b.discount))fail(422,'Orçamento inválido.');for(const i of b.items)if(!i.name?.trim()||!Number.isInteger(i.qty)||i.qty<1||!num(i.unit))fail(422,'Serviço inválido no orçamento.');if(b.discount>b.items.reduce((n,i)=>n+i.qty*i.unit,0))fail(422,'Desconto maior que o orçamento.');}
+  for(const row of [...s.templates,...s.itineraries])if(row.visualLayout){try{validateLayout(row.visualLayout);}catch(e){fail(422,e.message);}if(!/^[a-f0-9]{64}$/.test(row.visualLayout.hash||''))fail(422,'Original do modelo inválido.');}
+  for(const r of s.itineraries)if(r.visualLayout){if(!r.sourceFile?.id||!object(r.fieldValues)||typeof r.brief!=='string'||r.brief.length>12000)fail(422,'Confira o modelo e a descrição da viagem.');const fields=new Set(r.visualLayout.pages.flatMap(p=>p.fields.map(f=>f.id)));for(const [id,text]of Object.entries(r.fieldValues))if(!fields.has(id)||typeof text!=='string'||text.length>15000)fail(422,'Conteúdo do campo inválido.');}
   for(const r of s.itineraries)if(!r.name?.trim()||!Array.isArray(r.days)||r.days.length>200)fail(422,'Roteiro inválido.');
   for(const d of s.documents){if(!d.name?.trim()||typeof d.content!=='string')fail(422,'Documento inválido.');if(d.signatureDraft&&(!object(d.signatureDraft)||!['prepared','needs_review'].includes(d.signatureDraft.status)||!Array.isArray(d.signatureDraft.clients)||!d.signatureDraft.clients.length||d.signatureDraft.clients.some(id=>!refs('clients',id))))fail(422,'Confira os signatários do documento.');if(d.expiry&&!date(d.expiry))fail(422,'Validade do documento inválida.');if(d.clients&&(!Array.isArray(d.clients)||d.clients.some(id=>!refs('clients',id))))fail(422,'Cliente do documento não encontrado.');}
   if(!object(s.whatsapp)||!Array.isArray(s.whatsapp.threads)||s.whatsapp.threads.length>10000||!object(s.whatsapp.config))fail(422,'Atendimento inválido.');

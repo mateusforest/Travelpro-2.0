@@ -12,6 +12,7 @@ import * as integrationAccess from '../backend/integration-access.mjs';
 import * as cosSupport from '../backend/cos-support.mjs';
 import * as intake from '../backend/intake.mjs';
 import * as proposalDelivery from '../backend/proposal-delivery.mjs';
+import * as visualItinerary from '../backend/visual-itinerary.mjs';
 import * as templateExtraction from '../backend/template-extraction.mjs';
 const initial=JSON.parse(readFileSync(new URL('../backend/initial-state.json',import.meta.url)));
 const analyzedDraft={name:'Clara Intake',email:'',phone:'',destination:'Lisboa',start:'',end:'',notes:'Hotel central.',travelers:null};
@@ -24,12 +25,13 @@ async function fixture({role='owner',workspaceId='agency-a',version=1,platformAd
     async function run(){calls.push({table,filters:{...filters}});if(table==='travelpro_state')return {data:structuredClone(stored),error:null};if(table==='travelpro_integrations')return {data:integrationConfigs[filters.service]?{config:structuredClone(integrationConfigs[filters.service]),secret:null}:null,error:null};throw Error('Unexpected table '+table);}return q;},
     async rpc(name,args){if(name==='travelpro_rate_limit'){assert.match(args.p_key,/^user-a:/);return {data:true,error:null};}assert.equal(name,'travelpro_save_state');assert.equal(args.p_workspace,workspaceId);if(args.p_version!==stored.version)return {error:{code:'40001'}};stored={data:structuredClone(args.p_data),version:stored.version+1};writes++;return {data:stored.version,error:null};}};
   const user={id:'user-a',email:'test@example.invalid',user_metadata:{name:'Test'}};
-  db.storage={from(bucket){assert.equal(bucket,'travelpro-private');return {async download(key){calls.push({bucket,key});return Object.hasOwn(storedFiles,key)?{data:new Blob([storedFiles[key]]),error:null}:{data:null,error:{message:'not found'}};}};}};
+  db.storage={from(bucket){assert.equal(bucket,'travelpro-private');return {async createSignedUploadUrl(key,options){calls.push({bucket,key,options});return {data:{signedUrl:'https://example.supabase.co/storage/v1/object/upload/sign/'+key+'?token=test'},error:null};},async download(key){calls.push({bucket,key});return Object.hasOwn(storedFiles,key)?{data:new Blob([storedFiles[key]]),error:null}:{data:null,error:{message:'not found'}};}};}};
   const access={workspace:workspaceId?{id:workspaceId,name:'Agency A',type:'operations'}:null,membershipRole:role,profile:null};
   class ApiResponse extends Response{static json(body,init){return new ApiResponse(JSON.stringify(body),{...init,headers:{...init?.headers,'Content-Type':'application/json'}});}static redirect(url){return new ApiResponse(null,{status:307,headers:{Location:String(url)}});}}
   const imports={
     '../exchange.mjs':{exchangeRates:async()=>({rates:{BRL:1,USD:5,EUR:6},dates:{USD:'2026-10-01',EUR:'2026-10-01'},stale:false})},
     '../template-extraction.mjs':templateExtraction,
+    '../visual-itinerary.mjs':visualItinerary,
     '../cos-support.mjs':cosSupport,
     'node:crypto':crypto,'./runtime.mjs':{ApiResponse,after:()=>{},cookies:async()=>({get:()=>undefined})},
     '@supabase/supabase-js':{createClient:()=>{throw Error('Unexpected external auth');}},
@@ -130,4 +132,10 @@ test('Supabase template extraction scopes private storage and leaves workspace u
  assert.equal((await other.request('templates/extract','POST',{fileId:id})).status,404);
  assert.equal((await f.request('templates/extract','POST',{fileId:'../agency-b/'+id})).status,404);
  assert.equal(f.writes,0);
+});
+
+test('large original PDF upload is private, scoped and limited without passing bytes through serverless',async()=>{
+ const f=await fixture();const res=await f.request('templates/upload','POST',{name:'Modelo da agência.pdf',size:6500000});assert.equal(res.status,200);const data=await res.json();assert.equal(data.direct,true);assert.ok(data.file.id);assert.equal(f.writes,0);const upload=f.calls.find(c=>c.bucket);assert.ok(upload.key.startsWith('agency-a/'));assert.equal(upload.options.upsert,false);
+ for(const input of [{name:'../other.pdf',size:20},{name:'script.html',size:20},{name:'a.pdf',size:21000000}])assert.equal((await f.request('templates/upload','POST',input)).status,422);
+ const noWorkspace=await fixture({workspaceId:null});assert.equal((await noWorkspace.request('templates/upload','POST',{name:'a.pdf',size:10})).status,403);
 });

@@ -1,3 +1,4 @@
+import {visualItinerary} from '../visual-itinerary.mjs';
 import {exchangeRates} from '../exchange.mjs';
 import {extractTemplate} from '../template-extraction.mjs';
 import {cosSupport,cosContext,documentOperation,applyDocumentOperation} from '../cos-support.mjs';
@@ -192,6 +193,14 @@ export async function handle(request){
   }
   if(path==='operator/quote'&&method==='POST'){
     await rate(a,'operator',15);const c=await cfg(a,'operator');if(!c.endpoint||!c.key)fail(503,'A conexão com a Europlus aguarda ativação pela equipe TravelPro. Você pode registrar a cotação recebida por e-mail.');const request=operatorRequest(data.request,(await workspace(a)).state);const result=await remote(safeEndpoint(c.endpoint),{method:'POST',headers:{Authorization:'Bearer '+c.key,'Content-Type':'application/json'},body:JSON.stringify({type:'quote',request})});return json(operatorResult(result));
+  }
+  if(path==='templates/visual'&&method==='POST'){await rate(a,'visual-itinerary',60);return json(await visualItinerary(await cfg(a,'openai'),data));}
+  if(path==='templates/upload'&&method==='POST'){
+    await rate(a,'upload',20);const name=clean(data.name,200);
+    if(!/\.pdf$/i.test(name)||/[\\/]/.test(name)||!Number.isInteger(data.size)||data.size<1||data.size>20*1024*1024)fail(422,'Envie um PDF de até 20 MB.');
+    const id=randomUUID()+'/'+encodeURIComponent(name),{data:signed,error}=await a.db.storage.from('travelpro-private').createSignedUploadUrl(a.wid+'/'+id,{upsert:false});
+    if(error||!signed?.signedUrl)fail(503,'Não foi possível preparar o envio privado do PDF.');
+    return json({direct:true,uploadUrl:signed.signedUrl,file:{id,name,size:data.size,type:'application/pdf',url:'/api/files/'+encodeURIComponent(id)}});
   }
   if(path==='templates/extract'&&method==='POST'){
     await rate(a,'template-extract',10);

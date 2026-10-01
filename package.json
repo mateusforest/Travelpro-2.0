@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "node server.mjs",
     "start": "node server.mjs",
-    "test": "node --experimental-vm-modules --test --test-isolation=none tests/backend.test.mjs tests/frontend.test.mjs tests/supabase.test.mjs tests/runtime.test.mjs tests/finance.test.mjs tests/finance-insights.test.mjs tests/finance-ui.test.mjs tests/granatum.test.mjs tests/agency-import.test.mjs tests/operations.test.mjs tests/portal-operations.test.mjs tests/intake.test.mjs tests/integration-access.test.mjs tests/intake-ui.test.mjs tests/connections-ui.test.mjs tests/sales-flow.test.mjs tests/proposal-delivery.test.mjs tests/portal-fields.test.mjs tests/cos-support.test.mjs tests/session-activity.test.mjs tests/itinerary-models.test.mjs tests/template-extraction.test.mjs tests/portal-workflow.test.mjs tests/exchange.test.mjs",
+    "test": "node --experimental-vm-modules --test --test-isolation=none tests/backend.test.mjs tests/frontend.test.mjs tests/supabase.test.mjs tests/runtime.test.mjs tests/finance.test.mjs tests/finance-insights.test.mjs tests/finance-ui.test.mjs tests/granatum.test.mjs tests/agency-import.test.mjs tests/operations.test.mjs tests/portal-operations.test.mjs tests/intake.test.mjs tests/integration-access.test.mjs tests/intake-ui.test.mjs tests/connections-ui.test.mjs tests/sales-flow.test.mjs tests/proposal-delivery.test.mjs tests/portal-fields.test.mjs tests/cos-support.test.mjs tests/session-activity.test.mjs tests/itinerary-models.test.mjs tests/template-extraction.test.mjs tests/portal-workflow.test.mjs tests/exchange.test.mjs tests/visual-itinerary.test.mjs",
     "check": "node scripts/check.mjs",
     "test:supabase:live": "node scripts/verify-supabase.mjs"
   },

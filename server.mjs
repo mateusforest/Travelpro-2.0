@@ -13,7 +13,7 @@ if(configured.length&&configured.length!==3)throw new Error('Preencha as três v
 let app;
 if(configured.length===3){
   const {default:api}=await import('./backend/supabase/node-handler.mjs');
-  const dist=path.join(root,'dist'),types={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.json':'application/json','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.webp':'image/webp','.svg':'image/svg+xml','.woff2':'font/woff2','.mp4':'video/mp4'};
+  const dist=path.join(root,'dist'),types={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.json':'application/json','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.webp':'image/webp','.svg':'image/svg+xml','.woff2':'font/woff2','.mp4':'video/mp4'};
   const server=http.createServer(async(req,res)=>{
     const pathname=new URL(req.url,origin).pathname;
     if(pathname.startsWith('/api/'))return api(req,res);

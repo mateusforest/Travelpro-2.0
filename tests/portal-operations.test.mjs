@@ -121,12 +121,12 @@ test('home steps and quote CTA open real operational routes; trips filter existi
 
 test('dedicated agency template upload extracts, reviews and reuses actual content',async t=>{
   const f=await fixture(t,{pathname:'/roteiros.html'});
-  await f.portal.acceptFile(new f.w.File(['test-pdf'],'Meu roteiro.pdf',{type:'application/pdf'}),'template');
+  await f.portal.acceptFile(new f.w.File(['test-text'],'Meu roteiro.txt',{type:'text/plain'}),'template');
   const model=f.saved.templates.find(m=>m.file);assert.ok(model);assert.equal(model.days.length,0,'unreviewed text is not silently approved');
   assert.equal(model.extractedDraft.days.length,2);
   const form=f.d.querySelector('[data-form="template-review"]');assert.ok(form);assert.match(form.querySelector('[name="text0"]').value,/Transfer contratado/);
   await f.portal.workspaceSubmit('template-review',{id:model.id,name:'Modelo aprovado',period0:'Dia 1',title0:'Roma',text0:'Transfer revisado às 08:30.',period1:'Dia 2',title1:'Florença',text1:'Trem confirmado às 09:00.'});
-  const saved=f.saved.templates.find(m=>m.id===model.id);assert.equal(saved.extractionStatus,'reviewed');assert.equal(saved.file.name,'Meu roteiro.pdf');
+  const saved=f.saved.templates.find(m=>m.id===model.id);assert.equal(saved.extractionStatus,'reviewed');assert.equal(saved.file.name,'Meu roteiro.txt');
   await f.portal.workspaceSubmit('new-itinerary',{name:'Viagem teste',destination:'Itália',trip:'',template:model.id});
   assert.equal(f.saved.itineraries.at(-1).days[0].text,'Transfer revisado às 08:30.');
 });
