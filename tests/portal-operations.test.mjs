@@ -469,6 +469,7 @@ test('a pending intake review guards page unload even when the workspace itself 
   const cleanUnload=new f.w.Event('beforeunload',{cancelable:true});
   f.w.dispatchEvent(cleanUnload);
   assert.equal(cleanUnload.defaultPrevented,false,'an untouched clean workspace does not warn');
+  await f.portal.workspaceAction('assistant-intake');
   const manual=f.d.querySelector('[data-intake="manual"]');assert.ok(manual);manual.click();
   assert.ok(f.d.querySelector('#intake-review-form'));
   assert.equal(f.writes.length,0,'opening a review does not save a client or attendance');

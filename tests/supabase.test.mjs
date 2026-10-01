@@ -28,6 +28,7 @@ async function fixture({role='owner',workspaceId='agency-a',version=1,platformAd
   const access={workspace:workspaceId?{id:workspaceId,name:'Agency A',type:'operations'}:null,membershipRole:role,profile:null};
   class ApiResponse extends Response{static json(body,init){return new ApiResponse(JSON.stringify(body),{...init,headers:{...init?.headers,'Content-Type':'application/json'}});}static redirect(url){return new ApiResponse(null,{status:307,headers:{Location:String(url)}});}}
   const imports={
+    '../exchange.mjs':{exchangeRates:async()=>({rates:{BRL:1,USD:5,EUR:6},dates:{USD:'2026-10-01',EUR:'2026-10-01'},stale:false})},
     '../template-extraction.mjs':templateExtraction,
     '../cos-support.mjs':cosSupport,
     'node:crypto':crypto,'./runtime.mjs':{ApiResponse,after:()=>{},cookies:async()=>({get:()=>undefined})},

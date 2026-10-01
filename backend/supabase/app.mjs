@@ -1,3 +1,4 @@
+import {exchangeRates} from '../exchange.mjs';
 import {extractTemplate} from '../template-extraction.mjs';
 import {cosSupport,cosContext,documentOperation,applyDocumentOperation} from '../cos-support.mjs';
 import {analyzeIntake,applyIntake} from '../intake.mjs';
@@ -162,6 +163,7 @@ export async function handle(request){
   }
   if(path==='auth/sessions'&&method==='GET')return json({sessions:[{id:'current',current:true,user_agent:request.headers.get('user-agent')||'Este navegador',last_seen:Date.now()}]});
   if(path.startsWith('auth/sessions/'))fail(501,'Os outros dispositivos são administrados pelo Supabase. Altere a senha para encerrar os demais acessos.');
+  if(path==='exchange'&&method==='GET')return json(await exchangeRates());
   if(path==='workspace'&&method==='GET')return json({...await workspace(a),services:integrationView(await services(a),isPlatformAdmin(a.user.id)),capabilities:{platformAdmin:isPlatformAdmin(a.user.id)}});
   if(path==='workspace'&&method==='PUT'){const current=await workspace(a);if(data.state&&typeof data.state==='object'){if(current.state.intakeReceipts)data.state.intakeReceipts=current.state.intakeReceipts;else delete data.state.intakeReceipts;}return json({version:await save(a,data.state,data.version)});}
   if(path==='integrations'&&method==='GET')return json({agencyId:a.wid,services:integrationView(await services(a),isPlatformAdmin(a.user.id)),capabilities:{platformAdmin:isPlatformAdmin(a.user.id)}});

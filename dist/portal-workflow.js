@@ -20,10 +20,10 @@
     }
     return issued?'emitidas':'confirmadas';
   }
-  function steps({state}) {
+  function steps({state,icon}) {
     const pending=(state.budgets||[]).filter(b=>b.status==='Aguardando aprovação').length;
     const actions=[['Cotação','Preparar o pedido','workflow-quote'],['Proposta','Montar apresentação','workflow-proposals'],['Aprovação',pending?`${pending} aguardando resposta`:'Acompanhar respostas','workflow-approval'],['Reserva e emissão','Conferir com a operadora','workflow-reservations'],['Roteiro','Preparar a viagem','workflow-itineraries']];
-    return `<section class="workflow-overview" aria-label="Ordem de execução"><div class="workflow-heading"><span class="eyebrow">DO PEDIDO AO EMBARQUE</span><a href="#atendimentos">Ver atendimentos ↗</a></div><ol class="workflow-steps">${actions.map(([title,detail,action],i)=>`<li><button type="button" data-action="${action}"><span class="workflow-number">0${i+1}</span><span><strong>${title}</strong><small>${detail}</small></span><span class="workflow-arrow" aria-hidden="true">↗</span></button></li>`).join('')}</ol></section>`;
+    return `<section class="workflow-overview" aria-label="Ordem de execução"><div class="workflow-heading"><span class="eyebrow">DO PEDIDO AO EMBARQUE</span><a href="#atendimentos">Ver atendimentos ↗</a></div><ol class="workflow-steps">${actions.map(([title,detail,action],i)=>`<li><button type="button" data-action="${action}"><span class="workflow-orb" aria-hidden="true">${icon?icon(['doc','file','check','plane','map'][i]):'0'+(i+1)}</span><span><span class="workflow-number">0${i+1}</span><strong>${title}</strong><small>${detail}</small></span><span class="workflow-arrow" aria-hidden="true">↗</span></button></li>`).join('')}</ol></section>`;
   }
   function trips(ctx, filter='todas') {
     const {state,icon,pageTop,dateLabel,client}=ctx;
