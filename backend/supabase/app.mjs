@@ -18,6 +18,8 @@ import {granatumStatus,runGranatum,connectGranatum} from '../granatum.mjs';
 
 const requestOrigin=request=>new URL(request.url).origin;
 const clean=(x,max=500)=>typeof x==='string'?x.trim().slice(0,max):'';
+// Storage keys must be ASCII; keep the original display name in the returned metadata.
+const storageName=name=>{const dot=name.lastIndexOf('.'),ext=name.slice(dot+1).toLowerCase();const stem=name.slice(0,dot).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9_-]+/gi,'-').replace(/^-+|-+$/g,'').slice(0,120)||'documento';return stem+'.'+ext;};
 const equal=(a,b)=>{const x=Buffer.from(a||''),y=Buffer.from(b||'');return x.length===y.length&&timingSafeEqual(x,y);};
 const json=(data,status=200)=>ApiResponse.json(data,{status,headers:{'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});
 const setupMessage='A atualização do banco ainda precisa ser aplicada. Execute a migração 20260911_travelpro_portal.sql no Supabase deste projeto.';
@@ -203,7 +205,7 @@ export async function handle(request){
   if(path==='templates/upload'&&method==='POST'){
     await rate(a,'upload',20);const name=clean(data.name,200);
     if(!/\.pdf$/i.test(name)||/[\\/]/.test(name)||!Number.isInteger(data.size)||data.size<1||data.size>20*1024*1024)fail(422,'Envie um PDF de até 20 MB.');
-    const id=randomUUID()+'/'+encodeURIComponent(name),{data:signed,error}=await a.db.storage.from('travelpro-private').createSignedUploadUrl(a.wid+'/'+id,{upsert:false});
+    const id=randomUUID()+'/'+storageName(name),{data:signed,error}=await a.db.storage.from('travelpro-private').createSignedUploadUrl(a.wid+'/'+id,{upsert:false});
     if(error||!signed?.signedUrl)fail(503,'Não foi possível preparar o envio privado do PDF.');
     return json({direct:true,uploadUrl:signed.signedUrl,file:{id,name,size:data.size,type:'application/pdf',url:'/api/files/'+encodeURIComponent(id)}});
   }
@@ -218,7 +220,7 @@ export async function handle(request){
   }
   if(path==='files'&&method==='POST'){
     await rate(a,'upload',20);const name=clean(data.name,200),ext=name.split('.').pop().toLowerCase();if(!['pdf','docx','txt','md','png','jpg','jpeg','webp'].includes(ext)||typeof data.base64!=='string')fail(422,'Arquivo não permitido.');const bytes=Buffer.from(data.base64,'base64');if(!bytes.length||bytes.length>3*1024*1024)fail(413,'Use um arquivo de até 3 MB.');
-    const id=randomUUID()+'/'+encodeURIComponent(name);const {error}=await a.db.storage.from('travelpro-private').upload(a.wid+'/'+id,bytes,{contentType:'application/octet-stream',upsert:false});if(error)fail(503,'Não foi possível guardar o arquivo. Confira se a migração criou o armazenamento privado.');return json({id,name,size:bytes.length,type:'application/octet-stream',url:'/api/files/'+id},201);
+    const id=randomUUID()+'/'+storageName(name);const {error}=await a.db.storage.from('travelpro-private').upload(a.wid+'/'+id,bytes,{contentType:'application/octet-stream',upsert:false});if(error)fail(503,'Não foi possível guardar o arquivo. Confira se a migração criou o armazenamento privado.');return json({id,name,size:bytes.length,type:'application/octet-stream',url:'/api/files/'+id},201);
   }
   if(path.startsWith('files/')&&method==='GET'){
     const relative=decodeURIComponent(path.slice(6));if(!/^[a-f0-9-]{36}\/[^/\\]+$/i.test(relative)||relative.includes('..'))fail(404,'Arquivo não encontrado.');

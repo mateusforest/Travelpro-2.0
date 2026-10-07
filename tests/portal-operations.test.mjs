@@ -125,6 +125,8 @@ test('failed client save keeps the form and retry saves exactly one client',asyn
   f.api.request=async(path,options)=>{if(options?.method==='PUT'&&fail)throw Error('Falha de conexão no teste');return request(path,options);};
   form.dispatchEvent(new f.w.Event('submit',{bubbles:true,cancelable:true}));
   await waitFor(()=>form.querySelector('[data-save-error]'),'visible save error');
+  assert.equal(f.d.activeElement,form.querySelector('[data-save-error]'));
+  assert.equal(form.querySelector('[data-save-error]').nextElementSibling,form.querySelector('.dialog-actions'));
   assert.equal(f.d.querySelector('#portal-dialog').open,true);assert.equal(f.saved.clients.length,0);
   assert.equal(form.elements.namedItem('name').value,'Tentar novamente');assert.equal(form.querySelector('[type=submit]').disabled,false);
   fail=false;form.dispatchEvent(new f.w.Event('submit',{bubbles:true,cancelable:true}));

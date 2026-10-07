@@ -25,7 +25,7 @@ async function fixture({role='owner',workspaceId='agency-a',version=1,platformAd
     async function run(){calls.push({table,filters:{...filters}});if(table==='travelpro_state')return {data:structuredClone(stored),error:null};if(table==='travelpro_integrations')return {data:integrationConfigs[filters.service]?{config:structuredClone(integrationConfigs[filters.service]),secret:null}:null,error:null};throw Error('Unexpected table '+table);}return q;},
     async rpc(name,args){if(name==='travelpro_rate_limit'){assert.match(args.p_key,/^user-a:/);return {data:true,error:null};}assert.equal(name,'travelpro_save_state');assert.equal(args.p_workspace,workspaceId);if(args.p_version!==stored.version)return {error:{code:'40001'}};stored={data:structuredClone(args.p_data),version:stored.version+1};writes++;return {data:stored.version,error:null};}};
   const user={id:'user-a',email:'test@example.invalid',user_metadata:{name:'Test'}};
-  db.storage={from(bucket){assert.equal(bucket,'travelpro-private');return {async createSignedUploadUrl(key,options){calls.push({bucket,key,options});return {data:{signedUrl:'https://example.supabase.co/storage/v1/object/upload/sign/'+key+'?token=test'},error:null};},async download(key){calls.push({bucket,key});return Object.hasOwn(storedFiles,key)?{data:new Blob([storedFiles[key]]),error:null}:{data:null,error:{message:'not found'}};}};}};
+  db.storage={from(bucket){assert.equal(bucket,'travelpro-private');return {async upload(key,bytes,options){calls.push({bucket,key,options});if(/[^a-z0-9/_.-]/i.test(key))return {error:{message:'Invalid key'}};return {data:{path:key},error:null};},async createSignedUploadUrl(key,options){calls.push({bucket,key,options});return {data:{signedUrl:'https://example.supabase.co/storage/v1/object/upload/sign/'+key+'?token=test'},error:null};},async download(key){calls.push({bucket,key});return Object.hasOwn(storedFiles,key)?{data:new Blob([storedFiles[key]]),error:null}:{data:null,error:{message:'not found'}};}};}};
   const access={workspace:workspaceId?{id:workspaceId,name:'Agency A',type:'operations'}:null,membershipRole:role,profile:null};
   class ApiResponse extends Response{static json(body,init){return new ApiResponse(JSON.stringify(body),{...init,headers:{...init?.headers,'Content-Type':'application/json'}});}static redirect(url){return new ApiResponse(null,{status:307,headers:{Location:String(url)}});}}
   const imports={
@@ -145,4 +145,14 @@ test('large original PDF upload is private, scoped and limited without passing b
  const f=await fixture();const res=await f.request('templates/upload','POST',{name:'Modelo da agência.pdf',size:6500000});assert.equal(res.status,200);const data=await res.json();assert.equal(data.direct,true);assert.ok(data.file.id);assert.equal(f.writes,0);const upload=f.calls.find(c=>c.bucket);assert.ok(upload.key.startsWith('agency-a/'));assert.equal(upload.options.upsert,false);
  for(const input of [{name:'../other.pdf',size:20},{name:'script.html',size:20},{name:'a.pdf',size:21000000}])assert.equal((await f.request('templates/upload','POST',input)).status,422);
  const noWorkspace=await fixture({workspaceId:null});assert.equal((await noWorkspace.request('templates/upload','POST',{name:'a.pdf',size:10})).status,403);
+});
+
+test('customer documents with spaces accents and symbols use valid private storage keys',async()=>{
+ const f=await fixture();
+ for(const name of ['Documento João.pdf','RG da Júlia (frente).jpg','Seguro 100% válido + cópia.pdf','证件.pdf']){
+  const response=await f.request('files','POST',{name,base64:Buffer.from('isolated test document').toString('base64')});assert.equal(response.status,201);
+  const file=await response.json();assert.equal(file.name,name);assert.match(file.id,/^[a-f0-9-]+\/[a-z0-9_-]+\.[a-z]+$/i);
+  assert.equal(f.calls.at(-1).key,'agency-a/'+file.id);assert.equal(f.calls.at(-1).options.upsert,false);
+ }
+ const template=await f.request('templates/upload','POST',{name:'Roteiro São Paulo.pdf',size:1234});assert.equal(template.status,200);assert.match((await template.json()).file.id,/Roteiro-Sao-Paulo\.pdf$/);
 });
