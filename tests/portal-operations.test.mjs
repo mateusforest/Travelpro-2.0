@@ -756,3 +756,19 @@ test('ecosystem tools provide a unified entry and a scoped record picker',async 
  }
  const consent=await fixture(t,{pathname:'/vuei.html?connect=1&challenge=test&state=test&record=one'});assert.ok(consent.d.querySelector('[data-action="ecosystem-authorize"]'));assert.match(consent.d.querySelector('#portal-main').textContent,/rascunho|privada/);
 });
+
+test('validation notices remain visible inside the active modal and reset on reopen',async t=>{
+ const f=await fixture(t,{pathname:'/seguranca.html'});
+ await f.portal.workspaceAction('backend-password');
+ const form=f.d.querySelector('[data-form="backend-password"]');
+ const request=f.api.request;let passwordRequests=0;
+ f.api.request=async(route,options)=>{if(route==='/auth/password')passwordRequests++;return request(route,options);};
+ await f.portal.workspaceSubmit('backend-password',{current:'unused',password:'different-one',confirm:'different-two'},form);
+ const notice=f.d.querySelector('[data-dialog-notice]');
+ assert.equal(f.d.querySelector('#portal-dialog').open,true);
+ assert.equal(notice.hidden,false);
+ assert.match(notice.textContent,/As senhas precisam ser iguais/);
+ assert.equal(passwordRequests,0);
+ await f.portal.workspaceAction('backend-password');
+ assert.equal(f.d.querySelector('[data-dialog-notice]').hidden,true);
+});

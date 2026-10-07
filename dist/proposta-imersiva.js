@@ -23,8 +23,9 @@ document.querySelector('.next-step').addEventListener('click',()=>showStep((curr
 document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!detail.hidden)closeDetail();});
 document.querySelectorAll('[data-tour]').forEach(button=>button.addEventListener('click',()=>{showStep(Number(button.dataset.tour),button);const target=matchMedia('(max-width:760px)').matches?detail:hero;target.scrollIntoView({block:matchMedia('(max-width:760px)').matches?'center':'start',behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'instant':'smooth'});}));
 const reduced=matchMedia('(prefers-reduced-motion:reduce)'),finePointer=matchMedia('(pointer:fine)'),toggle=document.querySelector('#depth-toggle');
-function resetDepth(){hero.style.setProperty('--x','0px');hero.style.setProperty('--y','0px');}
+let depthFrame=0,depthX=0,depthY=0;
+function resetDepth(){cancelAnimationFrame(depthFrame);depthFrame=0;hero.style.setProperty('--x','0px');hero.style.setProperty('--y','0px');}
 function updateDepthControl(){toggle.setAttribute('aria-pressed',String(depth&&!reduced.matches));toggle.setAttribute('aria-label',reduced.matches?'Profundidade desativada pela preferência de movimento reduzido':(depth?'Desativar profundidade':'Ativar profundidade'));toggle.disabled=reduced.matches;if(reduced.matches)resetDepth();}
 toggle.addEventListener('click',()=>{depth=!depth;resetDepth();updateDepthControl();});
-hero.addEventListener('pointermove',event=>{if(!depth||reduced.matches||!finePointer.matches)return;const rect=hero.getBoundingClientRect();hero.style.setProperty('--x',`${((event.clientX-rect.left)/rect.width-.5)*12}px`);hero.style.setProperty('--y',`${((event.clientY-rect.top)/rect.height-.5)*8}px`);});
+hero.addEventListener('pointermove',event=>{if(!depth||reduced.matches||!finePointer.matches)return;depthX=event.clientX;depthY=event.clientY;if(depthFrame)return;depthFrame=requestAnimationFrame(()=>{depthFrame=0;const rect=hero.getBoundingClientRect();hero.style.setProperty('--x',((depthX-rect.left)/rect.width-.5)*12+'px');hero.style.setProperty('--y',((depthY-rect.top)/rect.height-.5)*8+'px');});},{passive:true});
 hero.addEventListener('pointerleave',resetDepth);reduced.addEventListener('change',updateDepthControl);updateDepthControl();
