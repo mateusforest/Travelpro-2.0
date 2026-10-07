@@ -16,7 +16,7 @@ import * as visualItinerary from '../backend/visual-itinerary.mjs';
 import * as templateExtraction from '../backend/template-extraction.mjs';
 const initial=JSON.parse(readFileSync(new URL('../backend/initial-state.json',import.meta.url)));
 const analyzedDraft={name:'Clara Intake',email:'',phone:'',destination:'Lisboa',start:'',end:'',notes:'Hotel central.',travelers:null};
-async function fixture({role='owner',workspaceId='agency-a',version=1,platformAdminIds='',aiConfigured=false,integrationConfigs={},storedFiles={}}={}){
+async function fixture({role='owner',workspaceId='agency-a',version=1,platformAdminIds='',aiConfigured=false,integrationConfigs={},storedFiles={},connectHarness=false}={}){
   const env={TRAVELPRO_PLATFORM_ADMIN_IDS:platformAdminIds,...(aiConfigured?{OPENAI_API_KEY:'fixture-openai-key',OPENAI_MODEL:'fixture-model'}:{})};
   const state=structuredClone(initial);state.agency='Agency A';
   let stored={data:structuredClone(state),version},writes=0;
@@ -37,7 +37,7 @@ async function fixture({role='owner',workspaceId='agency-a',version=1,platformAd
     '@supabase/supabase-js':{createClient:()=>{throw Error('Unexpected external auth');}},
     './clients.mjs':{createSupabaseServerClient:async()=>({auth:{getUser:async()=>({data:{user}})}}),createSupabaseAdminClient:()=>db,supabaseConfigured:()=>true},
     './access.mjs':{getUserAccessForUser:async()=>access,ensureAppAccessForUser:async()=>({access}),canManageWorkspace:a=>['owner','admin'].includes(a.membershipRole),resolvePostAuthPath:()=>'/portal'},
-    '../initial-state.json':{default:initial},'../granatum.mjs':granatum,'../finance-api.mjs':financeAPI,'../validation.mjs':validation,'../providers.mjs':{...providers,cosReply:async()=>null,remote:async()=>{throw Error('Unexpected provider request');}},
+    '../initial-state.json':{default:initial},'../granatum.mjs':connectHarness?{...granatum,connectGranatum:async(db,wid,token)=>{calls.push({connectWorkspace:wid});return {connected:true};}}:granatum,'../finance-api.mjs':connectHarness?{...financeAPI,handleFinance:async()=>({})}:financeAPI,'../validation.mjs':validation,'../providers.mjs':{...providers,cosReply:async()=>null,remote:async()=>{throw Error('Unexpected provider request');}},
     '../integration-access.mjs':{...integrationAccess,isPlatformAdmin:id=>integrationAccess.isPlatformAdmin(id,env),requirePlatformAdmin:id=>integrationAccess.requirePlatformAdmin(id,env)},
     '../proposal-delivery.mjs':proposalDelivery,
     '../intake.mjs':{...intake,analyzeIntake:(config,input)=>intake.analyzeIntake(config,input,{request:async(url,options)=>{providerCalls.push({url,options});assert.equal(url,'https://api.openai.com/v1/responses');return {status:'completed',output:[{content:[{type:'output_text',text:JSON.stringify({draft:analyzedDraft,summary:'Pedido para Lisboa.',warnings:['Revise os dados antes de salvar.']})}]}]};}})}
@@ -109,6 +109,13 @@ test('workspace saves cannot forge or erase server intake receipts',async()=>{
   const writes=f.writes,replayResponse=await f.request('cos/intake/execute','POST',payload);assert.equal(replayResponse.status,200);const replay=await replayResponse.json();assert.equal(replay.replayed,true);assert.equal(replay.state.clients.length,1);assert.equal(replay.version,f.stored.version);assert.equal(f.writes,writes);
 });
 test('member cannot trigger Granatum sync or restart',async()=>{const f=await fixture({role:'member'});const res=await f.request('finance/granatum/sync','POST',{restart:true});assert.equal(res.status,403);assert.equal(f.calls.length,0);});
+test('ordinary members cannot connect Granatum or select another agency',async()=>{
+ const f=await fixture({role:'member'});const res=await f.request('finance/granatum/connect','POST',{token:'test-token-not-a-real-credential',workspace:'another-agency'});
+ assert.equal(res.status,403);assert.equal(f.calls.length,0);
+});
+test('Granatum setup uses the signed-in agency and ignores a supplied workspace id',async()=>{
+ for(const role of ['owner','admin']){const f=await fixture({role,workspaceId:'wife-agency',connectHarness:true});const res=await f.request('finance/granatum/connect','POST',{token:'test-token-not-a-real-credential',workspace:'husband-agency'});assert.equal(res.status,200);assert.deepEqual(f.calls,[{connectWorkspace:'wife-agency'}]);assert.deepEqual(await res.json(),{connected:true});}
+});
 test('Granatum cron refuses requests without its dedicated credential',async()=>{const f=await fixture();const res=await f.request('cron/granatum','POST',{});assert.equal(res.status,401);assert.equal(f.calls.length,0);});
 
 test('COS prepares attachment operations and executes them with concurrency protection in Supabase',async()=>{

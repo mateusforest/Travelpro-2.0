@@ -56,6 +56,16 @@ export async function granatumStatus(db,wid){
   const row=checked(await db.from('travelpro_granatum').select('enabled,progress,last_sync,last_error,stats,locked_until').eq('workspace_id',wid).maybeSingle());
   if(!row)return {connected:false};return {connected:true,enabled:row.enabled,lastSync:row.last_sync,error:row.last_error,stats:row.stats,running:row.progress?.phase&&row.progress.phase!=='done',phase:row.progress?.phase||'pending'};
 }
+export async function connectGranatum(db,wid,input,{fetcher=fetch}={}){
+  const token=typeof input==='string'?input.trim():'';
+  if(token.length<20||token.length>500||/\s/.test(token))fail(422,'Cole o token completo gerado no Granatum.');
+  const accounts=await granatumClient(token,fetcher)('contas',{considerar_inativos:true});
+  if(!Array.isArray(accounts))fail(502,'Não foi possível validar as contas do Granatum. Tente novamente.');
+  const result=await db.rpc('travelpro_granatum_connect',{p_workspace:wid,p_token:token});
+  if(result.error?.code==='PT409')fail(409,'Esta agência já possui outra conexão Granatum. Não é possível substituir a empresa por este formulário.');
+  checked(result);
+  return {connected:true};
+}
 export async function runGranatum(db,wid,{force=false,budgetMs=35000}={}){
   const lease=randomUUID(),start=Date.now();
   const connection=checked(await db.rpc('travelpro_granatum_claim',{p_workspace:wid,p_lease:lease,p_force:force}));

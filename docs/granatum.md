@@ -40,3 +40,9 @@ O processamento assistido limita a leitura a 100 mil registros; bases maiores ex
 [API oficial Granatum](https://static.granatum.com.br/financeiro/api/), [Supabase Vault](https://supabase.com/docs/guides/database/vault) e [Supabase Cron](https://supabase.com/docs/guides/cron/quickstart).
 
 `npm test` verifica normalização, transferências, compostos, transporte somente de leitura, proteção de credenciais, exclusividade, reexecução, exclusões, permissões e regressões do financeiro. A conferência real compara cada registro e os totais com os dados brutos recebidos, sem imprimir valores nem credenciais.
+
+## Conectar pelo Financeiro
+
+O responsável ou administrador entra na própria conta TravelPro e abre Financeiro → Conectar Granatum. O formulário contém o passo a passo oficial para obter o token em Configurações → Minha empresa, no Granatum (perfil Super Administrador).
+
+A API valida o token com uma consulta de leitura antes de guardá-lo no Vault da agência autenticada. O navegador não escolhe a agência por parâmetros. A primeira sincronização é iniciada após a conexão, e o agendamento existente dá continuidade à importação. O formulário não transfere nem remove conexões de outras agências e não substitui uma conexão existente por outro token.

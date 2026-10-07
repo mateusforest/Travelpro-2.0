@@ -14,7 +14,7 @@ import seed from '../initial-state.json' with {type:'json'};
 import {fail,validateState,collections,salesFlow,itineraryModels,validateSalesTransition,operatorRequest,operatorResult} from '../validation.mjs';
 import {cosReply,remote,safeEndpoint,providerNames,connectionStatus} from '../providers.mjs';
 import {handleFinance,supabaseRepository} from '../finance-api.mjs';
-import {granatumStatus,runGranatum} from '../granatum.mjs';
+import {granatumStatus,runGranatum,connectGranatum} from '../granatum.mjs';
 
 const requestOrigin=request=>new URL(request.url).origin;
 const clean=(x,max=500)=>typeof x==='string'?x.trim().slice(0,max):'';
@@ -148,6 +148,11 @@ export async function handle(request){
     return json(await deliverProposal(repo,data,await cfg(a,'whatsapp')));
   }
   if(path==='finance/granatum'&&method==='GET')return json(await granatumStatus(a.db,a.wid));
+  if(path==='finance/granatum/connect'&&method==='POST'){
+    requireManager(a);await rate(a,'granatum_connect',4);
+    await handleFinance({path:'finance',method:'GET',repo:supabaseRepository(a),getWorkspace:()=>workspace(a),manager:true});
+    return json(await connectGranatum(a.db,a.wid,data.token));
+  }
   if(path==='finance/granatum/sync'&&method==='POST'){
     requireManager(a);await rate(a,'granatum_sync',4);
     if(data.restart){const reset=await a.db.rpc('travelpro_granatum_restart',{p_workspace:a.wid});dbError(reset.error);}

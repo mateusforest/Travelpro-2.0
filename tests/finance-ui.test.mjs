@@ -6,6 +6,27 @@ import path from 'node:path';
 import {JSDOM} from 'jsdom';
 import {createApp} from '../backend/app.mjs';
 
+test('Granatum setup explains token creation, retains errors and starts sync after connection',async t=>{
+ const dom=new JSDOM('<main data-fin-root></main>',{url:'https://example.invalid/financeiro.html',runScripts:'outside-only'});t.after(()=>dom.window.close());const w=dom.window,d=w.document;
+ w.HTMLDialogElement.prototype.showModal=function(){this.open=true;};w.HTMLDialogElement.prototype.close=function(){this.open=false;};
+ let connected=false,reject=true,syncs=0;const sent=[];
+ const api={request:async(path,options)=>{
+  if(path==='/finance/granatum')return {connected};
+  if(path==='/finance/granatum/connect'){sent.push(options.body);if(reject)throw Error('Token inválido');connected=true;return {connected:true};}
+  if(path==='/finance/granatum/sync'){syncs++;return {running:true};}
+  return {manager:true,filters:{from:'2026-01-01',to:'2026-12-31',page:1},summary:{},catalogs:[],items:[],balances:[],clients:[],total:0,today:'2026-10-07'};
+ }};
+ w.eval(readFileSync('dist/finance.js','utf8'));w.TravelFinance.mount(d.querySelector('main'),{api});
+ async function wait(check){for(let i=0;i<100;i++){if(check())return;await new Promise(r=>setTimeout(r,10));}throw Error('Finance setup timeout');}
+ await wait(()=>d.querySelector('[data-fin-action="granatum-connect"]'));
+ d.querySelector('[data-fin-action="granatum-connect"]').click();
+ assert.match(d.querySelector('dialog').textContent,/Super Administrador/);assert.match(d.querySelector('dialog').textContent,/Configurações → Minha empresa/);
+ const form=d.querySelector('[data-fin-form="granatum-connect"]'),input=form.elements.namedItem('token');assert.equal(input.type,'password');input.value='fixture-token-for-granatum-setup';
+ form.dispatchEvent(new w.Event('submit',{bubbles:true,cancelable:true}));await wait(()=>d.querySelector('[data-fin-error]').textContent==='Token inválido');assert.equal(d.querySelector('dialog').open,true);assert.equal(syncs,0);
+ reject=false;form.dispatchEvent(new w.Event('submit',{bubbles:true,cancelable:true}));await wait(()=>syncs===1&&d.querySelector('[data-fin-notice]').textContent.includes('automaticamente'));
+ assert.equal(input.value,'');assert.equal(d.querySelector('dialog').open,false);assert.match(d.body.textContent,/Granatum conectado/);assert.ok(!d.body.textContent.includes('fixture-token'));assert.equal(sent.length,2);
+});
+
 test('finance interface submits real forms and preserves safe rendering through payment lifecycle',async t=>{
  const app=createApp({directory:mkdtempSync(path.join(tmpdir(),'travelpro-fin-ui-')),dist:path.resolve('dist'),env:{}});
  await new Promise(r=>app.server.listen(0,'127.0.0.1',r));t.after(()=>app.close());

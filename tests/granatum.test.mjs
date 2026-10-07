@@ -2,9 +2,20 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {PGlite} from '@electric-sql/pglite';
-import {normalizeGranatum,granatumClient} from '../backend/granatum.mjs';
+import {normalizeGranatum,granatumClient,connectGranatum} from '../backend/granatum.mjs';
 import {report,filters} from '../backend/finance.mjs';
 const source=(id,valor,extra={})=>({id,valor,descricao:'Imported',conta_id:1,data_vencimento:'2026-01-10',data_pagamento:'2026-01-11',data_competencia:'2026-01-01',itens_adicionais:[],...extra});
+test('self-service Granatum connection validates before saving and never returns the token',async()=>{
+ const calls=[],token='test-token-for-isolated-granatum';
+ const db={rpc:async(name,args)=>{calls.push({name,args});return {data:null,error:null};}};
+ const fetcher=async(url,options)=>{assert.equal(url.hostname,'api.granatum.com.br');assert.equal(options.method,'GET');assert.equal(url.searchParams.get('access_token'),token);return Response.json([{id:1,descricao:'Conta'}]);};
+ const result=await connectGranatum(db,'wife-workspace',' '+token+' ',{fetcher});
+ assert.deepEqual(result,{connected:true});assert.equal(calls[0].args.p_workspace,'wife-workspace');assert.equal(calls[0].name,'travelpro_granatum_connect');assert.ok(!JSON.stringify(result).includes(token));
+ await assert.rejects(()=>connectGranatum(db,'other','short',{fetcher}),/token completo/);
+ await assert.rejects(()=>connectGranatum(db,'other',token,{fetcher:async()=>new Response('',{status:401})}),/não foi aceito/);
+ assert.equal(calls.length,1);
+ await assert.rejects(()=>connectGranatum({rpc:async()=>({error:{code:'PT409'}})},'wife-workspace',token,{fetcher}),/outra conexão/);
+});
 const raw=()=>[{kind:'contas',data:{id:1,descricao:'A',ativo:true,saldo:'30.00'}},{kind:'contas',data:{id:2,descricao:'B',ativo:true,saldo:'20.00'}},...[
  source(1,'100.00'),source(2,'-20.00',{lancamento_transferencia_id:3}),source(3,'20.00',{conta_id:2,lancamento_transferencia_id:2}),
  source(4,'-50.00',{data_pagamento:null,lancamento_composto_id:99,itens_adicionais:[{id:5,valor:'-10.00',categoria_id:4}]}),source(5,'-10.00',{data_pagamento:null,categoria_id:4,lancamento_composto_id:99})
