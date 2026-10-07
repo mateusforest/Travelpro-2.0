@@ -156,16 +156,16 @@
         if(d._intent==='live'){
           if(!c.connected())throw Error('A conexão direta aguarda ativação pela equipe TravelPro.');
           requesting=true;const form=document.querySelector('[data-form="sales-request"]');form?.querySelectorAll('button').forEach(b=>b.disabled=true);
-          try{await c.flush();const result=await c.request('/operator/quote',{method:'POST',body:{request}});const latest=trip(request.trip);if(!latest||latest.client!==request.client)throw Error('O atendimento mudou durante a consulta. Confira o pedido.');storeQuote(latest,request,{...result,currency:result.currency||'BRL'},'operator');c.close();c.render();quotes(latest);}finally{requesting=false;form?.querySelectorAll('button').forEach(b=>b.disabled=false);}
-        }else {c.close();c.render();c.toast('Pedido guardado. Nenhuma solicitação enviada à operadora.');}
+          try{await c.flush();const result=await c.request('/operator/quote',{method:'POST',body:{request}});const latest=trip(request.trip);if(!latest||latest.client!==request.client)throw Error('O atendimento mudou durante a consulta. Confira o pedido.');storeQuote(latest,request,{...result,currency:result.currency||'BRL'},'operator');await c.flush();c.close();c.render();quotes(latest);}finally{requesting=false;form?.querySelectorAll('button').forEach(b=>b.disabled=false);}
+        }else {await c.flush();c.close();c.render();c.toast('Pedido guardado. Nenhuma solicitação enviada à operadora.');}
       }
       if(name==='sales-receive'){
         if(!t||!F.date(d.start)||!F.date(d.end)||d.end<d.start||!F.date(d.valid)||!d.destination.trim()||!d.reference.trim()||!Number.isInteger(Number(d.travelers))||Number(d.travelers)<1||Number(d.travelers)>100||d.total==='')throw Error('Confira referência, datas, viajantes, validade e total.');
         const validUntil=d.time?new Date(d.valid+'T'+d.time).toISOString():d.valid;
-        storeQuote(t,d,{currency:'BRL',reference:d.reference,validUntil,offers:[{name:d.name,total:Number(d.total),inclusions:d.inclusions.split('\n').map(s=>s.trim()).filter(Boolean),terms:d.terms}]},'manual');c.close();c.render();quotes(t);
+        storeQuote(t,d,{currency:'BRL',reference:d.reference,validUntil,offers:[{name:d.name,total:Number(d.total),inclusions:d.inclusions.split('\n').map(s=>s.trim()).filter(Boolean),terms:d.terms}]},'manual');await c.flush();c.close();c.render();quotes(t);
       }
       if(name==='sales-decision'){const b=state().budgets.find(b=>b.id===d.id),target=trip(b?.trip);if(!target)throw Error('Vincule a proposta a um atendimento.');const beforeBudget=structuredClone(b),beforeTrip=structuredClone(target);F.recordDecision(target,b,d.event,d.note);try{await c.flush();}catch(error){for(const key of Object.keys(b))delete b[key];Object.assign(b,beforeBudget);for(const key of Object.keys(target))delete target[key];Object.assign(target,beforeTrip);throw error;}c.close();c.render();c.toast('Etapa registrada: '+b.status+'.');}
-      if(name==='sales-fulfillment'){if(!t)throw Error('Atendimento não encontrado.');F.recordFulfillment(t,F.currentBudget(t,state().budgets),{...d,deadline:d.deadline?new Date(d.deadline).toISOString():''});c.close();c.render();}
+      if(name==='sales-fulfillment'){if(!t)throw Error('Atendimento não encontrado.');F.recordFulfillment(t,F.currentBudget(t,state().budgets),{...d,deadline:d.deadline?new Date(d.deadline).toISOString():''});await c.flush();c.close();c.render();c.toast('Dados da reserva salvos com sucesso.');}
       return true;
     }
     return {flow,decor,action,submitForm,quickForm,quickList,canItinerary:F.canItinerary};

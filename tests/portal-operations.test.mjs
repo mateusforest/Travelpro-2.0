@@ -89,6 +89,68 @@ function click(f,action){
   assert.ok(button,'portal action exists: '+action);button.click();return button;
 }
 
+test('client form waits for confirmed persistence, blocks double submit and survives reload',async t=>{
+  const f=await fixture(t,{pathname:'/clientes.html'});
+  await f.portal.workspaceAction('new-client');
+  const form=f.d.querySelector('[data-form="client"]');
+  form.elements.namedItem('name').value='Cliente persistente';
+  form.elements.namedItem('status').value='Prospect';
+  let release,attempts=0;const gate=new Promise(resolve=>release=resolve),request=f.api.request.bind(f.api);
+  f.api.request=async(path,options)=>{if(options?.method==='PUT'){attempts++;await gate;}return request(path,options);};
+  const submit=()=>form.dispatchEvent(new f.w.Event('submit',{bubbles:true,cancelable:true}));
+  submit();submit();await waitFor(()=>attempts===1,'pending client write');
+  assert.equal(f.d.querySelector('#portal-dialog').open,true);
+  assert.equal(form.querySelector('[type=submit]').disabled,true);
+  assert.doesNotMatch(f.d.querySelector('#toast').textContent,/Cliente salvo/);
+  release();await waitFor(()=>!f.d.querySelector('#portal-dialog').open,'confirmed client save');
+  assert.equal(f.saved.clients.length,1);assert.equal(attempts,1);
+  assert.match(f.d.querySelector('#operations-client-results').textContent,/Cliente persistente/);
+  assert.match(f.d.querySelector('#toast').textContent,/Cliente salvo/);
+  const reopened=await fixture(t,{pathname:'/clientes.html',workspace:f.saved});
+  assert.equal(reopened.portal.state.clients[0].name,'Cliente persistente');
+  reopened.d.querySelector('#operations-client-filter').value='prospect';
+  reopened.d.querySelector('#operations-client-filter').dispatchEvent(new reopened.w.Event('change',{bubbles:true}));
+  assert.match(reopened.d.querySelector('#operations-client-results').textContent,/Cliente persistente/);
+});
+
+test('failed client save keeps the form and retry saves exactly one client',async t=>{
+  const f=await fixture(t,{pathname:'/clientes.html'});
+  await f.portal.workspaceAction('new-client');
+  const form=f.d.querySelector('[data-form="client"]');form.elements.namedItem('name').value='Tentar novamente';
+  const request=f.api.request.bind(f.api);let fail=true;
+  f.api.request=async(path,options)=>{if(options?.method==='PUT'&&fail)throw Error('Falha de conexão no teste');return request(path,options);};
+  form.dispatchEvent(new f.w.Event('submit',{bubbles:true,cancelable:true}));
+  await waitFor(()=>form.querySelector('[data-save-error]'),'visible save error');
+  assert.equal(f.d.querySelector('#portal-dialog').open,true);assert.equal(f.saved.clients.length,0);
+  assert.equal(form.elements.namedItem('name').value,'Tentar novamente');assert.equal(form.querySelector('[type=submit]').disabled,false);
+  fail=false;form.dispatchEvent(new f.w.Event('submit',{bubbles:true,cancelable:true}));
+  await waitFor(()=>!f.d.querySelector('#portal-dialog').open,'successful retry');
+  assert.equal(f.saved.clients.length,1);assert.equal(f.saved.clients[0].name,'Tentar novamente');
+});
+
+test('standalone trip is created from Viagens with a new client and appears after reload',async t=>{
+  const f=await fixture(t,{pathname:'/viagens.html'});click(f,'new-trip');
+  const form=f.d.querySelector('[data-form="trip"]');assert.ok(form);
+  for(const [name,value] of Object.entries({title:'Férias em Lisboa',name:'Viajante direto',destination:'Lisboa',start:'2027-05-01',end:'2027-05-10',travelers:'2',value:'9500'}))form.elements.namedItem(name).value=value;
+  form.dispatchEvent(new f.w.Event('submit',{bubbles:true,cancelable:true}));
+  await waitFor(()=>f.saved.trips.length===1&&!f.d.querySelector('#portal-dialog').open,'standalone trip persisted');
+  assert.equal(f.saved.clients.length,1);assert.equal(f.saved.trips[0].client,f.saved.clients[0].id);
+  assert.equal(f.saved.trips[0].status,'Confirmada');assert.equal(f.saved.budgets.length,0);
+  assert.match(f.d.querySelector('#toast').textContent,/Viagem salva/);
+  const reopened=await fixture(t,{pathname:'/viagens.html',workspace:f.saved});
+  assert.match(reopened.d.querySelector('.confirmed-trips').textContent,/Férias em Lisboa/);
+});
+
+test('legacy settings modal persists then closes with success',async t=>{
+  const f=await fixture(t);
+  f.d.querySelector('#dialog-body').innerHTML='<form data-form="settings"><input name="agency" value="Agência atualizada"><input name="plan" value="pro"><button type="submit">Salvar</button></form>';
+  f.d.querySelector('#portal-dialog').showModal();
+  f.d.querySelector('[data-form="settings"]').dispatchEvent(new f.w.Event('submit',{bubbles:true,cancelable:true}));
+  await waitFor(()=>!f.d.querySelector('#portal-dialog').open,'settings saved');
+  assert.equal(f.saved.agency,'Agência atualizada');assert.equal(f.saved.plan,'pro');
+  assert.match(f.d.querySelector('#toast').textContent,/sucesso/);
+});
+
 test('client referral and relationship survive editing; manual confirmation records the sale date',async t=>{
  const f=await fixture(t);
  await f.portal.workspaceSubmit('client',{id:'referrer',name:'Ana',phone:'',email:'',notes:''});
@@ -254,17 +316,18 @@ test('attendance reuses an existing client without duplicating or overwriting it
   assert.equal(f.saved.trips[0].destination,'Chile');
 });
 
-test('starting another attendance from a client profile keeps that client selected',async t=>{
+test('starting a trip from a client profile keeps that client selected',async t=>{
   const workspace=JSON.parse(read('backend/initial-state.json'));
   workspace.clients=[{id:'client-from-profile',name:'Cliente da ficha',phone:'11911112222',email:'',notes:''}];
   const f=await fixture(t,{pathname:'/cliente.html?id=client-from-profile',workspace});
   click(f,'new-trip');
-  const form=f.d.querySelector('[data-form="attendance"]');assert.ok(form);
+  const form=f.d.querySelector('[data-form="trip"]');assert.ok(form);
   assert.equal(form.elements.namedItem('client').value,'client-from-profile');
-  assert.equal(form.querySelector('#attendance-new-client').hidden,true);
+  assert.equal(form.querySelector('#trip-new-client').hidden,true);
   assert.equal(form.elements.namedItem('name').required,false);
   form.elements.namedItem('destination').value='Uruguai';
-  form.elements.namedItem('request').value='Novo pedido do cliente já aberto nesta ficha.';
+  form.elements.namedItem('title').value='Viagem ao Uruguai';
+  form.elements.namedItem('notes').value='Viagem do cliente já aberto nesta ficha.';
   form.dispatchEvent(new f.w.Event('submit',{bubbles:true,cancelable:true}));
   await waitFor(()=>f.saved.trips.length===1,'attendance created from the client profile');
   assert.equal(f.saved.clients.length,1);
