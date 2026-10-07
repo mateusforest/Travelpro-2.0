@@ -151,6 +151,21 @@ test('legacy settings modal persists then closes with success',async t=>{
   assert.match(f.d.querySelector('#toast').textContent,/sucesso/);
 });
 
+test('failed document creation does not open its editor before persistence',async t=>{
+  const f=await fixture(t,{pathname:'/documentos.html'});
+  await f.portal.workspaceAction('new-document');
+  const form=f.d.querySelector('[data-form="new-document"]');assert.ok(form);
+  form.elements.namedItem('name').value='Documento com erro';
+  const request=f.api.request.bind(f.api);
+  f.api.request=async(path,options)=>{if(options?.method==='PUT')throw Error('Falha ao guardar documento');return request(path,options);};
+  form.dispatchEvent(new f.w.Event('submit',{bubbles:true,cancelable:true}));
+  await waitFor(()=>form.querySelector('[data-save-error]'),'document write error');
+  await new Promise(resolve=>setTimeout(resolve,60));
+  assert.equal(f.d.querySelector('[data-form="new-document"]'),form);
+  assert.equal(f.d.querySelector('#portal-dialog').open,true);
+  assert.equal(f.saved.documents.length,0);
+});
+
 test('client referral and relationship survive editing; manual confirmation records the sale date',async t=>{
  const f=await fixture(t);
  await f.portal.workspaceSubmit('client',{id:'referrer',name:'Ana',phone:'',email:'',notes:''});
