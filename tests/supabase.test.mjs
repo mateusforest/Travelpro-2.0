@@ -1,3 +1,4 @@
+import * as ecosystem from '../backend/ecosystem.mjs';
 // Runs the actual API module with isolated Supabase substitutes. No real account or DB writes.
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
@@ -29,6 +30,7 @@ async function fixture({role='owner',workspaceId='agency-a',version=1,platformAd
   const access={workspace:workspaceId?{id:workspaceId,name:'Agency A',type:'operations'}:null,membershipRole:role,profile:null};
   class ApiResponse extends Response{static json(body,init){return new ApiResponse(JSON.stringify(body),{...init,headers:{...init?.headers,'Content-Type':'application/json'}});}static redirect(url){return new ApiResponse(null,{status:307,headers:{Location:String(url)}});}}
   const imports={
+    "../ecosystem.mjs":ecosystem,
     '../exchange.mjs':{exchangeRates:async()=>({rates:{BRL:1,USD:5,EUR:6},dates:{USD:'2026-10-01',EUR:'2026-10-01'},stale:false})},
     '../template-extraction.mjs':templateExtraction,
     '../visual-itinerary.mjs':visualItinerary,
@@ -155,4 +157,8 @@ test('customer documents with spaces accents and symbols use valid private stora
   assert.equal(f.calls.at(-1).key,'agency-a/'+file.id);assert.equal(f.calls.at(-1).options.upsert,false);
  }
  const template=await f.request('templates/upload','POST',{name:'Roteiro São Paulo.pdf',size:1234});assert.equal(template.status,200);assert.match((await template.json()).file.id,/Roteiro-Sao-Paulo\.pdf$/);
+});
+
+test('ecosystem authorization requires the workspace owner and a confirmed email',async()=>{
+ for(const role of ['member','admin','owner']){const f=await fixture({role});const res=await f.request('ecosystem/authorize','POST',{target:'vuei',challenge:'A'.repeat(43)});assert.equal(res.status,403);assert.equal(f.writes,0);}
 });

@@ -1,3 +1,4 @@
+import {ecosystemTargets,ecosystemPayload,issueEcosystemCode,redeemEcosystemCode} from '../ecosystem.mjs';
 import {visualItinerary} from '../visual-itinerary.mjs';
 import {exchangeRates} from '../exchange.mjs';
 import {extractTemplate} from '../template-extraction.mjs';
@@ -128,6 +129,12 @@ export async function handle(request){
     const rows=await db.from('travelpro_granatum').select('workspace_id').eq('enabled',true).lte('next_sync',new Date().toISOString()).order('next_sync').limit(1);dbError(rows.error);
     return json(rows.data.length?await runGranatum(db,rows.data[0].workspace_id):{idle:true});
   }
+  if(path==='ecosystem/exchange'&&method==='POST'){
+    const raw=await request.text();if(raw.length>2048)fail(413,'Solicitação muito grande.');let body;try{body=JSON.parse(raw);}catch{fail(400,'Dados inválidos.');}
+    const db=admin();
+    const repo={get:async(wid,service)=>{const r=await db.from('travelpro_integrations').select('secret').eq('workspace_id',wid).eq('service',service).maybeSingle();dbError(r.error);return r.data?{token:r.data.secret,value:decrypt(r.data.secret)}:null;},consume:async(wid,service,token)=>{const r=await db.from('travelpro_integrations').delete().eq('workspace_id',wid).eq('service',service).eq('secret',token).select('service');dbError(r.error);return r.data.length===1;}};
+    return json(await redeemEcosystemCode(repo,body));
+  }
   let data={};
   if(!['GET','HEAD'].includes(method)){
     if(request.headers.get('origin')!==requestOrigin(request))fail(403,'Origem não autorizada. Reabra o TravelPro neste endereço.');
@@ -143,6 +150,14 @@ export async function handle(request){
   }
   const a=await actor();
   if(path!=='auth/logout')await enforceIdle(a,request);
+  if(path==='ecosystem/authorize'&&method==='POST'){
+    if(a.access.membershipRole!=='owner')fail(403,'O titular da agência deve iniciar o acesso integrado.');await rate(a,'ecosystem',10);
+    const payload=ecosystemPayload(a,(await workspace(a)).state,data.target,data.record);
+    const code=await issueEcosystemCode({put:async(service,value)=>{const r=await a.db.from('travelpro_integrations').insert({workspace_id:a.wid,service,config:{expires:value.expires},secret:encrypt(value)});dbError(r.error);}}, {payload,challenge:data.challenge});
+    // Expired handoffs contain only temporary transfer data and are never reusable.
+    await a.db.from('travelpro_integrations').delete().eq('workspace_id',a.wid).like('service','ecosystem-code:%').lt('config->>expires',String(Date.now()));
+    return json({code,callback:ecosystemTargets[data.target]+'/api/travelpro/callback'});
+  }
   if(path==='proposals/preview'&&method==='POST'){await rate(a,'proposal_pdf',20);return json(await proposalPreview((await workspace(a)).state,data.id,await cfg(a,'whatsapp')));}
   if(path==='proposals/send'&&method==='POST'){
     await rate(a,'proposal_send',10);

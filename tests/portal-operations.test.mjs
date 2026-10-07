@@ -749,3 +749,10 @@ test('reports open from Clients and Trips without saving workspace changes',asyn
   await f.portal.workspaceAction(action,'todas');assert.ok(f.d.querySelector('#report-root iframe'));assert.equal(f.d.querySelector('#portal-dialog').open,true);assert.equal(f.writes.length,before);
  }
 });
+
+test('ecosystem tools provide a unified entry and a scoped record picker',async t=>{
+ for(const [pathname,target,origin] of [['/travelmatch.html','travelmatch','https://travelmatch-bice.vercel.app'],['/vuei.html','vuei','https://www.meuvuei.com']]){
+  const f=await fixture(t,{pathname});const entry=f.d.querySelector('a[href="'+origin+'/api/travelpro/start"]');assert.ok(entry);assert.ok(f.d.querySelector('[data-ecosystem-record]'));assert.equal(f.d.querySelector('[data-action="ecosystem-import"]').dataset.id,target);
+ }
+ const consent=await fixture(t,{pathname:'/vuei.html?connect=1&challenge=test&state=test&record=one'});assert.ok(consent.d.querySelector('[data-action="ecosystem-authorize"]'));assert.match(consent.d.querySelector('#portal-main').textContent,/rascunho|privada/);
+});
