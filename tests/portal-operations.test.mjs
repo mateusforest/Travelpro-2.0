@@ -75,6 +75,7 @@ async function fixture(t,{pathname='/portal.html',workspace,chatGate,intake=fals
   w.TravelAPI=api;
   w.eval(read('dist/operations.js'));
   w.eval(read('dist/portal-workflow.js'));
+  w.eval(read('dist/reports.js'));
   w.eval(read('dist/sales-flow.js'));
   w.eval(read('dist/proposal-brand.js'));
   w.eval(read('dist/itinerary-models.js'));
@@ -740,4 +741,11 @@ test('document preview uses unsaved text without overwriting source proposal or 
   assert.match(f.d.querySelector('.document-text-preview').textContent,/Texto revisado <b>sem HTML<\/b>/);
   assert.equal(f.d.querySelector('.document-text-preview b'),null);assert.equal(content.value,'Texto revisado <b>sem HTML</b>');
   assert.equal(f.saved.documents[0].content,'Texto salvo');assert.equal(f.saved.budgets[0].items[0].unit,1000);
+});
+
+test('reports open from Clients and Trips without saving workspace changes',async t=>{
+ for(const [pathname,action] of [['/clientes.html','report-clients'],['/viagens.html','report-trips']]){
+  const f=await fixture(t,{pathname});assert.ok(f.d.querySelector('[data-action="'+action+'"]'));const before=f.writes.length;
+  await f.portal.workspaceAction(action,'todas');assert.ok(f.d.querySelector('#report-root iframe'));assert.equal(f.d.querySelector('#portal-dialog').open,true);assert.equal(f.writes.length,before);
+ }
 });

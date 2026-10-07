@@ -357,6 +357,13 @@
   async function backendBoot(){try{await backend.session();const result=await backend.request('/workspace');Object.assign(state,result.state);const currentDay=new Date();state.month=currentDay.getMonth();state.year=currentDay.getFullYear();state.day=localToday();backend.version=result.version;backendServices=result.services;backendCapabilities=result.capabilities||{};backendBaseline=snapshot();backendReady=true;backend.enableIdle?.(()=>Number(state.security.timeout)||30);const head=$('.avatar');if(head)head.textContent=backend.user.name.split(' ').filter(Boolean).map(s=>s[0]).slice(0,2).join('');render();syncLabel('Dados salvos');}catch(error){if(error.status===401){location.href='login.html';return;}$('#portal-main').innerHTML='<div class="commerce-panel"><h1>Não conseguimos abrir sua agência.</h1><p id="boot-error"></p><button class="primary-button" onclick="location.reload()">Tentar novamente</button></div>';$('#boot-error').textContent=error.message;}}
   const salesUI=window.TravelSalesUI?.create({state,esc,client,money,total:budgetTotals,uid,refresh:refreshWorkspace,dialog:showDialog,close:closeDialog,nav:navTo,render,toast,flush,request:(...args)=>backend.request(...args),connected:()=>backendServices.some(s=>s.service==='operator'&&s.configured),editorOpen:()=>!!$('#budget-editor'),saveBudget:saveBudgetForm,download:(name,html)=>{const url=URL.createObjectURL(new Blob([html],{type:'text/html;charset=utf-8'})),a=document.createElement('a');a.href=url;a.download=name.replace(/[<>:"/\\|?*]/g,'')+'.html';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}});
   async function workspaceAction(action,id){
+    if(action==='report-clients'||action==='report-trips'){
+      const type=action==='report-clients'?'clients':'trips';
+      showDialog(type==='clients'?'Relatório de clientes':'Relatório de viagens','<div id="report-root"></div>','RELATÓRIOS');
+      const initial=type==='clients'?{scope:'filtered',query:clientQuery,status:({active:'Ativo',inactive:'Inativo',prospect:'Prospect',deleted:'deleted'})[clientFilter]||''}:{scope:id&&id!=='todas'?'filtered':'all',stage:id==='todas'?'':id||''};
+      window.TravelReports.mount($('#report-root'),{state,type,initial});return;
+    }
+
     if(!backendReady)return;
     if(action==='budget-export')action='sales-download';
     if(action.startsWith('support-')){const targets={security:'seguranca',connections:'integracoes',finance:'financeiro',attendances:'atendimentos',billing:'faturamento'};if(targets[action.slice(8)]){assistantOpen=false;navTo(targets[action.slice(8)]);return;}}
