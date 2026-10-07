@@ -5,6 +5,7 @@ import {randomUUID} from 'node:crypto';
 import {JSDOM} from 'jsdom';
 import {validateState,validateSalesTransition} from '../backend/validation.mjs';
 import {applyIntake} from '../backend/intake.mjs';
+import {proposalPreview} from '../backend/proposal-delivery.mjs';
 
 const read=file=>readFileSync(new URL('../'+file,import.meta.url),'utf8');
 const clone=value=>JSON.parse(JSON.stringify(value));
@@ -25,6 +26,8 @@ async function fixture(t,{pathname='/portal.html',workspace,chatGate,intake=fals
   const w=dom.window,d=w.document;
   w.scrollTo=()=>{};
   w.structuredClone=structuredClone;
+  w.URL.createObjectURL=blob=>{assert.equal(blob.type,'application/pdf');return 'blob:http://localhost/test-proposal';};
+  w.URL.revokeObjectURL=()=>{};
   w.HTMLDialogElement.prototype.showModal=function(){this.open=true;};
   w.HTMLDialogElement.prototype.close=function(){this.open=false;};
   const services=['openai','operator','whatsapp'].map(service=>({service,configured:false}));
@@ -37,6 +40,7 @@ async function fixture(t,{pathname='/portal.html',workspace,chatGate,intake=fals
         saved=next;writes.push(clone(next));return {version:++version};
       }
       if(route==='/workspace')return {state:clone(saved),version,services:clone(services)};
+      if(route==='/proposals/preview')return proposalPreview(saved,options.body.id,{});
       if(route==='/cos/intake/execute'&&options.method==='POST'){
         intakes.push(clone(options.body));
         const result=applyIntake(saved,options.body.review);
@@ -164,6 +168,54 @@ test('failed document creation does not open its editor before persistence',asyn
   assert.equal(f.d.querySelector('[data-form="new-document"]'),form);
   assert.equal(f.d.querySelector('#portal-dialog').open,true);
   assert.equal(f.saved.documents.length,0);
+});
+
+test('client accepts several attachments, reuses partial uploads and preserves existing documents',async t=>{
+ const f=await fixture(t,{pathname:'/clientes.html'});await f.portal.workspaceAction('new-client');
+ click(f,'add-client-attachment');const form=f.d.querySelector('[data-form="client"]');
+ assert.equal(form.querySelectorAll('input[type=file][multiple]').length,2);
+ const files=['Passaporte.pdf','Visto.pdf','Seguro.pdf'].map(name=>new f.w.File(['document'],name,{type:'application/pdf'}));
+ const data={id:'multi-client',name:'Viajante',email:'',phone:'',notes:'',_attachments:files};
+ const request=f.api.request.bind(f.api);let failed=false;
+ f.api.request=async(path,options)=>{if(path==='/files'&&options.body.name==='Visto.pdf'&&!failed){failed=true;throw Error('Upload interrompido');}return request(path,options);};
+ await f.portal.workspaceSubmit('client',{...data},form);assert.equal(f.saved.clients.length,0);assert.equal(f.uploads.length,1);assert.equal(f.d.querySelector('#portal-dialog').open,true);
+ await f.portal.workspaceSubmit('client',{...data},form);assert.equal(f.saved.clients.length,1);assert.equal(f.uploads.length,3);assert.equal(f.saved.documents.length,3);
+ assert.ok(f.saved.documents.every(d=>d.clients.includes('multi-client')));
+ await f.portal.workspaceAction('edit-client','multi-client');
+ await f.portal.workspaceSubmit('client',{...data,_attachments:[new f.w.File(['extra'],'Outro.pdf',{type:'application/pdf'})]},f.d.querySelector('[data-form="client"]'));
+ assert.equal(f.saved.documents.length,4);assert.equal(f.saved.clients.length,1);
+});
+
+test('birthday date has a distinct calendar marker and links to the client profile',async t=>{
+ const workspace=JSON.parse(read('backend/initial-state.json'));workspace.clients=[{id:'birthday-client',name:'Aniversariante',email:'',phone:'',birthDate:'1990-10-07'}];
+ const f=await fixture(t,{pathname:'/agenda.html',workspace});
+ Object.assign(f.portal.state,{year:2026,month:9,day:'2026-10-07'});f.portal.render();
+ assert.ok(f.d.querySelector('[data-id="2026-10-07"].has-birthday'));
+ assert.match(f.d.querySelector('.agenda-birthday').textContent,/Aniversariante/);
+ assert.match(f.d.querySelector('.agenda-birthday').getAttribute('href'),/cliente.html\?id=birthday-client/);
+ assert.equal(f.saved.events.length,0);
+});
+
+test('agency image saves, renders in the header, survives other edits and can be removed',async t=>{
+ const f=await fixture(t,{pathname:'/configuracoes.html'});
+ const avatar='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=';
+ f.w.TravelProposalBrand.prepareLogo=async file=>{assert.equal(file.name,'perfil.png');return {logo:avatar,colors:[]};};
+ assert.ok(f.d.querySelector('[name=profileImage]'));
+ const data={agency:'Minha agência',email:'',phone:'',website:''};
+ await f.portal.workspaceSubmit('agency-profile',{...data,profileImage:new f.w.File(['png'],'perfil.png',{type:'image/png'})});
+ assert.equal(f.saved.profile.avatar,avatar);assert.equal(f.d.querySelector('.avatar img').getAttribute('src'),avatar);
+ await f.portal.workspaceSubmit('agency-profile',{...data,agency:'Nome atualizado'});assert.equal(f.saved.profile.avatar,avatar);
+ const reopened=await fixture(t,{pathname:'/configuracoes.html',workspace:f.saved});assert.equal(reopened.d.querySelector('.avatar img').getAttribute('src'),avatar);
+ await reopened.portal.workspaceSubmit('agency-profile',{...data,removeAvatar:'on'});assert.equal(reopened.d.querySelector('.avatar img'),null);assert.equal(reopened.saved.profile.avatar,'');
+ const invalid=clone(f.saved);invalid.profile.avatar='https://example.invalid/tracker.png';assert.throws(()=>validateState(invalid),/perfil/);
+});
+
+test('manual proposal editor offers customization and opens a real PDF preview',async t=>{
+ const f=await fixture(t);await f.portal.workspaceSubmit('client',{id:'pdf-client',name:'Cliente PDF',email:'',phone:'',notes:''});
+ await f.portal.workspaceSubmit('new-budget',{name:'Proposta manual',destination:'Lisboa',client:'pdf-client',trip:'',start:'2027-01-01',end:'2027-01-10',valid:'2026-12-31',travelers:'2'});
+ const b=f.saved.budgets[0];assert.ok(f.d.querySelector('[data-action="sales-download"]'));assert.ok(f.d.querySelector('[data-proposal-logo]'));
+ await f.portal.workspaceAction('sales-preview',b.id);assert.ok(f.d.querySelector('.proposal-pdf-preview'));
+ assert.equal(f.saved.trips.length,0);
 });
 
 test('client referral and relationship survive editing; manual confirmation records the sale date',async t=>{
@@ -405,7 +457,8 @@ test('sales flow personalizes the proposal, records adjustment and approval, the
   let b=f.saved.budgets[0];assert.equal(b.items[0].unit,24000);assert.equal(b.travelers,4);
   const editor=f.d.querySelector('#budget-editor');editor.elements.namedItem('badge').value='Especial para sua família';editor.elements.namedItem('introduction').value='Uma viagem no seu ritmo.';editor.elements.namedItem('appearance').value='warm';
   await f.portal.workspaceAction('sales-preview',b.id);
-  assert.match(f.d.querySelector('.proposal-editorial').textContent,/Especial para sua família/);
+  assert.equal(f.d.querySelector('.proposal-pdf-preview').getAttribute('src'),'blob:http://localhost/test-proposal');
+  assert.equal(f.saved.budgets[0].badge,'Especial para sua família');
   assert.equal(f.saved.budgets[0].introduction,'Uma viagem no seu ritmo.');
   await f.portal.workspaceSubmit('sales-decision',{id:b.id,event:'sent',note:'Enviada pelo WhatsApp.'});
   assert.equal(f.saved.budgets[0].status,'Aguardando aprovação');

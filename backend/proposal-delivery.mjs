@@ -4,16 +4,17 @@ import {connectionStatus,remote} from './providers.mjs';
 import {proposalPDF,proposalTotal,money} from './proposal-pdf.mjs';
 const hash=x=>createHash('sha256').update(JSON.stringify(x)).digest('hex');
 const digits=x=>String(x||'').replace(/\D/g,'');
-export function proposalSnapshot(state,id){
+export function proposalSnapshot(state,id,{requireLinked=true}={}){
  const b=state.budgets.find(b=>b.id===id);if(!b)fail(404,'Proposta não encontrada nesta agência.');
  const client=state.clients.find(c=>c.id===b.client),trip=state.trips.find(t=>t.id===b.trip&&t.client===b.client);
- if(!client||!trip||!b.quoteId)fail(422,'Vincule a proposta à cotação de um atendimento.');
+ if(!client||(requireLinked&&(!trip||!b.quoteId)))fail(422,'Vincule a proposta à cotação de um atendimento.');
  if(b.destination.length>200||client.name.length>200||b.name.length>200||b.items.length>100||(b.inclusions||[]).length>100||String(b.notes||'').length>6000||String(b.introduction||'').length>6000||String(b.badge||'').length>60||b.items.some(i=>i.name.length>600))fail(422,'Reduza os textos ou a quantidade de serviços da proposta.');
  const content={...b};delete content.status;delete content.decisionHistory;delete content.delivery;
  const fingerprint=hash([content,client.name,client.phone,state.agency,b.brand||state.proposalBrand||null]);
  return {b,client,trip,fingerprint,filename:'Proposta-'+b.destination.replace(/[^a-z0-9À-ÿ -]/gi,'').slice(0,70)+'.pdf'};
 }
 export function deliveryEligibility(state,snapshot,config,now=Date.now()){
+ if(!snapshot.trip||!snapshot.b.quoteId)return {ready:false,reason:'Vincule a proposta à cotação de um atendimento para enviar pelo WhatsApp.'};
  if(!connectionStatus('whatsapp',config).configured)return {ready:false,reason:'Conecte o WhatsApp Business da agência em Conexões para enviar por aqui.'};
  const phone=digits(snapshot.client.phone);
  if(!/^[1-9]\d{9,14}$/.test(phone))return {ready:false,reason:'Complete o telefone do cliente com código do país e DDD na ficha dele.'};
@@ -24,7 +25,7 @@ export function deliveryEligibility(state,snapshot,config,now=Date.now()){
  return {ready:true,phone,threadId:thread.id};
 }
 export async function proposalPreview(state,id,config){
- const s=proposalSnapshot(state,id),pdf=await proposalPDF(state,s.b);
+ const s=proposalSnapshot(state,id,{requireLinked:false}),pdf=await proposalPDF(state,s.b);
  return {filename:s.filename,base64:pdf.toString('base64'),fingerprint:s.fingerprint,recipient:s.client.name,phone:s.client.phone,
  message:`Olá, ${s.client.name.split(' ')[0]}! Preparamos sua proposta para ${s.b.destination}.\n\nNo PDF você encontra os serviços inclusos, as condições e o investimento de ${money(proposalTotal(s.b))} para o grupo.\n\nVeja com carinho e me conte o que achou. Podemos ajustar os detalhes juntos!\n\n${state.agency}`,...deliveryEligibility(state,s,config)};
 }

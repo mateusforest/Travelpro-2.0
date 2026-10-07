@@ -177,6 +177,12 @@
   function calendarItems(ctx,day) {
     const s=ctx.state;
     const items=list(s.events).filter(e=>e.date===day).map(e=>({...e,kind:'event',label:e.type||'Compromisso'}));
+    for(const c of list(s.clients)){
+      if(c.deletedAt||!/^\d{4}-\d{2}-\d{2}$/.test(c.birthDate||'')||dateDay(c.birthDate)===null||c.birthDate>day)continue;
+      const md=c.birthDate.slice(5),year=Number(day.slice(0,4)),leap=year%4===0&&(year%100!==0||year%400===0);
+      if(day.slice(5)!==(md==='02-29'&&!leap?'02-28':md))continue;
+      items.push({id:'birthday-'+c.id,client:c.id,title:c.name,time:'',kind:'birthday',label:'Aniversário',details:md==='02-29'&&!leap?'Nascido em 29/02 · lembrado em 28/02':'Dia de celebrar'});
+    }
     for(const t of list(s.trips)) {
       if(t.datesPending||dateDay(t.start)===null||dateDay(t.end)===null||/cancelad|perdid|recusad/i.test(t.status||'')||day<t.start||day>t.end)continue;
       const confirmed=/confirmad|emitid|andamento|em viagem|viajando|finalizad|concluid/i.test(t.status||'');

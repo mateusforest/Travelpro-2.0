@@ -201,3 +201,18 @@ test('attendance order defaults to newest creation and period includes overlappi
  const filtered=operations.inboxResults({...ctx(state),options:{from:'2026-10-10',to:'2026-10-11'}});assert.match(filtered,/Viagem old/);assert.doesNotMatch(filtered,/Viagem new|Viagem pending/);
  assert.match(operations.inboxResults({...ctx(state),options:{from:'2026-10-12',to:'2026-10-01'}}),/Confira o período/);
 });
+
+test('birthdays recur annually without records and handle leap days and deleted clients',()=>{
+ const state=base();state.events=[];state.trips=[];state.clients=[
+  {id:'regular',name:'Ana',birthDate:'1990-10-07'},
+  {id:'leap',name:'Bia',birthDate:'2000-02-29'},
+  {id:'deleted',name:'Excluído',birthDate:'1990-10-07',deletedAt:'2026-01-01'},
+  {id:'bad',name:'Inválido',birthDate:'1990-02-30'},
+  {id:'empty',name:'Sem data'}];
+ const before=JSON.stringify(state);
+ for(const year of [2026,2027])assert.deepEqual(operations.calendarItems(ctx(state),year+'-10-07').map(x=>x.client),['regular']);
+ assert.equal(operations.calendarItems(ctx(state),'2027-02-28')[0].client,'leap');
+ assert.equal(operations.calendarItems(ctx(state),'2028-02-28').length,0);
+ assert.equal(operations.calendarItems(ctx(state),'2028-02-29')[0].client,'leap');
+ assert.equal(JSON.stringify(state),before);
+});
