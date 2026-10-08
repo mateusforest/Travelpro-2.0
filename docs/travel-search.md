@@ -2,9 +2,11 @@
 
 ## Entrega
 
+**Atualização:** a coleta própria de sites já foi implementada e testada ao vivo; veja [cobertura, evidências e execução](native-search.md). As descrições dos conectores externos abaixo permanecem válidas, mas não são mais a única forma de obter preços. Essas chaves não são necessárias para os coletores próprios.
+
 O TravelPro recebe um pedido único, distribui consultas entre conectores e devolve ofertas com origem, horário, escopo do preço e condições. O motor e a interface são próprios; os primeiros conectores usam serviços externos de extração. Isso reduz a dependência de uma operadora, mas não elimina os custos e contratos das fontes.
 
-Implementados: hotéis via Booking e Hoteis.com/GeckoAPI e Google Hotels/SearchApi ou SerpApi; voos via LATAM, GOL e Azul/GeckoAPI e Google Flights/SearchApi ou SerpApi. São nove conectores, não nove inventários independentes: SearchApi e SerpApi podem consultar a mesma origem Google.
+Conectores externos implementados: hotéis via Booking e Hoteis.com/GeckoAPI e Google Hotels/SearchApi ou SerpApi; voos via LATAM, GOL e Azul/GeckoAPI e Google Flights/SearchApi ou SerpApi. São nove conectores, não nove inventários independentes: SearchApi e SerpApi podem consultar a mesma origem Google.
 
 O catálogo preserva Firecrawl, Apify, Browser Use, Stagehand, Crawl4AI, Crawlee, Bright Data, Oxylabs e DataForSEO como opções futuras. Um item catalogado não é uma integração disponível. Fornecedores de reserva e categorias adicionais estão em [contratos e fontes](travel-provider-contracts.md).
 
@@ -55,13 +57,13 @@ O servidor aplica autenticação, escopo da agência, proteção de origem/CSRF 
 
 ## Limites e fidelidade
 
-- Até 12 chamadas por busca, três em paralelo e prazo total de 25 segundos. Não há repetição automática de chamadas pagas.
+- Até 12 consultas a conectores por busca, três em paralelo e prazo total de 25 segundos. Não há repetição automática de chamadas pagas. Uma consulta própria pode ler mais de uma página; `summary.networkRequests` contabiliza o tráfego observado, incluindo robots e redirecionamentos.
 - Cache de até cinco minutos, em memória, separado por agência, configuração, conector e pedido. Preserva o horário original. Não é reserva de tarifa nem garantia de validade; cada instância possui seu próprio cache.
 - Respostas de fornecedores limitadas a 2 MB, até 100 ofertas por consulta e sem redirecionamentos. Erros retornados à interface não incluem credenciais.
 - Falha de uma fonte preserva resultados das outras; fontes sem suporte à ocupação solicitada não devem produzir um preço silenciosamente para outra composição.
 - Sem deduplicação por nome de hotel: quartos, alimentação, cancelamento e canais diferentes podem ter preços distintos. Preços de diária, total, trecho e valores iniciais não são tratados como equivalentes.
 - Sem conversão cambial automática, garantia de cobertura mundial, captura de todas as páginas, histórico de descontos ou monitoramento contínuo.
-- Reservas, emissão, pagamento, ingressos, carros, transfer e seguros dependem dos próximos conectores e contratos. A API de uma operadora ou distribuidor pode ser adicionada ao mesmo motor.
+- Reservas, emissão, pagamento e seguros dependem dos próximos conectores e contratos. Ingressos, passeios, transfer e carros possuem referências publicadas em coletores próprios; disponibilidade por data continua limitada. A API de uma operadora ou distribuidor pode ser adicionada ao mesmo motor.
 
 ## Como construir uma capacidade semelhante à GeckoAPI
 
@@ -73,6 +75,6 @@ Para substituir gradualmente uma fonte externa por coleta própria, cada novo co
 
 `npm test` cobre normalização com respostas controladas, limites, erros parciais, cache por agência, autenticação e interface. As respostas dos testes são exemplos deliberados; não são cotações capturadas ao vivo. `npm run check` verifica a sintaxe.
 
-Após configurar uma chave, execute uma busca pequena com uma fonte, datas fixas, dois adultos e um quarto; confira os mesmos dados na origem. Registre tempo, consumo real no fornecedor, unidade do preço, impostos, ocupação e disponibilidade. Repita para ida simples, ida e volta e falhas de crédito. Só depois amplie fontes e datas flexíveis. Nenhuma chave estava disponível no ambiente de desenvolvimento desta entrega, portanto essa homologação ao vivo permanece pendente.
+Após configurar uma chave, execute uma busca pequena com uma fonte, datas fixas, dois adultos e um quarto; confira os mesmos dados na origem. Registre tempo, consumo real no fornecedor, unidade do preço, impostos, ocupação e disponibilidade. Repita para ida simples, ida e volta e falhas de crédito. Só depois amplie fontes e datas flexíveis. Nenhuma chave de API externa estava disponível no ambiente de desenvolvimento, portanto a homologação ao vivo desses conectores externos permanece pendente. A coleta própria já foi validada ao vivo, conforme o documento específico.
 
-O próximo desenvolvimento de maior impacto é completar a seleção de voos de ida/volta e a reconfirmação detalhada do quarto. Em seguida, integrar um distribuidor com reserva e suporte a cancelamento. O radar de oportunidades pode evoluir para histórico e alertas após medir custo por consulta e qualidade das fontes; nesta entrega ele se limita à exploração de datas próximas solicitada pela usuária.
+O próximo desenvolvimento de maior impacto é ampliar a cobertura da consulta de quartos já implementada e completar a seleção de voos de ida/volta. Em seguida, integrar reserva e suporte a cancelamento. O radar de oportunidades já mostra tarifas publicadas de companhias e outros serviços; histórico, alertas e monitoramento contínuo ainda não estão implementados.

@@ -21,7 +21,7 @@ test('search input validates real dates, occupancy, IATA and bounded work',()=>{
 });
 
 test('unconfigured and planned providers return no simulated offers or exposed secrets',async()=>{
- const service=createTravelSearchEngine({env:{},now:()=>at});const providers=service.providers();assert.ok(providers.length>=15);assert.ok(providers.some(p=>p.id==='firecrawl'&&!p.implemented));assert.ok(providers.filter(p=>p.implemented).every(p=>!p.configured));
+ const service=createTravelSearchEngine({env:{TRAVELPRO_NATIVE_SEARCH:'false'},now:()=>at});const providers=service.providers();assert.ok(providers.length>=15);assert.ok(providers.some(p=>p.id==='firecrawl'&&!p.implemented));assert.ok(providers.filter(p=>p.implemented).every(p=>!p.configured));
  const result=await service.search(request,scope);assert.deepEqual(result.offers,[]);assert.equal(result.summary.callsUsed,0);assert.ok(result.providers.every(p=>p.status==='unconfigured'));assert.match(result.warnings.join(' '),/Não foram gerados preços/);
  const planned=await service.search({...request,providers:['firecrawl']},scope);assert.equal(planned.providers[0].status,'planned');
  await assert.rejects(service.search({...request,providers:['unknown-source']},scope),{status:422});await assert.rejects(service.search(request,{}),{status:422});
@@ -67,7 +67,7 @@ test('unsupported occupancy consumes no outbound call and does not cache a misle
 });
 
 test('travel search HTTP routes require login, same origin and CSRF, return only server readiness',async t=>{
- const directory=mkdtempSync(path.join(os.tmpdir(),'travelpro-search-test-'));const app=createApp({directory,dist:path.resolve('dist'),env:{}});await new Promise(resolve=>app.server.listen(0,'127.0.0.1',resolve));const origin='http://127.0.0.1:'+app.server.address().port;app.setOrigin(origin);t.after(async()=>{await app.close();rmSync(directory,{recursive:true,force:true});});
+ const directory=mkdtempSync(path.join(os.tmpdir(),'travelpro-search-test-'));const app=createApp({directory,dist:path.resolve('dist'),env:{TRAVELPRO_NATIVE_SEARCH:'false'}});await new Promise(resolve=>app.server.listen(0,'127.0.0.1',resolve));const origin='http://127.0.0.1:'+app.server.address().port;app.setOrigin(origin);t.after(async()=>{await app.close();rmSync(directory,{recursive:true,force:true});});
  const anonymous=await fetch(origin+'/api/travel-search/providers');assert.equal(anonymous.status,401);
  const registered=await fetch(origin+'/api/auth/register',{method:'POST',headers:{Origin:origin,'Content-Type':'application/json'},body:JSON.stringify({name:'Busca',agency:'Agência Busca',email:'search@example.invalid',password:'long-test-password'})});assert.equal(registered.status,201);const cookie=registered.headers.get('set-cookie').split(';')[0],session=await registered.json();
  const invoke=(body,extra={})=>fetch(origin+'/api/travel-search',{method:'POST',headers:{Origin:origin,Cookie:cookie,'X-CSRF-Token':session.csrf,'Content-Type':'application/json',...extra},body:JSON.stringify(body)});

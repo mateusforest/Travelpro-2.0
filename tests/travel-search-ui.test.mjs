@@ -38,7 +38,7 @@ test('no configured providers shows honest activation state, no illustrative pri
 test('search submits one structured request preserving children zero age and explicit call cap',async t=>{
   const ui=await setup(t);ui.input('childrenAges','0, 8');ui.input('maxCalls','4');ui.input('flexDays','1','change');
   await ui.search();
-  assert.deepEqual(ui.requests[1],{path:'/travel-search',body:{...request(),childrenAges:[0,8],providers:['test-hotels'],flexDays:1,maxCalls:4,sort:'price'}});
+  assert.deepEqual(ui.requests[1],{path:'/travel-search',body:{...request(),mode:'quote',childrenAges:[0,8],providers:['test-hotels'],flexDays:1,maxCalls:4,sort:'price'}});
   assert.equal(ui.find('.ts-card h3').textContent,'Hotel Lisboa');
   assert.match(ui.root.textContent,/Total da hospedagem/);
   assert.equal(ui.chosen.length,0);
@@ -154,4 +154,83 @@ test('quality ranking only reorders ratings on a common documented scale',async 
 test('switching category clears old results and selections and uses server room limit',async t=>{
   const ui=await setup(t);assert.equal(ui.find('[name="rooms"]').max,'4');await ui.search();
   ui.find('[data-category="flights"]').click();assert.equal(ui.find('.ts-card'),null);assert.equal(ui.find('.ts-comparison'),null);assert.equal(ui.find('[name="destination"]').value,'');
+});
+
+test('whole trip accepts cities and optional paired airports and lists own collectors without keys',async t=>{
+  const native={...provider,id:'native-hotel',name:'Coletor de hospedagem',kind:'native',requiresKey:false,categories:['hotels']};
+  const ui=await setup(t,{providers:[native,{...provider,id:'native-activity',kind:'native',categories:['activities','tickets']},provider]});
+  assert.match(ui.root.textContent,/Coletor próprio · Pronto para consultar/);
+  assert.match(ui.root.textContent,/API externa · Conectado/);
+  for(const category of ['hotels','flights','activities','tickets','cars','transfers','trip'])assert.ok(ui.find(`[data-category="${category}"]`));
+  ui.find('[data-category="trip"]').click();ui.input('origin','Porto Alegre');ui.input('destination','Lisboa');ui.input('start','2027-01-10');ui.input('end','2027-01-15');ui.input('originAirport','poa');ui.input('destinationAirport','lis');ui.submit();await ui.waitFor(()=>!ui.find('.ts-spinner'));
+  const body=ui.requests[1].body;assert.equal(body.category,'trip');assert.equal(body.origin,'Porto Alegre');assert.equal(body.destination,'Lisboa');assert.equal(body.originAirport,'POA');assert.equal(body.destinationAirport,'LIS');
+  assert.deepEqual(body.providers,['native-hotel','native-activity','test-hotels']);
+  ui.input('destinationAirport','');ui.submit();assert.match(ui.find('[role="alert"]').textContent,/dois aeroportos/);assert.equal(ui.requests.length,2);
+});
+
+test('published prices are separated, show their dates and evidence, and never prefill as dated group totals',async t=>{
+  const published=offer({id:'published',title:'Voo anunciado',category:'flights',price:{amount:890,currency:'BRL',basis:'round_trip'},details:{priceKind:'published',publishedStart:'2027-03-03',publishedEnd:'2027-03-11',priceScope:'Por pessoa',requestedDatesMatched:false},completeness:'complete',requestSnapshot:{...request(),category:'flights',origin:'POA',destination:'LIS'},conditions:{passengerPriceScope:'all_travelers'},evidence:{documentUrl:'https://example.test/fare',sha256:'abc123',parserVersion:'native-v1',jsonPath:'$.fare.amount',rawPrice:'890',rawCurrency:'BRL'}});
+  const ui=await setup(t,{offers:[offer(),published]});await ui.search();
+  assert.equal(ui.root.querySelectorAll('[data-price-kind="published"] .ts-card').length,1);assert.equal(ui.root.querySelectorAll('[data-price-kind="quote"] .ts-card').length,1);
+  const card=ui.find('[data-offer="1"]');assert.match(card.querySelector('.ts-request-label').textContent,/2027-03-03 a 2027-03-11/);assert.doesNotMatch(card.querySelector('.ts-request-label').textContent,/2027-01/);
+  assert.match(card.textContent,/Não confirma disponibilidade/);assert.match(card.textContent,/abc123/);assert.equal(card.querySelector('[data-ts="choose"]'),null);assert.equal(ui.w.TravelSearch.prefill(published),null);
+  ui.input('mode','opportunities','change');await ui.search();assert.equal(ui.requests[2].body.mode,'opportunities');
+});
+
+test('organizer keeps selections across categories, excludes published rates from subtotals and allows removal',async t=>{
+  const activity=offer({id:'walk',title:'Passeio publicado',category:'activities',price:{amount:90,currency:'BRL',basis:'from'},details:{priceKind:'published'}});
+  const ui=await setup(t,{offers:[offer(),activity]});await ui.search();
+  ui.find('[data-ts="add-plan"][data-index="0"]').click();ui.find('[data-ts="add-plan"][data-index="1"]').click();
+  assert.equal(ui.root.querySelectorAll('.ts-plan-items>li').length,2);assert.equal(ui.find('[data-ts="add-plan"][data-index="0"]').disabled,true);
+  assert.match(ui.find('.ts-plan-subtotal').textContent,/4.200,00/);assert.doesNotMatch(ui.find('.ts-plan-subtotal').textContent,/4.290,00/);assert.match(ui.find('.ts-planner').textContent,/total pendente/);
+  ui.find('[data-category="activities"]').click();assert.equal(ui.root.querySelectorAll('.ts-plan-items>li').length,2);assert.equal(ui.find('.ts-card'),null);
+  ui.find('[data-ts="remove-plan"][data-index="0"]').click();assert.equal(ui.find('.ts-plan-subtotal'),null);assert.match(ui.find('.ts-planner').textContent,/O total da viagem está pendente/);
+  assert.equal(ui.w.localStorage.length,0);assert.equal(ui.w.sessionStorage.length,0);assert.equal(ui.requests.length,2);
+  ui.find('[data-ts="clear-plan"]').click();assert.equal(ui.find('.ts-planner'),null);
+});
+
+test('organizer never adds hotel alternatives and keeps different dates in separate subtotals',async t=>{
+  const items=[offer(),offer({id:'alternative',title:'Outra hospedagem'}),offer({id:'other-dates',title:'Outro período',requestSnapshot:{...request(),start:'2027-02-10',end:'2027-02-15'}})];
+  const ui=await setup(t,{offers:items});await ui.search();ui.find('[data-ts="add-plan"][data-index="0"]').click();ui.find('[data-ts="add-plan"][data-index="1"]').click();
+  assert.equal(ui.find('.ts-plan-subtotal'),null);assert.match(ui.find('.ts-planner').textContent,/alternativas da mesma categoria/);
+  ui.find('[data-ts="remove-plan"][data-index="1"]').click();ui.find('[data-ts="add-plan"][data-index="2"]').click();
+  assert.equal(ui.root.querySelectorAll('.ts-plan-subtotal').length,2);assert.match(ui.find('.ts-planner').textContent,/subtotais separados/);assert.doesNotMatch(ui.find('.ts-planner').textContent,/8.400,00/);
+});
+
+test('whole trip organizer can combine one dated hotel and an all-travelers flight with the same party and dates',async t=>{
+  const flight=offer({id:'flight',title:'Voo para Lisboa',category:'flights',requestSnapshot:{...request(),category:'flights',origin:'POA',destination:'LIS'},price:{amount:6000,currency:'BRL',basis:'round_trip',taxesIncluded:true},conditions:{passengerPriceScope:'all_travelers'}});
+  const data={...response([offer(),flight]),request:{...request(),category:'trip',origin:'Porto Alegre',originAirport:'POA',destinationAirport:'LIS'}};
+  const ui=await setup(t,{search:()=>data});await ui.search();ui.find('[data-ts="add-plan"][data-index="0"]').click();ui.find('[data-ts="add-plan"][data-index="1"]').click();
+  assert.equal(ui.root.querySelectorAll('.ts-plan-subtotal').length,1);assert.match(ui.find('.ts-plan-subtotal').textContent,/10.200,00/);assert.doesNotMatch(ui.find('.ts-plan-subtotal').textContent,/confirmado/i);
+});
+
+test('organizer bounds selection at twelve without booking or persisting offers',async t=>{
+  const ui=await setup(t,{offers:Array.from({length:13},(_,i)=>offer({id:'item-'+i,title:'Opção '+i}))});await ui.search();
+  for(let i=0;i<13;i++)ui.find(`[data-ts="add-plan"][data-index="${i}"]`).click();
+  assert.equal(ui.root.querySelectorAll('.ts-plan-items>li').length,12);assert.match(ui.root.textContent,/até 12 opções/);assert.equal(ui.requests.length,2);
+});
+
+test('organizer exports research references locally without private pricing fields',async t=>{
+  const ui=await setup(t,{offers:[offer({privatePricing:{netCost:3500,margin:25},netCost:3500})]});await ui.search();ui.find('[data-ts="add-plan"]').click();
+  let blob,filename;ui.w.URL.createObjectURL=value=>{blob=value;return 'blob:local';};ui.w.URL.revokeObjectURL=()=>{};ui.w.HTMLAnchorElement.prototype.click=function(){filename=this.download;};
+  ui.find('[data-ts="export-plan"]').click();
+  const raw=await new Promise((resolve,reject)=>{const reader=new ui.w.FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=reject;reader.readAsText(blob);});
+  const data=JSON.parse(raw);assert.equal(filename,'travelpro-organizador.json');assert.equal(data.items[0].price.amount,4200);assert.equal(data.items[0].sourceUrl,'https://example.test/hotel');assert.doesNotMatch(raw,/netCost|privatePricing|margin/);assert.equal(ui.requests.length,2);
+});
+
+test('Laghetto published hotel drills into dated room search without changing occupancy or creating a booking',async t=>{
+  const ui=await setup(t,{providers:[{...provider,id:'native-laghetto',kind:'native',categories:['hotels']}],offers:[offer({provider:'native-laghetto',title:'Hotel da rede',details:{priceKind:'published',hotelId:'1234'}})]});
+  await ui.search();assert.ok(ui.find('[data-ts="hotel-rooms"]'));
+  ui.context.api.request=async(path,options)=>{ui.requests.push({path,body:copy(options.body)});return response([offer({provider:'native-laghetto',title:'Quarto Duplo',requestSnapshot:{...request(),hotelId:'1234'}})]);};
+  ui.find('[data-ts="hotel-rooms"]').click();await ui.waitFor(()=>!ui.find('.ts-spinner'));
+  assert.deepEqual(ui.requests[2],{path:'/travel-search',body:{...request(),category:'hotels',mode:'quote',providers:['native-laghetto'],hotelId:'1234',flexDays:0,maxCalls:1,sort:'price'}});
+  assert.equal(ui.find('.ts-card h3').textContent,'Quarto Duplo');assert.equal(ui.find('[data-ts="hotel-rooms"]'),null);assert.equal(ui.chosen.length,0);assert.equal(ui.find('[name="destination"]').value,'Lisboa');
+});
+
+test('published conditions show minimum party and plain price scope, with direct network count',async t=>{
+  const data=response([offer({category:'transfers',conditions:{minimumParticipants:2,packageDays:5,redemptionValidityMonths:12,advertisedPassengers:1},details:{priceKind:'published',priceScope:'pacote_5_diarias'}}),offer({id:'room',details:{priceKind:'published',priceScope:'one_room_starting_rate'}})]);
+  data.summary.networkRequests=7;data.providers.push({id:'limited',status:'rate_limited',offerCount:0});
+  const ui=await setup(t,{search:()=>data});await ui.search();
+  const rows=ui.find('.ts-card .ts-conditions').textContent;assert.match(rows,/Mínimo de participantes2/);assert.match(rows,/Diárias no pacote5/);assert.match(rows,/Prazo de uso · meses12/);assert.match(rows,/Passageiros na oferta1/);
+  assert.match(ui.root.textContent,/Pacote de cinco diárias/);assert.match(ui.root.textContent,/Valor inicial para um quarto/);assert.doesNotMatch(ui.root.textContent,/pacote_5_diarias|one_room_starting_rate/);assert.match(ui.find('.ts-status').textContent,/7 requisição\(ões\) de rede/);assert.match(ui.find('.ts-status').textContent,/Limite temporário de consultas/);
 });
