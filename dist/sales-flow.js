@@ -6,6 +6,31 @@
   const deadline = v => date(v)||typeof v==='string'&&/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d{1,3})?)?(Z|[+-]\d{2}:\d{2})$/.test(v)&&date(v.slice(0,10))&&Number.isFinite(Date.parse(v));
   function expired(value,now=Date.now()) {if(!value)return true;return date(value)?now>new Date(value+'T23:59:59.999').getTime():now>=Date.parse(value);}
   const cents = v => Math.round(v*100);
+  // Agency-only pricing. Integer arithmetic keeps rates and rounding deterministic.
+  function priceQuote(input) {
+    const scaled=(value,label,max)=>{
+      if(!['number','string'].includes(typeof value)||!/^\d+(?:\.\d{1,2})?$/.test(String(value)))reject('Confira '+label+' (até duas casas decimais).');
+      const [whole,fraction='']=String(value).split('.');
+      const n=BigInt(whole)*100n+BigInt(fraction.padEnd(2,'0'));
+      if(n>BigInt(max))reject('Valor fora do limite: '+label+'.');return n;
+    };
+    if(!input||!['markup','margin'].includes(input.mode))reject('Escolha acréscimo sobre custo ou margem sobre venda.');
+    const cost=scaled(input.cost,'o custo líquido',10000000000),rate=scaled(input.rate,'o percentual de ganho',100000),fee=scaled(input.serviceFee,'a taxa de serviço',10000000000),payment=scaled(input.paymentPercent,'a taxa percentual do pagamento',9999),fixed=scaled(input.paymentFixed,'a taxa fixa do pagamento',10000000000);
+    if(cost<=0n)reject('Informe um custo líquido maior que zero.');
+    const denominator=10000n-payment-(input.mode==='margin'?rate:0n);
+    if(denominator<=0n)reject('Margem e taxa de pagamento precisam somar menos de 100%.');
+    const ceil=(n,d)=>(n+d-1n)/d;
+    const gain=input.mode==='markup'?(cost*rate+5000n)/10000n:0n;
+    const sale=ceil((cost+fee+fixed+gain)*10000n,denominator);
+    if(sale>10000000000n)reject('O preço de venda excede o limite de R$ 100 milhões.');
+    const paymentFee=(sale*payment+5000n)/10000n+fixed;
+    return {input:{mode:input.mode,cost:Number(cost)/100,rate:Number(rate)/100,serviceFee:Number(fee)/100,paymentPercent:Number(payment)/100,paymentFixed:Number(fixed)/100},result:{costCents:Number(cost),saleCents:Number(sale),paymentFeeCents:Number(paymentFee),contributionCents:Number(sale-cost-paymentFee)}};
+  }
+  function validatePrivatePricing(q) {
+    if(q.privatePricing===undefined)return;
+    const calculated=priceQuote(q.privatePricing?.input);
+    if(!q.privatePricing.result||Object.entries(calculated.result).some(([k,v])=>q.privatePricing.result[k]!==v)||q.offers.length!==1||cents(q.offers[0].total)!==calculated.result.saleCents)reject('O custo e a margem não fecham com o preço de venda. Recalcule a cotação.');
+  }
   function normalizeDetails(value,total) {
     if(!value||typeof value!=='object'||Array.isArray(value))reject('Detalhes da viagem inválidos.');
     const out={services:[],paymentTerms:[]};
@@ -63,8 +88,9 @@
     t.status=canItinerary(t)?'Confirmada':input.payment==='paid'?'Aguardando emissão':input.reservation!=='pending'?'Aguardando pagamento':'Em reserva';
   }
   function validateState(s) {
+    for(const q of [...(s.quickQuotes||[]),...s.trips.flatMap(t=>t.sales?.quotes||[])])validatePrivatePricing(q);
     for(const t of s.trips){if(!t.sales)continue;const x=t.sales;if(!Array.isArray(x.quotes)||x.quotes.length>200)reject('Histórico de cotações inválido.');const ids=new Set();for(const q of x.quotes){if(!text(q.id,100)||!q.id||ids.has(q.id)||q.trip!==t.id||q.client!==t.client||!['operator','manual'].includes(q.source))reject('Cotação vinculada incorretamente.');ids.add(q.id);normalizeQuote(q);}if(x.quoteId&&!ids.has(x.quoteId))reject('Cotação selecionada não encontrada.');if(x.budgetId&&!s.budgets.some(b=>b.id===x.budgetId&&b.trip===t.id&&b.client===t.client))reject('Proposta vinculada incorretamente.');if(x.fulfillment){const copy=structuredClone(t);recordFulfillment(copy,currentBudget(t,s.budgets),x.fulfillment);}}
     for(const b of s.budgets){if(b.details)normalizeDetails(b.details);if(!b.quoteId)continue;const t=s.trips.find(t=>t.id===b.trip);if(!t||t.client!==b.client||!t.sales?.quotes.some(q=>q.id===b.quoteId)||!deadline(b.validUntil)||!text(b.introduction||'',6000)||!text(b.badge||'',60)||!['classic','warm'].includes(b.appearance||'classic')||!Array.isArray(b.inclusions)||b.inclusions.some(v=>!text(v,2000)))reject('Proposta de cotação inválida.');}
   }
-  globalThis.TravelSalesFlow={normalizeDetails,normalizeQuote,selected,currentBudget,canItinerary,buildBudget,recordDecision,recordFulfillment,validateState,expired,date,deadline};
+  globalThis.TravelSalesFlow={priceQuote,validatePrivatePricing,normalizeDetails,normalizeQuote,selected,currentBudget,canItinerary,buildBudget,recordDecision,recordFulfillment,validateState,expired,date,deadline};
 })();

@@ -1,7 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
-  "buildCommand": "",
+  "buildCommand": "node scripts/verify-serverless-startup.mjs",
   "outputDirectory": "dist",
   "functions": {
     "api/index.mjs": {

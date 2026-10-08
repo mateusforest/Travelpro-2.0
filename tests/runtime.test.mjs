@@ -1,8 +1,18 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
+import {spawnSync} from 'node:child_process';
 import vm from 'node:vm';
 import * as runtime from '../backend/supabase/runtime.mjs';
+
+test('production API starts with Vercel default module restrictions',()=>{
+  const result=spawnSync(process.execPath,['scripts/verify-serverless-startup.mjs'],{
+    cwd:new URL('../',import.meta.url),encoding:'utf8',timeout:25000
+  });
+  assert.equal(result.error,undefined);
+  assert.equal(result.status,0,result.stderr);
+  assert.match(result.stdout,/API inicializada/);
+});
 
 test('cookie contexts remain isolated across simultaneous requests',async()=>{
   const run=value=>runtime.withRequest(new Request('https://example.com/api/auth/session',{headers:{Cookie:'session='+value}}),async()=>{
