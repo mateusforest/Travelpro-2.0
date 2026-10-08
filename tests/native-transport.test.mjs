@@ -45,3 +45,11 @@ test('Movida only runs for opportunities and never forces its five-day package i
  const exact=await source.search({category:'cars',mode:'exact',destination:'Porto Alegre',start:'2026-12-17',end:'2026-12-19'});assert.equal(exact.requestsUsed,0);assert.equal(calls,0);
  const opportunities=await source.search({category:'cars',mode:'opportunities',destination:'Porto Alegre',start:'2026-12-17',end:'2026-12-19'});assert.equal(opportunities.offers[0].price.amount,1099.5);assert.equal(opportunities.offers[0].details.publishedStart,null);assert.equal(opportunities.offers[0].details.evidence.sha256,'car-hash');assert.equal(calls,1);
 });
+
+test('published transport identities exclude price but distinguish flight terms and prepaid car products',()=>{
+ const a=parseNativeTransport(html([fare]),opts).offers[0],b=parseNativeTransport(html([{...fare,totalPrice:600}]),opts).offers[0];
+ assert.equal(a.identityKind,'published_product');assert.equal(a.identityKey,b.identityKey);assert.notEqual(a.id,b.id);
+ const different=parseNativeTransport(html([{...fare,brandedFareClass:'Plus'}]),opts).offers[0];assert.notEqual(a.identityKey,different.identityKey);
+ const car=parseMovidaPrepaid(prepaid,{collectedAt}).offers[0],newPrice=parseMovidaPrepaid(prepaid.replace('1.099,50','1.199,50').replace('1099.50','1199.50'),{collectedAt}).offers[0];
+ assert.equal(car.identityKey,newPrice.identityKey);assert.notEqual(car.id,newPrice.id);
+});

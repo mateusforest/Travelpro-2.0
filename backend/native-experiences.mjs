@@ -56,7 +56,8 @@ function makeOffer({provider,url,capturedAt,sha256},data){
   const sourceUrl=sameHostUrl(data.url,url);if(!sourceUrl||!data.title||numeric(data.amount)===null||!/^[A-Z]{3}$/.test(data.currency||''))return null;
   const category=categoryFor(data.title,data.category);if(!category)return null;
   return {
-    id:`native-${provider}-${createHash('sha256').update(JSON.stringify([sourceUrl,data.amount,data.currency])).digest('hex').slice(0,20)}`,
+    id:`native-${provider}-${createHash('sha256').update(JSON.stringify([sourceUrl,data.title,data.details?.productId||null,data.publishedStart||null,data.priceScope||'unknown',data.amount,data.currency])).digest('hex').slice(0,20)}`,
+    identityKey:createHash('sha256').update(JSON.stringify([sourceUrl,data.title,data.details?.productId||null,data.publishedStart||null,data.priceScope||'unknown'])).digest('hex'),identityKind:'published_product',
     provider:`native-${provider}`,source:{civitatis:'Civitatis',tiqets:'Tiqets',getyourguide:'GetYourGuide',siga:'Siga Turismo'}[provider],
     category,title:bounded(data.title),sourceUrl,capturedAt,collectedAt:capturedAt,expiresAt:null,
     price:{amount:data.amount,currency:data.currency,basis:'from',taxesIncluded:null},
@@ -147,14 +148,18 @@ const sourceDefinitions=[
   {id:'native-tiqets',source:'tiqets',name:'Tiqets · coleta própria',categories:['tickets'],host:'www.tiqets.com',destinations:['paris','louvre'],page:destination=>['paris','louvre'].includes(destination)?'https://www.tiqets.com/pt/bilhetes-museu-do-louvre-l124297/':null,coverageWarning:'A fonte Tiqets está limitada ao catálogo público do Louvre nesta etapa.'},
   {id:'native-siga',source:'siga',name:'Siga Turismo · fornecedor direto',categories:['activities','transfers'],host:'sigaturismo.com.br',destinations:['porto alegre'],page:destination=>destination==='porto alegre'?'https://sigaturismo.com.br/':null},
 ];
-export const nativeExperienceCatalog=Object.freeze(sourceDefinitions.map(({page,source,host,coverageWarning,...entry})=>Object.freeze({...entry,requiresKey:null,implemented:true,configured:true,kind:'native',dateIndependent:true,docsUrl:`https://${host}/`,categories:Object.freeze(entry.categories),destinations:Object.freeze(entry.destinations)})));
+export const nativeExperienceCatalog=Object.freeze(sourceDefinitions.map(({page,source,host,coverageWarning,...entry})=>Object.freeze({...entry,requiresKey:null,implemented:true,configured:true,kind:'native',dateIndependent:true,docsUrl:`https://${host}/`,categories:Object.freeze(entry.categories),destinations:Object.freeze(entry.destinations),coverage:{type:'destinations',limited:true,destinations:entry.destinations,label:coverageWarning||'Catálogo público dos destinos listados; data, participantes e disponibilidade precisam de confirmação.'},capabilities:{modes:['quote','opportunities'],datedQuotes:false,publishedOffers:true,roomSelection:false}})));
 export function createNativeExperienceAdapters({collector}={}){
   if(!collector?.getHtml)throw new Error('Coletor HTTP nativo obrigatório.');
-  return nativeExperienceCatalog.map(entry=>({...entry,async search(request,{signal}={}){
+  function support(entry,request){
+    if(request.category!=='trip'&&!entry.categories.includes(request.category))return {supported:false,code:'category',reason:'Categoria não atendida nesta fonte.'};
+    if(!sourceDefinitions.find(x=>x.id===entry.id).page(aliases(request.destination)))return {supported:false,code:'destination',reason:'Destino ainda não mapeado para coleta própria nesta fonte.'};
+    return {supported:true};
+  }
+  return nativeExperienceCatalog.map(entry=>({...entry,supports:request=>support(entry,request),async search(request,{signal}={}){
     const source=sourceDefinitions.find(x=>x.id===entry.id);
-    if(request.category!=='trip'&&!entry.categories.includes(request.category))return {offers:[],warnings:['Categoria não atendida nesta fonte.'],requestsUsed:0,networkRequests:0};
+    const supported=support(entry,request);if(!supported.supported)return {offers:[],warnings:[supported.reason],requestsUsed:0,networkRequests:0};
     const url=source.page(aliases(request.destination));
-    if(!url)return {offers:[],warnings:['Destino ainda não mapeado para coleta própria nesta fonte.'],requestsUsed:0,networkRequests:0};
     const page=await collector.getHtml(url,{signal,allowedHosts:[source.host]});
     const result=parseNativeExperiences(page.html,{provider:source.source,url:page.url,capturedAt:page.fetchedAt,sha256:page.sha256,category:request.category==='trip'?undefined:request.category});
     if(source.coverageWarning)result.warnings.push(source.coverageWarning);

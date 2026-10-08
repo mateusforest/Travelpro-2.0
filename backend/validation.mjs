@@ -1,3 +1,4 @@
+import {validateTravelPlans} from './travel-plans.mjs';
 import {validateLayout} from '../dist/pdf-template-core.mjs';
 import {isDeepStrictEqual} from 'node:util';
 import '../dist/itinerary-models.js';
@@ -44,6 +45,7 @@ export function validateState(s){
   if(!Array.isArray(s.messages)||s.messages.length>2000)fail(422,'Histórico do COS excedeu o limite.');
   if(!['essencial','pro','completo'].includes(s.plan))fail(422,'Plano inválido.');
   if(!object(s.security)||!['15','30','60'].includes(String(s.security.timeout)))fail(422,'Escolha 15, 30 ou 60 minutos para a sessão.');
+  validateTravelPlans(s);
   salesFlow.validateState(s);
   try{if(s.proposalBrand)globalThis.TravelProposalBrand.normalize(s.proposalBrand);for(const b of s.budgets)if(b.brand)globalThis.TravelProposalBrand.normalize(b.brand);}catch(error){fail(422,error.message);}
   return s;

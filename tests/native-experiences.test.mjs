@@ -89,3 +89,10 @@ test('a whole-trip invocation gathers distinct experience categories with a sing
   assert.deepEqual(result.offers.map(x=>x.category),['activities','transfers','tickets']);
   assert.ok(result.offers.every(x=>x.details.evidence.parserVersion==='native-experiences/1.0.0'));
 });
+
+test('experience identity follows a published product across price updates without merging different products',()=>{
+ const a=parseNativeExperiences(card(),context).offers[0],b=parseNativeExperiences(card({amount:'125,00'}),context).offers[0];
+ assert.equal(a.identityKind,'published_product');assert.equal(a.identityKey,b.identityKey);assert.notEqual(a.id,b.id);
+ const distinct=parseNativeExperiences(card()+card({name:'Outro passeio',id:'999'}),context).offers;
+ assert.equal(distinct.length,2);assert.notEqual(distinct[0].identityKey,distinct[1].identityKey);
+});

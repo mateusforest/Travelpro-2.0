@@ -1,3 +1,4 @@
+import * as travelPlans from '../backend/travel-plans.mjs';
 import * as ecosystem from '../backend/ecosystem.mjs';
 import * as travelSearch from '../backend/travel-search.mjs';
 // Runs the actual API module with isolated Supabase substitutes. No real account or DB writes.
@@ -32,6 +33,7 @@ async function fixture({role='owner',workspaceId='agency-a',version=1,platformAd
   class ApiResponse extends Response{static json(body,init){return new ApiResponse(JSON.stringify(body),{...init,headers:{...init?.headers,'Content-Type':'application/json'}});}static redirect(url){return new ApiResponse(null,{status:307,headers:{Location:String(url)}});}}
   const imports={
     '../travel-search.mjs':travelSearch,
+    '../travel-plans.mjs':travelPlans,
     "../ecosystem.mjs":ecosystem,
     '../exchange.mjs':{exchangeRates:async()=>({rates:{BRL:1,USD:5,EUR:6},dates:{USD:'2026-10-01',EUR:'2026-10-01'},stale:false})},
     '../template-extraction.mjs':templateExtraction,
@@ -174,4 +176,20 @@ test('customer documents with spaces accents and symbols use valid private stora
 
 test('ecosystem authorization requires the workspace owner and a confirmed email',async()=>{
  for(const role of ['member','admin','owner']){const f=await fixture({role});const res=await f.request('ecosystem/authorize','POST',{target:'vuei',challenge:'A'.repeat(43)});assert.equal(res.status,403);assert.equal(f.writes,0);}
+});
+
+test('Supabase organizer persists historical references with scope, version and revision guards',async()=>{
+ const f=await fixture(),other=await fixture({workspaceId:'agency-b'});
+ const body={version:1,plan:{name:'Pesquisa Lisboa',items:[{id:'published',category:'activities',title:'Passeio',provider:'native-civitatis',sourceUrl:'https://example.com/tour',price:{amount:150,currency:'BRL',basis:'from'},completeness:'complete',expiresAt:'2099-01-01T00:00:00Z'}]}};
+ const created=await f.request('travel-plans','POST',body);assert.equal(created.status,201);const result=await created.json(),item=result.plan.items[0];
+ assert.equal(item.savedReference,true);assert.equal(item.completeness,'unknown');assert.equal(item.expiresAt,'');assert.equal(result.version,2);
+ assert.equal((await (await other.request('travel-plans')).json()).plans.length,0);assert.equal((await other.request('travel-plans/'+result.plan.id)).status,404);
+ assert.equal((await f.request('travel-plans/'+result.plan.id,'PUT',{version:1,revision:1,plan:body.plan})).status,409);
+ assert.equal((await f.request('travel-plans/'+result.plan.id,'DELETE',{version:2,revision:2})).status,409);
+ const workspace=(await (await f.request('workspace')).json());workspace.state.travelPlans=[];assert.equal((await f.request('workspace','PUT',{version:workspace.version,state:workspace.state})).status,200);
+ const listed=await (await f.request('travel-plans')).json();assert.equal(listed.plans.length,1);
+ const updated=await f.request('travel-plans/'+result.plan.id,'PUT',{version:listed.version,revision:1,plan:{name:'Atualizado',items:[]}});assert.equal(updated.status,200);const changed=await updated.json();assert.equal(changed.plan.revision,2);
+ const removed=await f.request('travel-plans/'+result.plan.id,'DELETE',{version:changed.version,revision:2});assert.equal(removed.status,200);assert.equal((await removed.json()).plans.length,0);
+ assert.ok(f.calls.every(call=>call.filters.workspace_id==='agency-a'));
+ const denied=await fixture({workspaceId:null});assert.equal((await denied.request('travel-plans')).status,403);assert.equal(denied.writes,0);
 });

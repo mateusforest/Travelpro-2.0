@@ -18,7 +18,7 @@ const cities=Object.freeze([
 // Public hotel IDs and city folders observed in the official booking selector.
 const hotelCatalog=Object.freeze([{"hotelId":"3480","name":"Hotel Laghetto Gramado","city":"Gramado"},{"hotelId":"3483","name":"Hotel Laghetto Siena","city":"Gramado"},{"hotelId":"3484","name":"Hotel Laghetto Toscana","city":"Gramado"},{"hotelId":"3491","name":"Hotel Laghetto Viale","city":"Gramado"},{"hotelId":"3497","name":"Hotel Laghetto Premio","city":"Gramado"},{"hotelId":"3501","name":"Hotel Laghetto Bento","city":"Bento Gonçalves"},{"hotelId":"3502","name":"Hotel Laghetto Moinhos","city":"Porto Alegre"},{"hotelId":"3807","name":"Hotel Laghetto Stilo Centro","city":"Gramado"},{"hotelId":"4744","name":"Hotel Laghetto Pedras Altas","city":"Gramado"},{"hotelId":"5705","name":"Hotel Laghetto Stilo Barra","city":"Rio de Janeiro"},{"hotelId":"6174","name":"Hotel Laghetto Stilo Borges","city":"Gramado"},{"hotelId":"6175","name":"Hotel Laghetto Vivace","city":"Canela"},{"hotelId":"6458","name":"Hotel Bangalôs da Serra","city":"Gramado"},{"hotelId":"6657","name":"Hotel Laghetto Stilo Higienópolis","city":"Porto Alegre"},{"hotelId":"7620","name":"Hotel Laghetto Rio Grande","city":"Rio Grande"},{"hotelId":"9220","name":"Hotel Laghetto Fratello","city":"Gramado"},{"hotelId":"9221","name":"Hotel Laghetto Estação","city":"Bento Gonçalves"},{"hotelId":"10571","name":"Hotel Laghetto Villa Moura","city":"Rio Grande"},{"hotelId":"13135","name":"Hotel Laghetto Stilo Vita","city":"Gramado"},{"hotelId":"13592","name":"Laghetto Resort Golden","city":"Gramado"},{"hotelId":"15352","name":"Hotel Chateau Laghetto Collection","city":"Gramado"},{"hotelId":"15353","name":"Hotel Laghetto Canela","city":"Canela"},{"hotelId":"16608","name":"Hotel Laghetto Stilo São Paulo","city":"São Paulo"},{"hotelId":"19036","name":"Lifestyle Laghetto Collection","city":"Rio de Janeiro"},{"hotelId":"20922","name":"Laghetto Stilo Garden","city":"Gramado"}]);
 export const nativeStayCatalog=Object.freeze([
- Object.freeze({id:'native-laghetto',name:'Laghetto · coleta própria',categories:['hotels'],requiresKey:null,implemented:true,configured:true,kind:'native',docsUrl:'https://reservas.laghetto.com.br/chain/2143/hotels?lang=pt-BR&currencyId=16'}),
+ Object.freeze({id:'native-laghetto',name:'Laghetto · coleta própria',categories:['hotels'],requiresKey:null,implemented:true,configured:true,kind:'native',destinations:cities.map(city=>city.name),coverage:{type:'destinations',limited:true,destinations:cities.map(city=>city.name),label:'Rede Laghetto em sete cidades; um quarto, sem crianças.'},capabilities:{modes:['quote','opportunities'],datedQuotes:true,publishedOffers:true,roomSelection:true,occupancy:{minAdults:1,maxAdults:9,maxRooms:1,children:false}},docsUrl:'https://reservas.laghetto.com.br/chain/2143/hotels?lang=pt-BR&currencyId=16'}),
  Object.freeze({id:'native-hoteis-public',name:'Hoteis.com · acesso direto restrito',categories:['hotels'],requiresKey:null,implemented:false,configured:false,kind:'native',docsUrl:'https://www.hoteis.com/robots.txt',reason:'A política pública para robôs bloqueia /Hotel-Search. Coleta direta desativada.'}),
 ]);
 const clean=(value,max=500)=>typeof value==='string'?value.replace(/\s+/g,' ').trim().slice(0,max):'';
@@ -76,7 +76,7 @@ export function parseNativeStays(html,{request,sourceUrl,collectedAt=new Date().
    if(!title||amount===null||!/^\d{1,8}$/.test(id||'')||normalize(startsAt)!=='a partir de'||perNight!=='/noite'||seen.has(id)){base.counts.excluded++;continue;}seen.add(id);base.counts.priced++;
    const excludedTaxes=!!priceArea.querySelector('.tax_string_info_not_included'),includedTaxes=!!priceArea.querySelector('.tax_string_info_included');
    const taxesIncluded=excludedTaxes?false:includedTaxes?true:null;
-   base.offers.push({id:'native-laghetto-'+id,provider:'native-laghetto',source:'Laghetto · site oficial',category:'hotels',title,sourceUrl:nativeStayUrl(request,{hotelId:id}),capturedAt:new Date(time).toISOString(),expiresAt:new Date(time+300000).toISOString(),
+   base.offers.push({id:'native-laghetto-'+id,identityKey:'hotel-starting-rate:'+id,identityKind:'published_product',provider:'native-laghetto',source:'Laghetto · site oficial',category:'hotels',title,sourceUrl:nativeStayUrl(request,{hotelId:id}),capturedAt:new Date(time).toISOString(),expiresAt:new Date(time+300000).toISOString(),
     price:{amount,currency:'BRL',basis:'from',taxesIncluded},
     conditions:{datesVerified:true,occupancyVerified:true,priceScope:'starting_nightly_rate',availabilityConfirmed:false,roomSelectionRequired:true,mealPlan:null,cancellation:null},
     details:{address,destination:city.name,collectionMethod:'direct_public_html',priceKind:'published',advertisedBasis:'nightly',priceScope:'one_room_starting_rate',sourceTimestampAvailable:false,publishedStart:request.start,publishedEnd:request.end,publishedAdults:request.adults,publishedRooms:1,hotelId:id,
@@ -118,7 +118,7 @@ export function parseNativeStayRates(html,{request,sourceUrl,collectedAt=new Dat
    if(!publicArea||!room||!/^\d+$/.test(roomId||'')||!/^\d+$/.test(rateId||'')||attr('has-loyalty')!=='false'||attr('start')!==request.start||attr('end')!==request.end||attr('adults')!==String(request.adults)||attr('children')!=='0'||attr('children-ages')!==''||Number(attr('nights'))!==nights||attr('rate-currency-string-symbol')!=='BRL'||attr('rate-currency')!=='16'||!available||!consistent){out.counts.excluded++;continue;}
    const key=hotelId+'-'+roomId+'-'+rateId;if(seen.has(key))continue;seen.add(key);
    const cancellation=clean(rate.querySelector('.cancellation-text-policy-wrapper')?.textContent,250)||null;
-   out.offers.push({id:'native-laghetto-rate-'+key,provider:'native-laghetto',source:'Laghetto · tarifa pública do hotel',category:'hotels',title:hotelName+' · '+room,sourceUrl:url.href,capturedAt:new Date(time).toISOString(),expiresAt:new Date(time+300000).toISOString(),price:{amount:Math.round(after*100)/100,currency:'BRL',basis:'stay',taxesIncluded:true},
+   out.offers.push({id:'native-laghetto-rate-'+key,identityKey:'hotel-room-rate:'+key,identityKind:'dated_quote',provider:'native-laghetto',source:'Laghetto · tarifa pública do hotel',category:'hotels',title:hotelName+' · '+room,sourceUrl:url.href,capturedAt:new Date(time).toISOString(),expiresAt:new Date(time+300000).toISOString(),price:{amount:Math.round(after*100)/100,currency:'BRL',basis:'stay',taxesIncluded:true},
     conditions:{datesVerified:true,occupancyVerified:true,priceScope:'one_room_stay',roomType:room,mealPlan:clean(attr('board'),150)||null,freeCancellation:attr('free-cancel')==='true'?true:attr('free-cancel')==='false'?false:null,cancellation,availabilityConfirmed:false},
     details:{hotelId,roomId,rateId,fare:clean(attr('rate-name'),150),roomType:room,collectionMethod:'direct_public_html',priceKind:'dated_quote',publishedStart:request.start,publishedEnd:request.end,publishedAdults:request.adults,publishedRooms:1,staySubtotal:Math.round(before*100)/100,listedTaxes:Math.round(taxes*100)/100,
      evidence:{documentUrl:url.href,sha256:digest,parserVersion:'laghetto-room-html-v1',selector:'.roomrate .rate_plan.roomrateinfo[data-total-price-after-tax-public]',rawPrice,rawCurrency:'BRL',rawDisplayedSubtotal:visiblePrice,rawListedTaxes:attr('total-taxes'),collectedAt:new Date(time).toISOString()}},
@@ -129,13 +129,19 @@ export function parseNativeStayRates(html,{request,sourceUrl,collectedAt=new Dat
   return out;
  }finally{dom.window.close();}
 }
+function requestSupport(request){
+ const invalid=validateRequest(request);
+ if(invalid){const code=request?.category!=='hotels'?'category':!cityFor(request.destination)?'destination':request.rooms!==1||request.childrenAges?.length?'occupancy':'request';return {supported:false,code,reason:invalid};}
+ if(request.hotelId!==undefined&&!hotelCatalog.some(h=>h.hotelId===String(request.hotelId)&&normalize(h.city)===cityFor(request.destination).key))return {supported:false,code:'hotel',reason:'Este hotel não pertence ao catálogo verificado para o destino.'};
+ return {supported:true};
+}
 export function createNativeStayAdapters({collector=createNativeCollector(),now=()=>Date.now()}={}){
- return nativeStayCatalog.filter(entry=>entry.implemented).map(entry=>({...entry,
+ return nativeStayCatalog.filter(entry=>entry.implemented).map(entry=>({...entry,supports:requestSupport,
   async search(request,{signal}={}){
-   const invalid=validateRequest(request);if(invalid)return {offers:[],warnings:[invalid],requestsUsed:0,networkRequests:0};
+   const support=requestSupport(request);if(!support.supported)return {offers:[],warnings:[support.reason],requestsUsed:0,networkRequests:0};
    const direct=request.hotelId===undefined?null:hotelCatalog.find(h=>h.hotelId===String(request.hotelId)&&normalize(h.city)===cityFor(request.destination).key);
    if(request.hotelId!==undefined&&!direct)return {offers:[],warnings:['Este hotel não pertence ao catálogo verificado para o destino.'],requestsUsed:0,networkRequests:0};
-   const documents=[],warnings=[];let networkRequests=0,offers=[];
+   const documents=[],warnings=[],roomFailures=[];let networkRequests=0,offers=[];
    async function collect(url){const page=await collector.getHtml(url,{signal,allowedHosts:[HOST]});networkRequests+=page.networkRequests??1;documents.push({documentUrl:page.url||url,sha256:page.sha256,fetchedAt:page.fetchedAt,robots:page.robots});return page;}
    let selected;
    if(direct)selected=[direct];
@@ -148,11 +154,14 @@ export function createNativeStayAdapters({collector=createNativeCollector(),now=
    }
    const rooms=await Promise.all(selected.map(async hotel=>{
     try{const sourceUrl=nativeStayUrl(request,{hotelId:hotel.hotelId}),page=await collect(sourceUrl),parsed=parseNativeStayRates(page.html,{request,sourceUrl:page.url||sourceUrl,collectedAt:page.fetchedAt||new Date(now()).toISOString(),sha256:page.sha256,hotel});warnings.push(...parsed.warnings);return parsed.offers;}
-    catch(error){networkRequests+=Number(error?.networkRequests)||0;warnings.push('Não foi possível conferir os quartos de '+hotel.name+'. As demais respostas foram preservadas.');return [];}
+    catch(error){networkRequests+=Number.isInteger(error?.networkRequests)&&error.networkRequests>=0?error.networkRequests:0;roomFailures.push(error);warnings.push('Não foi possível conferir os quartos de '+hotel.name+'. As demais respostas foram preservadas.');return [];}
    }));
+   // An explicit room query has no fallback listing. A failed fetch must remain a
+   // source failure, never a successful (and cacheable) empty availability response.
+   if(direct&&roomFailures.length){const error=roomFailures[0];error.networkRequests=networkRequests;throw error;}
    const detailed=rooms.flat(),detailedHotels=new Set(detailed.map(o=>o.details.hotelId));
    offers=[...detailed,...offers.filter(o=>!detailedHotels.has(o.details.hotelId))];
-   return {offers,warnings:[...new Set(warnings)],requestsUsed:1,networkRequests,evidence:{documents,parserVersion:direct?'laghetto-room-html-v1':VERSION,extracted:offers.length,detailedHotels:detailedHotels.size,pagesRead:documents.length}};
+   return {offers,warnings:[...new Set(warnings)],requestsUsed:1,networkRequests,partial:roomFailures.length>0,evidence:{documents,parserVersion:direct?'laghetto-room-html-v1':VERSION,extracted:offers.length,detailedHotels:detailedHotels.size,pagesRead:documents.length}};
   }
  }));
 }

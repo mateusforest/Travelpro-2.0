@@ -76,3 +76,44 @@ test('travel search HTTP routes require login, same origin and CSRF, return only
  const date=new Date(Date.now()+7*86400000),end=new Date(Date.now()+9*86400000);const current={...request,start:date.toISOString().slice(0,10),end:end.toISOString().slice(0,10)};
  const result=await invoke(current);assert.equal(result.status,200);assert.deepEqual((await result.json()).offers,[]);assert.equal((await invoke({...current,maxCalls:99})).status,422);
 });
+
+test('refresh is an explicit boolean and bypasses only the same tenant offer cache',async()=>{
+ for(const refresh of ['true',1,null,{},[]])assert.throws(()=>validateTravelSearch({...request,refresh},{now:at}),{status:422});
+ let calls=0;const service=engine([adapter('source-a',async()=>({offers:[quote({price:{amount:1000+(++calls)*10,currency:'BRL',basis:'stay',taxesIncluded:true}})],requestsUsed:1,networkRequests:2}))]);
+ const first=await service.search(request,scope),cached=await service.search(request,scope);
+ assert.equal(cached.summary.cacheHits,1);assert.equal(cached.offers[0].price.amount,first.offers[0].price.amount);
+ const refreshed=await service.search({...request,refresh:true,maxCalls:1},scope);
+ assert.equal(calls,2);assert.equal(refreshed.summary.refresh,true);assert.equal(refreshed.summary.callsUsed,1);assert.equal(refreshed.summary.networkRequests,2);assert.equal(refreshed.summary.cacheHits,0);assert.equal(refreshed.offers[0].cached,false);assert.equal(refreshed.offers[0].price.amount,1020);
+ assert.ok(!Object.hasOwn(refreshed.offers[0].requestSnapshot,'refresh'));
+ const next=await service.search(request,scope);assert.equal(next.offers[0].price.amount,1020);assert.equal(next.summary.cacheHits,1);
+});
+
+test('refresh still enforces budget and failure does not resurrect a rejected cache entry',async()=>{
+ let failed=false;const service=engine([adapter('source-a',async()=>{if(failed)throw Object.assign(new Error('vendor rate limit'),{code:'SOURCE_RATE_LIMIT'});return {offers:[quote()],requestsUsed:1};}),adapter('source-b',async()=>({offers:[quote()],requestsUsed:1}))]);
+ await service.search(request,scope);failed=true;
+ const refreshed=await service.search({...request,refresh:true,maxCalls:1},scope);
+ assert.equal(refreshed.summary.callsUsed,1);assert.equal(refreshed.summary.cacheHits,0);assert.equal(refreshed.summary.limited,true);assert.equal(refreshed.providers.find(p=>p.id==='source-a').status,'rate_limited');assert.equal(refreshed.offers.length,0);
+ const next=await service.search({...request,providers:['source-a']},scope);assert.equal(next.offers.length,0);assert.equal(next.summary.cacheHits,0);assert.equal(next.providers[0].status,'rate_limited');
+});
+
+test('explicit source support rejects unsupported searches before any adapter invocation',async()=>{
+ let calls=0;const service=engine([adapter('source-a',async()=>{calls++;return {offers:[]};},{supports:()=>({supported:false,code:'occupancy',reason:'Apenas um quarto sem crianças.'})})]);
+ const result=await service.search({...request,childrenAges:[5],refresh:true},scope);
+ assert.equal(calls,0);assert.equal(result.summary.callsUsed,0);assert.equal(result.summary.networkRequests,0);assert.equal(result.providers.find(p=>p.id==='source-a').status,'unsupported');assert.equal(result.providers.find(p=>p.id==='source-a').supportCode,'occupancy');assert.match(result.providers.find(p=>p.id==='source-a').message,/sem crianças/);
+});
+
+test('stable identities change with product terms but not price, metadata order, timestamps or hotel query filters',async()=>{
+ let sequence=0;const service=engine([adapter('native-stay',async()=>{sequence++;return {offers:[quote({id:'price-dependent-'+sequence,identityKey:'hotel:1:room:2:rate:3',identityKind:'dated_quote',price:{amount:1000+sequence,currency:'BRL',basis:'stay',taxesIncluded:true},conditions:sequence%2?{freeCancellation:true,mealPlan:'breakfast'}:{mealPlan:'breakfast',freeCancellation:true},details:{hotelId:'1',roomId:'2',rateId:'3',priceKind:'dated_quote',evidence:{sha256:String(sequence)}}})],requestsUsed:1};})]);
+ const a=(await service.search(request,scope)).offers[0],b=(await service.search({...request,hotelId:'1',refresh:true},scope)).offers[0];
+ assert.ok(a.identityKey);assert.equal(a.identityKind,'dated_quote');assert.equal(a.identityKey,b.identityKey);assert.notEqual(a.id,b.id);
+ const c=(await service.search({...request,adults:3,refresh:true},scope)).offers[0];assert.notEqual(a.identityKey,c.identityKey);
+ const d=(await service.search({...request,start:'2026-11-11',refresh:true},scope)).offers[0];assert.notEqual(a.identityKey,d.identityKey);
+});
+
+test('price comparison refuses unproven identity and ambiguous distinct offers',async()=>{
+ const precise={identityKey:'hotel:1:room:2:rate:3',identityKind:'dated_quote',details:{priceKind:'dated_quote'}};
+ const result=await engine([adapter('source-a',async()=>({offers:[quote({id:'legacy'}),quote({id:'a',...precise}),quote({id:'b',...precise,price:{amount:999,currency:'BRL',basis:'stay',taxesIncluded:true}})]}))]).search(request,scope);
+ assert.equal(result.offers.length,3);assert.ok(result.offers.every(o=>o.identityKey===null));
+ const distinct=await engine([adapter('source-a',async()=>({offers:[quote({...precise}),quote({id:'different-room',...precise,identityKey:'hotel:1:room:4:rate:3'}),quote({id:'different-terms',...precise,conditions:{freeCancellation:false,mealPlan:'breakfast'}}),quote({id:'different-currency',...precise,price:{amount:200,currency:'USD',basis:'stay',taxesIncluded:true}})]}))]).search(request,scope);
+ assert.equal(new Set(distinct.offers.map(o=>o.identityKey)).size,4);assert.ok(distinct.offers.every(o=>o.identityKey));
+});

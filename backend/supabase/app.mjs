@@ -1,3 +1,4 @@
+import {handleTravelPlans} from '../travel-plans.mjs';
 import {ecosystemTargets,ecosystemPayload,issueEcosystemCode,redeemEcosystemCode} from '../ecosystem.mjs';
 import {visualItinerary} from '../visual-itinerary.mjs';
 import {exchangeRates} from '../exchange.mjs';
@@ -153,6 +154,7 @@ export async function handle(request){
   }
   const a=await actor();
   if(path!=='auth/logout')await enforceIdle(a,request);
+  if(path==='travel-plans'||path.startsWith('travel-plans/')){if(method!=='GET')await rate(a,'travel-plans',30);return json(await handleTravelPlans({path:path.slice('travel-plans'.length),method,input:data,load:()=>workspace(a),save:(state,version)=>save(a,state,version)}),method==='POST'?201:200);}
   if(path==='travel-search/providers'&&method==='GET')return json({providers:travelSearch.providers(),limits:travelSearchLimits});
   if(path==='travel-search'&&method==='POST'){await rate(a,'travel-search',10,'workspace:'+a.wid);return json(await travelSearch.search(data,{tenantId:a.wid}));}
   if(path==='ecosystem/authorize'&&method==='POST'){
@@ -193,7 +195,7 @@ export async function handle(request){
   if(path.startsWith('auth/sessions/'))fail(501,'Os outros dispositivos são administrados pelo Supabase. Altere a senha para encerrar os demais acessos.');
   if(path==='exchange'&&method==='GET')return json(await exchangeRates());
   if(path==='workspace'&&method==='GET')return json({...await workspace(a),services:integrationView(await services(a),isPlatformAdmin(a.user.id)),capabilities:{platformAdmin:isPlatformAdmin(a.user.id)}});
-  if(path==='workspace'&&method==='PUT'){const current=await workspace(a);if(data.state&&typeof data.state==='object'){if(current.state.intakeReceipts)data.state.intakeReceipts=current.state.intakeReceipts;else delete data.state.intakeReceipts;}return json({version:await save(a,data.state,data.version)});}
+  if(path==='workspace'&&method==='PUT'){const current=await workspace(a);if(data.state&&typeof data.state==='object'){for(const key of ['intakeReceipts','travelPlans']){if(current.state[key])data.state[key]=current.state[key];else delete data.state[key];}}return json({version:await save(a,data.state,data.version)});}
   if(path==='integrations'&&method==='GET')return json({agencyId:a.wid,services:integrationView(await services(a),isPlatformAdmin(a.user.id)),capabilities:{platformAdmin:isPlatformAdmin(a.user.id)}});
   if(path.startsWith('integrations/')&&method==='PUT'){
     requirePlatformAdmin(a.user.id);const service=path.split('/')[1];if(!providerNames.includes(service))fail(404,'Serviço não encontrado.');const old=await cfg(a,service),input=data.config||{},pub={},secrets={};
