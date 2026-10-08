@@ -16,7 +16,6 @@ import {openStore,stateRow,saveState,validateState,transaction,fail,collections}
 import {vault,configFor,connectionStatus,providerNames,cosReply,remote,safeEndpoint} from './providers.mjs';
 import {handleFinance} from './finance-api.mjs';
 import {sqliteFinanceRepository} from './finance-sqlite.mjs';
-import {createTravelSearchEngine,travelSearchLimits} from './travel-search.mjs';
 const derive=promisify(scrypt),hash=x=>createHash('sha256').update(x).digest('hex'),id=()=>randomUUID(),now=()=>Date.now();
 const equal=(a,b)=>{const x=Buffer.from(a||''),y=Buffer.from(b||'');return x.length===y.length&&timingSafeEqual(x,y);};
 const cleanText=(v,max=500)=>typeof v==='string'?v.trim().slice(0,max):'';
@@ -27,7 +26,6 @@ const mimetypes={'.html':'text/html; charset=utf-8','.css':'text/css; charset=ut
 const allowedUploads={'.pdf':'application/pdf','.docx':'application/vnd.openxmlformats-officedocument.wordprocessingml.document','.txt':'text/plain','.md':'text/plain','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.webp':'image/webp'};
 export function createApp({directory,dist,env={},origin}={}){
  const db=openStore(directory),v=vault(directory,env),files=path.join(directory,'uploads');mkdirSync(files,{recursive:true});
- const travelSearch=createTravelSearchEngine({env});
  const seed=JSON.parse(readFileSync(new URL('./initial-state.json',import.meta.url),'utf8'));
  const limits=new Map();let address=origin;
  function rate(key,max=50){const ts=now();let r=limits.get(key);if(!r||r.end<ts){r={n:0,end:ts+60000};limits.set(key,r);}if(++r.n>max)fail(429,'Muitas tentativas. Aguarde um minuto.');if(limits.size>5000)for(const[k,x]of limits)if(x.end<ts)limits.delete(k);}
@@ -86,8 +84,6 @@ export function createApp({directory,dist,env={},origin}={}){
    if(p==='/api/auth/reset-confirm'&&method==='POST'){rate(req.socket.remoteAddress+':reset-confirm',10);if(!passwordOK(data.password)||typeof data.token!=='string')fail(422,'Informe uma senha válida.');const r=db.prepare('SELECT * FROM password_resets WHERE token_hash=? AND expires_at>?').get(hash(data.token),now());if(!r)fail(400,'Link inválido ou expirado.');const pw=await passwordHash(data.password);transaction(db,()=>{db.prepare('UPDATE users SET password_hash=? WHERE id=?').run(pw,r.user_id);db.prepare('DELETE FROM password_resets WHERE user_id=?').run(r.user_id);db.prepare('DELETE FROM sessions WHERE user_id=?').run(r.user_id);});output(res,200,{ok:true});return;}
    const s=session(req);if(!s)fail(401,'Entre na sua conta para continuar.');const user={id:s.user_id,agency_id:s.agency_id,name:s.name,email:s.email};
    if(!['GET','HEAD'].includes(method)&&!equal(req.headers['x-csrf-token'],s.csrf))fail(403,'Sua sessão precisa ser atualizada. Recarregue a página.');
-   if(p==='/api/travel-search/providers'&&method==='GET'){output(res,200,{providers:travelSearch.providers(),limits:travelSearchLimits});return;}
-   if(p==='/api/travel-search'&&method==='POST'){rate(s.agency_id+':travel-search',10);output(res,200,await travelSearch.search(data,{tenantId:s.agency_id}));return;}
    if(p==='/api/proposals/preview'&&method==='POST'){rate(s.user_id+':proposal-pdf',20);output(res,200,await proposalPreview(stateRow(db,s.agency_id).state,data.id,cfg(s.agency_id,'whatsapp')));return;}
    if(p==='/api/proposals/send'&&method==='POST'){
     rate(s.user_id+':proposal-send',10);

@@ -1,5 +1,4 @@
 import * as ecosystem from '../backend/ecosystem.mjs';
-import * as travelSearch from '../backend/travel-search.mjs';
 // Runs the actual API module with isolated Supabase substitutes. No real account or DB writes.
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
@@ -25,13 +24,12 @@ async function fixture({role='owner',workspaceId='agency-a',version=1,platformAd
   const calls=[],providerCalls=[];
   const db={from(table){const filters={};const q={select(){return q;},eq(k,v){filters[k]=v;return q;},order(){return q;},range(){return q;},maybeSingle(){return run();},single(){return run();},then(ok,bad){return run().then(ok,bad);}};
     async function run(){calls.push({table,filters:{...filters}});if(table==='travelpro_state')return {data:structuredClone(stored),error:null};if(table==='travelpro_integrations')return {data:integrationConfigs[filters.service]?{config:structuredClone(integrationConfigs[filters.service]),secret:null}:null,error:null};throw Error('Unexpected table '+table);}return q;},
-    async rpc(name,args){if(name==='travelpro_rate_limit'){if(args.p_key.endsWith(':travel-search'))assert.equal(args.p_key,'workspace:'+workspaceId+':travel-search');else assert.match(args.p_key,/^user-a:/);return {data:true,error:null};}assert.equal(name,'travelpro_save_state');assert.equal(args.p_workspace,workspaceId);if(args.p_version!==stored.version)return {error:{code:'40001'}};stored={data:structuredClone(args.p_data),version:stored.version+1};writes++;return {data:stored.version,error:null};}};
+    async rpc(name,args){if(name==='travelpro_rate_limit'){assert.match(args.p_key,/^user-a:/);return {data:true,error:null};}assert.equal(name,'travelpro_save_state');assert.equal(args.p_workspace,workspaceId);if(args.p_version!==stored.version)return {error:{code:'40001'}};stored={data:structuredClone(args.p_data),version:stored.version+1};writes++;return {data:stored.version,error:null};}};
   const user={id:'user-a',email:'test@example.invalid',user_metadata:{name:'Test'}};
   db.storage={from(bucket){assert.equal(bucket,'travelpro-private');return {async upload(key,bytes,options){calls.push({bucket,key,options});if(/[^a-z0-9/_.-]/i.test(key))return {error:{message:'Invalid key'}};return {data:{path:key},error:null};},async createSignedUploadUrl(key,options){calls.push({bucket,key,options});return {data:{signedUrl:'https://example.supabase.co/storage/v1/object/upload/sign/'+key+'?token=test'},error:null};},async download(key){calls.push({bucket,key});return Object.hasOwn(storedFiles,key)?{data:new Blob([storedFiles[key]]),error:null}:{data:null,error:{message:'not found'}};}};}};
   const access={workspace:workspaceId?{id:workspaceId,name:'Agency A',type:'operations'}:null,membershipRole:role,profile:null};
   class ApiResponse extends Response{static json(body,init){return new ApiResponse(JSON.stringify(body),{...init,headers:{...init?.headers,'Content-Type':'application/json'}});}static redirect(url){return new ApiResponse(null,{status:307,headers:{Location:String(url)}});}}
   const imports={
-    '../travel-search.mjs':travelSearch,
     "../ecosystem.mjs":ecosystem,
     '../exchange.mjs':{exchangeRates:async()=>({rates:{BRL:1,USD:5,EUR:6},dates:{USD:'2026-10-01',EUR:'2026-10-01'},stale:false})},
     '../template-extraction.mjs':templateExtraction,
@@ -54,17 +52,6 @@ async function fixture({role='owner',workspaceId='agency-a',version=1,platformAd
 }
 test('authenticated workspace queries are scoped to the selected agency',async()=>{const f=await fixture();const res=await f.request('workspace');assert.equal(res.status,200);assert.equal((await res.json()).state.agency,'Agency A');assert.ok(f.calls.length>1);assert.ok(f.calls.every(c=>c.filters.workspace_id==='agency-a'));});
 test('user without workspace cannot reach database',async()=>{const f=await fixture({workspaceId:null});const res=await f.request('workspace');assert.equal(res.status,403);assert.equal(f.calls.length,0);});
-test('Supabase travel search is scoped to an authenticated workspace and never persists supplier results',async()=>{
-  const denied=await fixture({workspaceId:null});
-  for(const [path,method,body]of [['travel-search/providers','GET'],['travel-search','POST',{}]])assert.equal((await denied.request(path,method,body)).status,403);
-  const f=await fixture({role:'member'}),before=f.stored;
-  const ready=await f.request('travel-search/providers');assert.equal(ready.status,200);
-  const catalog=await ready.json();assert.ok(catalog.providers.some(p=>p.id==='gecko-booking'&&!p.configured));
-  const start=new Date(Date.now()+30*86400000).toISOString().slice(0,10),end=new Date(Date.now()+35*86400000).toISOString().slice(0,10);
-  const response=await f.request('travel-search','POST',{category:'hotels',destination:'Lisboa',start,end,providers:['gecko-booking'],workspace:'another-agency'});
-  assert.equal(response.status,200);const result=await response.json();assert.equal(result.offers.length,0);assert.equal(result.summary.callsUsed,0);assert.equal(result.providers[0].status,'unconfigured');
-  assert.equal(f.writes,0);assert.deepEqual(f.stored,before);assert.equal(f.providerCalls.length,0);
-});
 test('ordinary member cannot change agency configuration',async()=>{const f=await fixture({role:'member'});f.state.agency='Another agency';const res=await f.request('workspace','PUT',{version:1,state:f.state});assert.equal(res.status,403);assert.equal(f.writes,0);});
 test('ordinary member can save operational data',async()=>{const f=await fixture({role:'member'});f.state.clients.push({id:'new-client',name:'Client',email:'',phone:''});const res=await f.request('workspace','PUT',{version:1,state:f.state});assert.equal(res.status,200);assert.equal(f.writes,1);});
 test('stale versions cannot overwrite a newer workspace',async()=>{const f=await fixture({version:2});const res=await f.request('workspace','PUT',{version:1,state:f.state});assert.equal(res.status,409);assert.equal(f.writes,0);});
