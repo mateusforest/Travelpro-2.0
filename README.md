@@ -6,11 +6,15 @@ Aplicação local para agências de viagem, com landing page, portal, COS e fren
 
 A instalação atual funciona em http://127.0.0.1:4174. Execute `npm install` e `npm start`. Com as três variáveis do Supabase preenchidas no `.env`, entre em `login.html` usando sua conta existente do Supabase. `cadastro.html` cria uma nova conta. Não há senha padrão.
 
-Login, cadastros, viagens, agenda, documentos, roteiros, financeiro, orçamentos, leads e conversas ficam salvos por agência no servidor. Integrações reais recebem suas chaves depois, pela tela Integrações. Sem chaves, o COS funciona em modo guiado, as cotações podem ser ilustrativas e os editores manuais continuam disponíveis.
+Login, cadastros, viagens, agenda, documentos, roteiros, financeiro, orçamentos, leads e conversas ficam salvos por agência no servidor. Sem chave de IA, o COS funciona em modo guiado. A busca tem coletores próprios de sites públicos que funcionam sem chave de extração; APIs externas continuam como opções. Nenhum preço ilustrativo substitui uma fonte indisponível.
 
 Consulte [DEPLOY.md](DEPLOY.md) para publicar na Vercel com Supabase e [BACKEND.md](BACKEND.md) para os contratos dos provedores e o modo SQLite local. O arquivo `.env.example` contém as opções de ambiente. Requer Node.js 24 ou superior.
 
 ## Estado da entrega
+
+O [coletor próprio](docs/native-search.md) acessa sites públicos, extrai dados e evidencia a origem de cada preço. A validação ao vivo obteve tarifas completas de quartos Laghetto e referências publicadas de GOL, Azul, Civitatis, Siga Turismo, Tiqets e Movida Pré-Pago. A tela inclui seis categorias, busca da viagem completa, seleção de quartos e organizador exportável. A cobertura é finita: preços publicados não equivalem à disponibilidade para datas e ocupação. O [motor de busca unificada](docs/travel-search.md) mantém os nove conectores GeckoAPI, SearchApi e SerpApi como fontes opcionais.
+
+As cotações manuais permitem definir custo líquido, acréscimo ou margem, taxa de serviço e custos de pagamento. O resumo interno fica separado do documento do cliente. Veja [cotação independente](docs/cotacao-independente.md) para o escopo entregue e as dependências da busca e reserva por API.
 
 O financeiro possui contas e saldos, categorias, clientes/fornecedores, parcelas, baixas parciais, estornos, transferências internas, fluxo de caixa e exportação CSV. Veja [o guia financeiro](docs/financeiro.md), incluindo a migração do histórico anterior e a preparação para o Granatum.
 
