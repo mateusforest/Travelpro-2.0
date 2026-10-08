@@ -33,3 +33,11 @@ test('agency can save, reopen, recalculate and export a quote without private am
   ui.quickForm('1');assert.equal(w.document.querySelector('[name=netCost]').value,'10000');
   await ui.submitForm('sales-quick',{...data,id:'1',priceMethod:'final',total:'12000'});assert.equal(state.quickQuotes[0].privatePricing,undefined);assert.equal(state.quickQuotes[0].offers[0].total,12000);
 });
+test('search prefills a review draft without saving, supplier validity or fabricated net cost',t=>{
+  const dom=new JSDOM('<div id="dialog"></div>',{runScripts:'outside-only'});t.after(()=>dom.window.close());const w=dom.window;
+  for(const name of ['sales-flow.js','sales-flow-ui.js'])w.eval(readFileSync(new URL('../dist/'+name,import.meta.url),'utf8'));
+  const state={quickQuotes:[]};let title='';
+  const ui=w.TravelSalesUI.create({state,esc:x=>String(x??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('"','&quot;'),money:x=>String(x),dialog:(name,html)=>{title=name;w.document.querySelector('#dialog').innerHTML=html;}});
+  ui.quickForm('',{name:'Hotel encontrado',origin:'',destination:'Lisboa',start:'2099-01-02',end:'2099-01-05',travelers:2,total:1500,reference:'Busca',inclusions:'Hospedagem',terms:'Impostos precisam ser conferidos.'});
+  const form=w.document.querySelector('form');assert.equal(title,'Revisar cotação da busca');assert.equal(form.elements.total.value,'1500');assert.equal(form.elements.name.value,'Hotel encontrado');assert.equal(form.elements.valid.value,'');assert.equal(form.elements.netCost.value,'');assert.equal(form.elements.priceMethod.value,'final');assert.equal(form.elements.id.value,'');assert.match(form.elements.terms.value,/Impostos/);assert.equal(state.quickQuotes.length,0);
+});

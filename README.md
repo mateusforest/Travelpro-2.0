@@ -6,11 +6,13 @@ Aplicação local para agências de viagem, com landing page, portal, COS e fren
 
 A instalação atual funciona em http://127.0.0.1:4174. Execute `npm install` e `npm start`. Com as três variáveis do Supabase preenchidas no `.env`, entre em `login.html` usando sua conta existente do Supabase. `cadastro.html` cria uma nova conta. Não há senha padrão.
 
-Login, cadastros, viagens, agenda, documentos, roteiros, financeiro, orçamentos, leads e conversas ficam salvos por agência no servidor. Integrações reais recebem suas chaves depois, pela tela Integrações. Sem chaves, o COS funciona em modo guiado, as cotações podem ser ilustrativas e os editores manuais continuam disponíveis.
+Login, cadastros, viagens, agenda, documentos, roteiros, financeiro, orçamentos, leads e conversas ficam salvos por agência no servidor. Sem chaves, o COS funciona em modo guiado e os editores manuais continuam disponíveis. A busca unificada exige credenciais no servidor e nunca preenche resultados com preços ilustrativos.
 
 Consulte [DEPLOY.md](DEPLOY.md) para publicar na Vercel com Supabase e [BACKEND.md](BACKEND.md) para os contratos dos provedores e o modo SQLite local. O arquivo `.env.example` contém as opções de ambiente. Requer Node.js 24 ou superior.
 
 ## Estado da entrega
+
+O motor próprio de [busca unificada](docs/travel-search.md) consulta hotéis e voos por conectores GeckoAPI, SearchApi e SerpApi. Inclui limites de chamadas, datas flexíveis, cache por agência, resultados parciais e identificação da fonte e do alcance de cada preço. Chaves e validação ao vivo ainda são necessárias; os testes usam respostas controladas. O catálogo mantém as opções pesquisadas para ampliar a cobertura.
 
 As cotações manuais permitem definir custo líquido, acréscimo ou margem, taxa de serviço e custos de pagamento. O resumo interno fica separado do documento do cliente. Veja [cotação independente](docs/cotacao-independente.md) para o escopo entregue e as dependências da busca e reserva por API.
 

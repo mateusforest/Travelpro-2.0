@@ -16,6 +16,9 @@ import {fail,validateState,collections,salesFlow,itineraryModels,validateSalesTr
 import {cosReply,remote,safeEndpoint,providerNames,connectionStatus} from '../providers.mjs';
 import {handleFinance,supabaseRepository} from '../finance-api.mjs';
 import {granatumStatus,runGranatum,connectGranatum} from '../granatum.mjs';
+import {createTravelSearchEngine,travelSearchLimits} from '../travel-search.mjs';
+
+const travelSearch=createTravelSearchEngine({env:process.env});
 
 const requestOrigin=request=>new URL(request.url).origin;
 const clean=(x,max=500)=>typeof x==='string'?x.trim().slice(0,max):'';
@@ -45,7 +48,7 @@ async function enforceIdle(a,request){
   if(result.error)fail(503,'A proteção de sessão precisa da migração 20260929_session_activity.sql.');
   if(!result.data){await a.supabase.auth.signOut({scope:'local'});fail(401,'Sessão encerrada por inatividade. Entre novamente.');}
 }
-async function rate(a,key,max){const {data,error}=await a.db.rpc('travelpro_rate_limit',{p_key:a.user.id+':'+key,p_limit:max});dbError(error);if(!data)fail(429,'Muitas solicitações. Aguarde um minuto.');}
+async function rate(a,key,max,scope=a.user.id){const {data,error}=await a.db.rpc('travelpro_rate_limit',{p_key:scope+':'+key,p_limit:max});dbError(error);if(!data)fail(429,'Muitas solicitações. Aguarde um minuto.');}
 async function audit(a,action){const {error}=await a.db.from('travelpro_audit').insert({workspace_id:a.wid,user_id:a.user?.id||null,action});dbError(error);}
 function encryptionKey(){const value=process.env.TRAVELPRO_ENCRYPTION_KEY;if(!/^[a-f0-9]{64}$/i.test(value||''))fail(503,'Configure TRAVELPRO_ENCRYPTION_KEY no servidor para guardar as credenciais com segurança.');return Buffer.from(value,'hex');}
 function encrypt(value){const iv=randomBytes(12),cipher=createCipheriv('aes-256-gcm',encryptionKey(),iv);const bytes=Buffer.concat([cipher.update(JSON.stringify(value)),cipher.final()]);return Buffer.concat([iv,cipher.getAuthTag(),bytes]).toString('base64');}
@@ -150,6 +153,8 @@ export async function handle(request){
   }
   const a=await actor();
   if(path!=='auth/logout')await enforceIdle(a,request);
+  if(path==='travel-search/providers'&&method==='GET')return json({providers:travelSearch.providers(),limits:travelSearchLimits});
+  if(path==='travel-search'&&method==='POST'){await rate(a,'travel-search',10,'workspace:'+a.wid);return json(await travelSearch.search(data,{tenantId:a.wid}));}
   if(path==='ecosystem/authorize'&&method==='POST'){
     if(a.access.membershipRole!=='owner')fail(403,'O titular da agência deve iniciar o acesso integrado.');await rate(a,'ecosystem',10);
     const payload=ecosystemPayload(a,(await workspace(a)).state,data.target,data.record);
