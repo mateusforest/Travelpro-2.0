@@ -7,11 +7,11 @@
     {period:'Retorno',title:'Até a próxima descoberta',text:'Confira o traslado de saída, orientações de check-out e voo de retorno nos documentos emitidos. Acrescente os canais de suporte da agência.'}
   ];
   const models = [
-    {id:'tp-editorial-v1',name:'Horizonte · Editorial',subtitle:'Fotografia ampla, respiro e narrativa por dia',kind:'TravelPro + Europlus',layout:'editorial',photo:'amalfi.jpg',days:days()},
-    {id:'tp-concierge-v1',name:'Atlas · Concierge',subtitle:'Agenda clara, serviços e orientações à mão',kind:'TravelPro + Europlus',layout:'concierge',photo:'florence.jpg',days:days()}
+    {id:'tp-editorial-v1',name:'Horizonte · Editorial',subtitle:'Fotografia ampla, respiro e narrativa por dia',kind:'TravelPro',layout:'editorial',photo:'amalfi.jpg',days:days()},
+    {id:'tp-concierge-v1',name:'Atlas · Concierge',subtitle:'Agenda clara, serviços e orientações à mão',kind:'TravelPro',layout:'concierge',photo:'florence.jpg',days:days()}
   ];
-  function catalog(saved=[]){return [...saved,...models.filter(m=>!saved.some(t=>t.id===m.id))];}
-  function footer(base){return `<footer class="partners"><span>Uma viagem com a assinatura da sua agência</span><div><figure><small>Tecnologia</small><img src="${esc(base)}assets/travelpro-assinatura-final.png" alt="TravelPro"></figure><figure><small>Operadora</small><img src="${esc(base)}assets/europlus-logo.png" alt="Europlus"></figure></div></footer>`;}
+  function catalog(saved=[]){return [...saved.map(t=>{const model=models.find(m=>m.id===t.id);return model?{...t,kind:model.kind}:t;}),...models.filter(m=>!saved.some(t=>t.id===m.id))];}
+  function footer(base){return `<footer class="partners"><span>Uma viagem com a assinatura da sua agência</span><div><figure><small>Tecnologia</small><img src="${esc(base)}assets/travelpro-assinatura-final.png" alt="TravelPro"></figure></div></footer>`;}
   function render(r,model,{agency,brand={},base='',cover='',period='',preview=false}={}){
     const primary=/^#[a-f\d]{6}$/i.test(brand.primary||'')?brand.primary:'#244638';
     const theme=globalThis.TravelProposalBrand?.theme({...brand,primary})||{from:primary,to:'#182e27',tint:'#f1f4ef'};

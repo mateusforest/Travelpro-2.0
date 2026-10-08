@@ -221,7 +221,7 @@ export async function handle(request){
     const id=randomUUID();row.state.itineraries.push({id,name:clean(data.name,150),destination:clean(data.destination,200),template:template.id,trip:trip?.id||'',days:parsed.days.map(d=>({period:clean(d.period,100),title:clean(d.title,200),text:clean(d.text,10000)})),generated:true});return json({id,version:await save(a,row.state,row.version)},201);
   }
   if(path==='operator/quote'&&method==='POST'){
-    await rate(a,'operator',15);const c=await cfg(a,'operator');if(!c.endpoint||!c.key)fail(503,'A conexão com a Europlus aguarda ativação pela equipe TravelPro. Você pode registrar a cotação recebida por e-mail.');const request=operatorRequest(data.request,(await workspace(a)).state);const result=await remote(safeEndpoint(c.endpoint),{method:'POST',headers:{Authorization:'Bearer '+c.key,'Content-Type':'application/json'},body:JSON.stringify({type:'quote',request})});return json(operatorResult(result));
+    await rate(a,'operator',15);const c=await cfg(a,'operator');if(!c.endpoint||!c.key)fail(503,'A conexão com a operadora aguarda ativação pela equipe TravelPro. Você pode registrar a cotação recebida por e-mail.');const request=operatorRequest(data.request,(await workspace(a)).state);const result=await remote(safeEndpoint(c.endpoint),{method:'POST',headers:{Authorization:'Bearer '+c.key,'Content-Type':'application/json'},body:JSON.stringify({type:'quote',request})});return json(operatorResult(result));
   }
   if(path==='templates/visual'&&method==='POST'){await rate(a,'visual-itinerary',60);return json(await visualItinerary(await cfg(a,'openai'),data));}
   if(path==='templates/upload'&&method==='POST'){

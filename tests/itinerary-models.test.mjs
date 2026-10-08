@@ -6,21 +6,27 @@ import {documentOperation,applyDocumentOperation} from '../backend/cos-support.m
 import {readFileSync} from 'node:fs';
 const seed=()=>({...JSON.parse(readFileSync(new URL('../backend/initial-state.json',import.meta.url))),agency:'Agência de teste'});
 test('premium catalog adds two layouts without changing existing templates or records',()=>{
-  const state=seed();state.templates.push({id:'wifes-original',name:'Original da agência',file:{id:'private/file.pdf'}});
+  const state=seed();state.templates.push({id:'wifes-original',name:'Original da agência',file:{id:'private/file.pdf'}},{id:'tp-editorial-v1',name:'Editorial personalizado',kind:'TravelPro + Europlus',layout:'editorial',days:[{period:'Dia 1',title:'Programa da agência',text:'Conteúdo revisado'}]});
   const before=structuredClone(state),all=itineraryModels.catalog(state.templates);
-  assert.equal(all.length,state.templates.length+2);assert.deepEqual(state,before);
+  assert.equal(all.length,state.templates.length+1);assert.deepEqual(state,before);
   assert.equal(all.find(t=>t.id==='wifes-original').file.id,'private/file.pdf');
+  const updated=all.find(t=>t.id==='tp-editorial-v1');
+  assert.equal(updated.kind,'TravelPro');assert.equal(updated.name,'Editorial personalizado');
+  assert.deepEqual(updated.days,before.templates.at(-1).days);
   assert.equal(itineraryModels.catalog(all).length,all.length);
   assert.notEqual(all.at(-1).layout,all.at(-2).layout);
 });
-test('both print layouts contain agency branding, partner logos and escaped traveler content',()=>{
+test('both print layouts contain agency branding, only the TravelPro footer and escaped traveler content',()=>{
   for(const model of itineraryModels.models){
     const html=itineraryModels.render({name:'<script>alert(1)</script>',destination:'Itália',days:[{period:'Dia 1',title:'Chegada',text:'<img src=x onerror=alert(1)>\nOrientação confirmada'}]},model,{agency:'Minha agência',brand:{primary:'#ef2850',secondary:'#a31652'},base:'https://travelpro.test/'});
     const dom=new JSDOM(html),d=dom.window.document;
     assert.equal(d.querySelectorAll('script').length,0);assert.equal(d.querySelectorAll('[onerror]').length,0);
     assert.match(d.querySelector('.details').textContent,/<img/);
     assert.match(d.querySelector('style').textContent,/linear-gradient/);
-    assert.equal(d.querySelectorAll('.partners img').length,2);
+    assert.equal(d.querySelectorAll('.partners figure').length,1);
+    assert.equal(d.querySelectorAll('.partners img').length,1);
+    assert.equal(d.querySelector('.partners img').alt,'TravelPro');
+    assert.doesNotMatch(html,/europlus/i);
     assert.ok(d.querySelector('main.'+model.layout));dom.window.close();
   }
 });

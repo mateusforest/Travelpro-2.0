@@ -217,6 +217,12 @@ test('manual proposal editor offers customization and opens a real PDF preview',
  const f=await fixture(t);await f.portal.workspaceSubmit('client',{id:'pdf-client',name:'Cliente PDF',email:'',phone:'',notes:''});
  await f.portal.workspaceSubmit('new-budget',{name:'Proposta manual',destination:'Lisboa',client:'pdf-client',trip:'',start:'2027-01-01',end:'2027-01-10',valid:'2026-12-31',travelers:'2'});
  const b=f.saved.budgets[0];assert.ok(f.d.querySelector('[data-action="sales-download"]'));assert.ok(f.d.querySelector('[data-proposal-logo]'));
+ assert.doesNotMatch(f.d.querySelector('.sales-personalization').innerHTML,/europlus/i);
+ const presentation=f.w.TravelProposalUI.create({state:f.portal.state,esc:String,client:()=>f.saved.clients[0],total:()=>({total:0}),money:()=>'R$ 0,00'}).presentation(b);
+ const rendered=new JSDOM(presentation),footer=rendered.window.document.querySelector('.proposal-editorial footer');
+ assert.equal(footer.children.length,1);assert.equal(footer.querySelectorAll('img').length,1);
+ assert.equal(footer.querySelector('img').alt,'TravelPro');assert.doesNotMatch(presentation,/europlus/i);
+ rendered.window.close();
  await f.portal.workspaceAction('sales-preview',b.id);assert.ok(f.d.querySelector('.proposal-pdf-preview'));
  assert.equal(f.saved.trips.length,0);
 });
@@ -277,7 +283,12 @@ test('itinerary gallery previews both branded models and offers agency upload in
  for(const id of ['tp-editorial-v1','tp-concierge-v1']){
   await f.portal.workspaceAction('preview-itinerary-model',id);
   const frame=f.d.querySelector('.itinerary-model-preview');assert.ok(frame);
-  assert.match(frame.getAttribute('srcdoc'),/Tecnologia/);assert.match(frame.getAttribute('srcdoc'),/Europlus/);
+  const html=frame.getAttribute('srcdoc'),preview=new JSDOM(html);
+  assert.match(html,/Tecnologia/);assert.doesNotMatch(html,/europlus/i);
+  assert.equal(preview.window.document.querySelectorAll('.partners figure').length,1);
+  assert.equal(preview.window.document.querySelectorAll('.partners img').length,1);
+  assert.equal(preview.window.document.querySelector('.partners img').alt,'TravelPro');
+  preview.window.close();
  }
  await f.portal.workspaceAction('preview-itinerary-model','own');
  assert.ok(f.d.querySelector('#dialog-body [data-action="import-template"]'));

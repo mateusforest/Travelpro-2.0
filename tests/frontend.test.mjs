@@ -36,7 +36,8 @@ test('portal loads persistent empty account and saves linked forms',async()=>{
  const t=context.test;assert.equal(t.state.agency,'Agência integrada');assert.equal(t.state.clients.length,0);
  for(const route of ['whatsapp','leads','agente','cotacao','orcamentos','integracoes','plano','seguranca','faturamento','clientes','agenda','financeiro','roteiros','studio','documentos','configuracoes','travelmatch','vuei']){const html=t.renderWorkspace(route);assert.ok(!html.includes('undefined'),route);assert.ok(html.length>400,route);}
  const connections=t.renderWorkspace('integracoes');
- for(const label of ['Conexões','Incluído no TravelPro','COS, seu assistente','Fluxo com a Europlus','WhatsApp Business','Open Finance','Aguardando ativação pela equipe'])assert.ok(connections.includes(label),'agency connections include '+label);
+ for(const label of ['Conexões','Incluído no TravelPro','COS, seu assistente','Fluxo com operadoras','WhatsApp Business','Open Finance','Aguardando ativação pela equipe'])assert.ok(connections.includes(label),'agency connections include '+label);
+ assert.doesNotMatch(connections,/europlus/i);
  assert.doesNotMatch(connections,/data-action="backend-integration"|conn-admin|<input\b|Chave da API|Token de acesso|Phone ID|Webhook/i,'the agency does not see platform credentials or technical configuration controls');
  assert.match(t.agency(),/href="#integracoes"/,'the agency tools still link to the connections route');
  assert.match(t.agency(),/Conexões/);

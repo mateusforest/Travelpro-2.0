@@ -37,7 +37,8 @@ test('saved credentials are not shown or described as verified provider access',
   const root=setup(t,{services});
   assert.equal(root.querySelectorAll('.conn-tag-review').length,3);
   assert.match(root.textContent,/Configuração registrada · não verificada/);
-  assert.match(root.textContent,/conexão específica com a Europlus ainda não foi validada/);
+  assert.match(root.textContent,/a conexão com a operadora ainda não foi validada/);
+  assert.doesNotMatch(root.innerHTML,/europlus/i);
   assert.doesNotMatch(root.innerHTML,/SECRET-|private\.example|Conectado com sucesso/);
   assert.equal(root.querySelector('[data-action="backend-integration"]'),null);
 });
