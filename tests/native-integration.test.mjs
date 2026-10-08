@@ -53,3 +53,14 @@ test('room deepening validates numeric hotel ID and isolates hotel-specific cach
  for(const hotelId of ['https://127.0.0.1','../../private','7620&x=1',-1])assert.throws(()=>validateTravelSearch({...request,category:'hotels',hotelId},{now}),{status:422});
  assert.throws(()=>validateTravelSearch({...request,hotelId:'7620'},{now}),{status:422});
 });
+
+test('native readiness publishes explicit finite coverage and rejects unsupported destinations, occupancy and mode without network',async()=>{
+ const service=createTravelSearchEngine({env:{},now:()=>now});
+ const providers=service.providers(),stay=providers.find(p=>p.id==='native-laghetto');
+ assert.equal(stay.coverage.type,'destinations');assert.equal(stay.coverage.destinations.length,7);assert.equal(stay.capabilities.datedQuotes,true);assert.equal(stay.capabilities.occupancy.children,false);assert.equal(stay.dateIndependent,false);
+ const civi=providers.find(p=>p.id==='native-civitatis');assert.ok(civi.coverage.destinations.includes('praga'));assert.equal(civi.dateIndependent,true);assert.ok(civi.destinations.includes('praga'),'destinations are not truncated at 20 cities');
+ const cars=providers.find(p=>p.id==='native-movida-prepaid');assert.deepEqual(cars.capabilities.modes,['opportunities']);assert.equal(cars.capabilities.datedQuotes,false);assert.equal(cars.dateIndependent,true);
+ for(const [patch,code] of [[{category:'hotels',destination:'Lisboa',providers:['native-laghetto']},'destination'],[{category:'hotels',destination:'Gramado',childrenAges:[4],providers:['native-laghetto']},'occupancy'],[{category:'hotels',destination:'Gramado',hotelId:'7620',providers:['native-laghetto']},'hotel'],[{category:'activities',destination:'Berlin',providers:['native-civitatis']},'destination'],[{category:'cars',mode:'quote',providers:['native-movida-prepaid']},'mode']]){
+  const result=await service.search({...request,...patch},scoped);assert.equal(result.providers[0].status,'unsupported');assert.equal(result.providers[0].supportCode,code);assert.equal(result.summary.callsUsed,0);assert.equal(result.summary.networkRequests,0);assert.equal(result.summary.cacheHits,0);
+ }
+});

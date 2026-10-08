@@ -14,6 +14,8 @@ Consulte [DEPLOY.md](DEPLOY.md) para publicar na Vercel com Supabase e [BACKEND.
 
 O [coletor próprio](docs/native-search.md) acessa sites públicos, extrai dados e evidencia a origem de cada preço. A validação ao vivo obteve tarifas completas de quartos Laghetto e referências publicadas de GOL, Azul, Civitatis, Siga Turismo, Tiqets e Movida Pré-Pago. A tela inclui seis categorias, busca da viagem completa, seleção de quartos e organizador exportável. A cobertura é finita: preços publicados não equivalem à disponibilidade para datas e ocupação. O [motor de busca unificada](docs/travel-search.md) mantém os nove conectores GeckoAPI, SearchApi e SerpApi como fontes opcionais.
 
+A [continuidade da pesquisa](docs/search-continuity.md) inclui sugestões de destinos/aeroportos, cobertura explícita, planos salvos por agência e reconsulta de tarifas com comparação da mesma oferta.
+
 As cotações manuais permitem definir custo líquido, acréscimo ou margem, taxa de serviço e custos de pagamento. O resumo interno fica separado do documento do cliente. Veja [cotação independente](docs/cotacao-independente.md) para o escopo entregue e as dependências da busca e reserva por API.
 
 O financeiro possui contas e saldos, categorias, clientes/fornecedores, parcelas, baixas parciais, estornos, transferências internas, fluxo de caixa e exportação CSV. Veja [o guia financeiro](docs/financeiro.md), incluindo a migração do histórico anterior e a preparação para o Granatum.

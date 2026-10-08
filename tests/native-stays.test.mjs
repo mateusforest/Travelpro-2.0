@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
+import {createTravelSearchEngine} from '../backend/travel-search.mjs';
 import {nativeStayCatalog,nativeStayUrl,parseNativeStays,parseNativeStayRates,createNativeStayAdapters} from '../backend/native-stays.mjs';
 const request=()=>({category:'hotels',destination:'Gramado',origin:'',start:'2026-11-10',end:'2026-11-15',adults:2,childrenAges:[],rooms:1,currency:'BRL'});
 const at='2026-10-08T03:00:00.000Z';
@@ -81,5 +82,21 @@ test('explicit verified hotel reads one room page and does not search the chain 
 
 test('default source reads at most one listing and two hotel pages and retains partial results',async()=>{
  let called=0;const [adapter]=createNativeStayAdapters({collector:{async getHtml(url){called++;if(new URL(url).pathname==='/chainresults')return {html:page(card()+card({id:'6458',name:'Hotel Bangalôs da Serra',price:'669,20'})+card({id:'4744',name:'Hotel Laghetto Pedras Altas',price:'1.320,79'})),url,fetchedAt:at,networkRequests:1};throw Error('Temporarily unavailable');}}});
- const out=await adapter.search(request());assert.equal(called,3);assert.equal(out.offers.length,3);assert.match(out.warnings.join(' '),/demais respostas foram preservadas/);
+ const out=await adapter.search(request());assert.equal(called,3);assert.equal(out.offers.length,3);assert.equal(out.partial,true);assert.match(out.warnings.join(' '),/demais respostas foram preservadas/);
+});
+
+test('direct room timeout propagates source failure and never caches false empty availability',async()=>{
+ let calls=0;const adapters=createNativeStayAdapters({collector:{async getHtml(url){calls++;if(calls===1)throw Object.assign(new Error('private timeout detail'),{code:'TIMEOUT',networkRequests:2});return {html:ratePage(),url,fetchedAt:at,networkRequests:1};}}});
+ const service=createTravelSearchEngine({adapters,now:()=>Date.parse(at)}),input={...rateRequest(),providers:['native-laghetto']},scope={tenantId:'agency-test'};
+ const failed=await service.search(input,scope);
+ assert.equal(failed.providers[0].status,'timeout');assert.equal(failed.summary.networkRequests,2);assert.equal(failed.summary.providersSucceeded,0);assert.equal(failed.summary.cacheHits,0);assert.deepEqual(failed.offers,[]);assert.ok(!JSON.stringify(failed).includes('private timeout detail'));
+ const retry=await service.search(input,scope);
+ assert.equal(calls,2);assert.equal(retry.providers[0].status,'success');assert.equal(retry.summary.cacheHits,0);assert.equal(retry.offers[0].price.amount,1434.93);
+});
+
+test('partial hotel room failures preserve observed listing offers and are reconsulted instead of cached',async()=>{
+ let listingCalls=0,roomCalls=0;const adapters=createNativeStayAdapters({collector:{async getHtml(url){if(new URL(url).pathname==='/chainresults'){listingCalls++;return {html:page(),url,fetchedAt:at,networkRequests:2};}roomCalls++;throw Object.assign(new Error('temporary'),{code:'TIMEOUT',networkRequests:1});}}});
+ const service=createTravelSearchEngine({adapters,now:()=>Date.parse(at)}),input={...request(),providers:['native-laghetto']},scope={tenantId:'agency-test'};
+ for(let i=0;i<2;i++){const partial=await service.search(input,scope);assert.equal(partial.providers[0].status,'partial');assert.equal(partial.offers.length,1);assert.equal(partial.offers[0].price.basis,'from');assert.equal(partial.summary.networkRequests,3);assert.equal(partial.summary.cacheHits,0);}
+ assert.equal(listingCalls,2);assert.equal(roomCalls,2);
 });

@@ -1,0 +1,336 @@
+{
+  "checkedAt": "2026-10-08T18:49:31.346Z",
+  "request": {
+    "category": "hotels",
+    "destination": "Rio Grande",
+    "start": "2026-11-10",
+    "end": "2026-11-15",
+    "adults": 2,
+    "childrenAges": [],
+    "rooms": 1,
+    "currency": "BRL",
+    "hotelId": "7620",
+    "providers": [
+      "native-laghetto"
+    ],
+    "maxCalls": 1,
+    "flexDays": 0,
+    "mode": "quote"
+  },
+  "matchedIdentities": 5,
+  "observations": [
+    {
+      "phase": "fresh",
+      "summary": {
+        "refresh": true,
+        "callsUsed": 1,
+        "networkRequests": 2,
+        "cacheHits": 0,
+        "providersSucceeded": 1,
+        "providersFailed": 0,
+        "totalOffers": 5,
+        "limited": false,
+        "capturedAt": "2026-10-08T18:49:09.945Z"
+      },
+      "providers": [
+        {
+          "id": "native-laghetto",
+          "name": "Laghetto · coleta própria",
+          "status": "success",
+          "message": "Consulta concluída; preços sujeitos à revalidação.",
+          "offerCount": 5,
+          "cached": false,
+          "calls": 1,
+          "cacheHits": 0
+        }
+      ],
+      "warnings": [
+        "A pesquisa não reserva nem emite serviços. Preço e disponibilidade precisam ser confirmados no canal de origem."
+      ],
+      "offerCount": 5,
+      "examples": [
+        {
+          "id": "761526644fb9a000e92ef39f957ce52e",
+          "identityKey": "59eed33570ecb1fdbcc92ec204df49d4f4e6531668cfeab70e3a07348d2f8834",
+          "identityKind": "dated_quote",
+          "title": "Hotel Laghetto Rio Grande · Luxo (Cama Casal)",
+          "price": {
+            "amount": 1359.4,
+            "currency": "BRL",
+            "basis": "stay",
+            "taxesIncluded": true
+          },
+          "completeness": "complete",
+          "capturedAt": "2026-10-08T18:49:23.637Z",
+          "expiresAt": "2026-10-08T18:54:23.637Z",
+          "requestSnapshot": {
+            "category": "hotels",
+            "origin": "",
+            "destination": "Rio Grande",
+            "start": "2026-11-10",
+            "end": "2026-11-15",
+            "adults": 2,
+            "childrenAges": [],
+            "rooms": 1,
+            "currency": "BRL",
+            "hotelId": "7620"
+          },
+          "details": {
+            "hotelId": "7620",
+            "roomId": "48110",
+            "rateId": "140677",
+            "evidence": {
+              "sha256": "a084bfd773594d729f08438ad97f8b5c9cb4ce6adcf8e3b861b5a17671b5cf35"
+            }
+          },
+          "sourceUrl": "https://reservas.laghetto.com.br/hotelresults?c=2143&q=7620&NRooms=1&CheckIn=10112026&CheckOut=15112026&ad=2&ch=&ag=&Code=&group_code=&lang=pt-BR&currencyId=16&version=4"
+        },
+        {
+          "id": "ca0720f4b44d14e1dcd01e4770636f76",
+          "identityKey": "487681f57a6b87876e00e07aa1d5acab2e076269880954753fbb3e9dacbe9867",
+          "identityKind": "dated_quote",
+          "title": "Hotel Laghetto Rio Grande · Luxo (Camas de Solteiro)",
+          "price": {
+            "amount": 1359.4,
+            "currency": "BRL",
+            "basis": "stay",
+            "taxesIncluded": true
+          },
+          "completeness": "complete",
+          "capturedAt": "2026-10-08T18:49:23.637Z",
+          "expiresAt": "2026-10-08T18:54:23.637Z",
+          "requestSnapshot": {
+            "category": "hotels",
+            "origin": "",
+            "destination": "Rio Grande",
+            "start": "2026-11-10",
+            "end": "2026-11-15",
+            "adults": 2,
+            "childrenAges": [],
+            "rooms": 1,
+            "currency": "BRL",
+            "hotelId": "7620"
+          },
+          "details": {
+            "hotelId": "7620",
+            "roomId": "48112",
+            "rateId": "140677",
+            "evidence": {
+              "sha256": "a084bfd773594d729f08438ad97f8b5c9cb4ce6adcf8e3b861b5a17671b5cf35"
+            }
+          },
+          "sourceUrl": "https://reservas.laghetto.com.br/hotelresults?c=2143&q=7620&NRooms=1&CheckIn=10112026&CheckOut=15112026&ad=2&ch=&ag=&Code=&group_code=&lang=pt-BR&currencyId=16&version=4"
+        }
+      ]
+    },
+    {
+      "phase": "cached",
+      "summary": {
+        "refresh": false,
+        "callsUsed": 0,
+        "networkRequests": 0,
+        "cacheHits": 1,
+        "providersSucceeded": 1,
+        "providersFailed": 0,
+        "totalOffers": 5,
+        "limited": false,
+        "capturedAt": "2026-10-08T18:49:24.040Z"
+      },
+      "providers": [
+        {
+          "id": "native-laghetto",
+          "name": "Laghetto · coleta própria",
+          "status": "success",
+          "message": "Resultados recentes reutilizados; veja o horário da coleta.",
+          "offerCount": 5,
+          "cached": true,
+          "calls": 0,
+          "cacheHits": 1
+        }
+      ],
+      "warnings": [
+        "Há resultados de cache de até cinco minutos. O horário original da coleta foi mantido.",
+        "A pesquisa não reserva nem emite serviços. Preço e disponibilidade precisam ser confirmados no canal de origem."
+      ],
+      "offerCount": 5,
+      "examples": [
+        {
+          "id": "761526644fb9a000e92ef39f957ce52e",
+          "identityKey": "59eed33570ecb1fdbcc92ec204df49d4f4e6531668cfeab70e3a07348d2f8834",
+          "identityKind": "dated_quote",
+          "title": "Hotel Laghetto Rio Grande · Luxo (Cama Casal)",
+          "price": {
+            "amount": 1359.4,
+            "currency": "BRL",
+            "basis": "stay",
+            "taxesIncluded": true
+          },
+          "completeness": "complete",
+          "capturedAt": "2026-10-08T18:49:23.637Z",
+          "expiresAt": "2026-10-08T18:54:23.637Z",
+          "requestSnapshot": {
+            "category": "hotels",
+            "origin": "",
+            "destination": "Rio Grande",
+            "start": "2026-11-10",
+            "end": "2026-11-15",
+            "adults": 2,
+            "childrenAges": [],
+            "rooms": 1,
+            "currency": "BRL",
+            "hotelId": "7620"
+          },
+          "details": {
+            "hotelId": "7620",
+            "roomId": "48110",
+            "rateId": "140677",
+            "evidence": {
+              "sha256": "a084bfd773594d729f08438ad97f8b5c9cb4ce6adcf8e3b861b5a17671b5cf35"
+            }
+          },
+          "sourceUrl": "https://reservas.laghetto.com.br/hotelresults?c=2143&q=7620&NRooms=1&CheckIn=10112026&CheckOut=15112026&ad=2&ch=&ag=&Code=&group_code=&lang=pt-BR&currencyId=16&version=4"
+        },
+        {
+          "id": "ca0720f4b44d14e1dcd01e4770636f76",
+          "identityKey": "487681f57a6b87876e00e07aa1d5acab2e076269880954753fbb3e9dacbe9867",
+          "identityKind": "dated_quote",
+          "title": "Hotel Laghetto Rio Grande · Luxo (Camas de Solteiro)",
+          "price": {
+            "amount": 1359.4,
+            "currency": "BRL",
+            "basis": "stay",
+            "taxesIncluded": true
+          },
+          "completeness": "complete",
+          "capturedAt": "2026-10-08T18:49:23.637Z",
+          "expiresAt": "2026-10-08T18:54:23.637Z",
+          "requestSnapshot": {
+            "category": "hotels",
+            "origin": "",
+            "destination": "Rio Grande",
+            "start": "2026-11-10",
+            "end": "2026-11-15",
+            "adults": 2,
+            "childrenAges": [],
+            "rooms": 1,
+            "currency": "BRL",
+            "hotelId": "7620"
+          },
+          "details": {
+            "hotelId": "7620",
+            "roomId": "48112",
+            "rateId": "140677",
+            "evidence": {
+              "sha256": "a084bfd773594d729f08438ad97f8b5c9cb4ce6adcf8e3b861b5a17671b5cf35"
+            }
+          },
+          "sourceUrl": "https://reservas.laghetto.com.br/hotelresults?c=2143&q=7620&NRooms=1&CheckIn=10112026&CheckOut=15112026&ad=2&ch=&ag=&Code=&group_code=&lang=pt-BR&currencyId=16&version=4"
+        }
+      ]
+    },
+    {
+      "phase": "revalidated",
+      "summary": {
+        "refresh": true,
+        "callsUsed": 1,
+        "networkRequests": 1,
+        "cacheHits": 0,
+        "providersSucceeded": 1,
+        "providersFailed": 0,
+        "totalOffers": 5,
+        "limited": false,
+        "capturedAt": "2026-10-08T18:49:24.043Z"
+      },
+      "providers": [
+        {
+          "id": "native-laghetto",
+          "name": "Laghetto · coleta própria",
+          "status": "success",
+          "message": "Consulta concluída; preços sujeitos à revalidação.",
+          "offerCount": 5,
+          "cached": false,
+          "calls": 1,
+          "cacheHits": 0
+        }
+      ],
+      "warnings": [
+        "A pesquisa não reserva nem emite serviços. Preço e disponibilidade precisam ser confirmados no canal de origem."
+      ],
+      "offerCount": 5,
+      "examples": [
+        {
+          "id": "761526644fb9a000e92ef39f957ce52e",
+          "identityKey": "59eed33570ecb1fdbcc92ec204df49d4f4e6531668cfeab70e3a07348d2f8834",
+          "identityKind": "dated_quote",
+          "title": "Hotel Laghetto Rio Grande · Luxo (Cama Casal)",
+          "price": {
+            "amount": 1359.4,
+            "currency": "BRL",
+            "basis": "stay",
+            "taxesIncluded": true
+          },
+          "completeness": "complete",
+          "capturedAt": "2026-10-08T18:49:31.026Z",
+          "expiresAt": "2026-10-08T18:54:31.026Z",
+          "requestSnapshot": {
+            "category": "hotels",
+            "origin": "",
+            "destination": "Rio Grande",
+            "start": "2026-11-10",
+            "end": "2026-11-15",
+            "adults": 2,
+            "childrenAges": [],
+            "rooms": 1,
+            "currency": "BRL",
+            "hotelId": "7620"
+          },
+          "details": {
+            "hotelId": "7620",
+            "roomId": "48110",
+            "rateId": "140677",
+            "evidence": {
+              "sha256": "7d1e2dd67bfd1ba59de1a3c9602176a737a01741958f679e5aff5b9a81e54891"
+            }
+          },
+          "sourceUrl": "https://reservas.laghetto.com.br/hotelresults?c=2143&q=7620&NRooms=1&CheckIn=10112026&CheckOut=15112026&ad=2&ch=&ag=&Code=&group_code=&lang=pt-BR&currencyId=16&version=4"
+        },
+        {
+          "id": "ca0720f4b44d14e1dcd01e4770636f76",
+          "identityKey": "487681f57a6b87876e00e07aa1d5acab2e076269880954753fbb3e9dacbe9867",
+          "identityKind": "dated_quote",
+          "title": "Hotel Laghetto Rio Grande · Luxo (Camas de Solteiro)",
+          "price": {
+            "amount": 1359.4,
+            "currency": "BRL",
+            "basis": "stay",
+            "taxesIncluded": true
+          },
+          "completeness": "complete",
+          "capturedAt": "2026-10-08T18:49:31.026Z",
+          "expiresAt": "2026-10-08T18:54:31.026Z",
+          "requestSnapshot": {
+            "category": "hotels",
+            "origin": "",
+            "destination": "Rio Grande",
+            "start": "2026-11-10",
+            "end": "2026-11-15",
+            "adults": 2,
+            "childrenAges": [],
+            "rooms": 1,
+            "currency": "BRL",
+            "hotelId": "7620"
+          },
+          "details": {
+            "hotelId": "7620",
+            "roomId": "48112",
+            "rateId": "140677",
+            "evidence": {
+              "sha256": "7d1e2dd67bfd1ba59de1a3c9602176a737a01741958f679e5aff5b9a81e54891"
+            }
+          },
+          "sourceUrl": "https://reservas.laghetto.com.br/hotelresults?c=2143&q=7620&NRooms=1&CheckIn=10112026&CheckOut=15112026&ad=2&ch=&ag=&Code=&group_code=&lang=pt-BR&currencyId=16&version=4"
+        }
+      ]
+    }
+  ]
+}

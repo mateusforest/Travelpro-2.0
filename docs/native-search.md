@@ -31,7 +31,8 @@ No quarto Luxo com cama de casal do Hotel Laghetto Rio Grande, a página fornece
 3. Escolha a categoria ou **Viagem completa**. Informe destino, período e viajantes. Para incluir voos na busca da viagem completa, preencha os aeroportos IATA.
 4. Use **Datas do pedido** para procurar correspondência ao período ou **Oportunidades** para explorar publicações de outras datas. Essas publicações ficam numa seção separada.
 5. Na hospedagem, **Ver quartos** aprofunda a pesquisa no hotel escolhido. Quando existe total conferido em BRL, **Revisar cotação** abre o formulário existente, sem salvar automaticamente.
-6. **Organizar viagem** guarda até 12 opções na aba. Alternativas e preços por pessoa, diárias ou publicações não são somados como se fossem o total da viagem. **Baixar seleção** exporta um JSON; o organizador não persiste após recarregar a página.
+6. **Organizar viagem** reúne até 12 opções. Dê um nome e salve o plano na agência para retomá-lo depois; é possível manter até 30 planos. Referências salvas precisam de reconsulta antes de compor um subtotal. Alternativas e preços por pessoa, diárias ou publicações não são somados como se fossem o total da viagem. **Baixar seleção** continua exportando um JSON.
+7. Use a atualização da oferta para consultar a fonte novamente, sem reaproveitar o cache de preços. A ferramenta compara apenas o mesmo produto e condições; a substituição no organizador exige aceitação explícita. Veja [continuidade da pesquisa](search-continuity.md).
 
 O formulário de cotação mantém o cálculo privado de acréscimo, margem, serviço e custos de pagamento. Uma tarifa pública não é automaticamente um custo líquido negociado. O formulário exige revisão e validade; a pesquisa não efetua reserva ou cobrança.
 
