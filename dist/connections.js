@@ -23,10 +23,10 @@
           <p class="conn-detail">${configured('openai') ? 'A configuração está registrada. O funcionamento do serviço ainda precisa ser verificado pela equipe.' : 'A ativação do assistente é feita pela equipe TravelPro.'}</p>
         </article>
         <article class="conn-card">
-          <div class="conn-card-heading"><span class="conn-icon" aria-hidden="true">${icon(ctx, 'plane')}</span><h3>Fluxo com a Europlus</h3></div>
+          <div class="conn-card-heading"><span class="conn-icon" aria-hidden="true">${icon(ctx, 'plane')}</span><h3>Fluxo com operadoras</h3></div>
           <p>Cotações e propostas organizadas no atendimento. Reserva e pagamento continuam no portal da operadora.</p>
           ${configurationTag('operator')}
-          <p class="conn-detail">${configured('operator') ? 'Há uma configuração técnica registrada; a conexão específica com a Europlus ainda não foi validada.' : 'A conexão direta com a Europlus aguarda ativação e validação pela equipe.'}</p>
+          <p class="conn-detail">${configured('operator') ? 'Há uma configuração técnica registrada; a conexão com a operadora ainda não foi validada.' : 'A conexão direta com a operadora aguarda ativação e validação pela equipe.'}</p>
         </article>
       </div>
     </section>`;

@@ -10,7 +10,7 @@ O primeiro contato esclarece a categoria: plataforma para agências de viagens. 
 
 O cenário é uma imagem gerada com aparência tridimensional, complementada por deslocamento sutil ao cursor e elementos HTML. Não é uma cena WebGL nem permite rotação livre. No celular, a mensagem vem primeiro e a cena aparece logo abaixo. A preferência por movimento reduzido desativa o deslocamento. Sem áudio, vídeo automático, animação contínua ou dependências externas.
 
-As interações são exemplos ilustrativos e não alteram dados. O site principal e o portal não foram substituídos. A apresentação Europlus descreve um fluxo em preparação, sem afirmar parceria ou integração já disponíveis.
+As interações são exemplos ilustrativos e não alteram dados. O site principal e o portal não foram substituídos. A apresentação descreve o fluxo da agência com fornecedores, sem marca fixa de operadora ou alegação de parceria.
 
 ## Referências consultadas
 

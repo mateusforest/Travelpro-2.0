@@ -12,7 +12,7 @@ O catálogo acrescenta Horizonte e Atlas apenas na apresentação, sem substitui
 
 - Horizonte · Editorial: fotografia ampla, programação por capítulos e cores da agência.
 - Atlas · Concierge: capa dividida e programação compacta para consulta.
-- Prévia e impressão usam o mesmo documento, com logos TravelPro e Europlus. As cores e o logo configurados nas propostas são reaproveitados.
+- Prévia e impressão usam o mesmo documento, com a assinatura TravelPro. As cores e o logo configurados nas propostas são reaproveitados.
 - O card Meu modelo oferece upload do arquivo da agência. PDF, DOCX, TXT, MD, PNG, JPEG e WebP, até 3 MB. O original fica privado e acessível no card. TXT/MD alimentam o texto editável; PDF/Word permanecem como referência, sem prometer conversão de diagramação.
 - A programação deve ser revisada pela agência. Vínculos com viagens novas continuam exigindo confirmação de reserva, pagamento e emissão. Nenhuma tarifa ou reserva é inventada.
 

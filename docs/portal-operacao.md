@@ -27,7 +27,7 @@ O modo disponível aparece no painel. Com IA configurada, usa a conexão existen
 
 ## Limites desta entrega
 
-Esta mudança reorganiza o portal existente. Não implementa ingestão automática de e-mails, integração específica com a Europlus, análise de PDFs, Open Finance, assinatura eletrônica ou emissão fiscal. Também não confirma reservas, pagamentos ou comissões a partir da aprovação de uma proposta. Esses fluxos continuam dependendo das integrações e confirmações próprias.
+Esta mudança reorganiza o portal existente. Não implementa ingestão automática de e-mails, integração específica com uma operadora, análise de PDFs, Open Finance, assinatura eletrônica ou emissão fiscal. Também não confirma reservas, pagamentos ou comissões a partir da aprovação de uma proposta. Esses fluxos continuam dependendo das integrações e confirmações próprias.
 
 ## Prévia local isolada
 

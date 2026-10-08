@@ -36,9 +36,9 @@ Resposta normalizada esperada:
 
 O histórico de cotações é preservado, sem sobrescrever o original. Cotações e propostas são vinculadas ao atendimento e ao cliente. Chamadas repetidas podem retornar novas cotações; preparar novamente a mesma oferta abre a proposta já existente.
 
-## O que depende da Europlus
+## O que depende da conexão com a operadora
 
-A API específica não foi configurada nem homologada. O endpoint acima é o contrato do adaptador TravelPro, não uma alegação sobre endpoints públicos da Europlus. É necessário obter documentação, credenciais, ambientes e regras de validade, comissão, reserva e emissão da operadora.
+A integração específica depende da configuração e homologação do fornecedor escolhido. O endpoint acima é o contrato do adaptador TravelPro, não uma alegação sobre endpoints públicos de uma operadora. É necessário obter documentação, credenciais, ambientes e regras de validade, comissão, reserva e emissão da operadora.
 
 Notificações de cotação recebida, aprovação pública e atualização automática de pagamento/emissão exigem implementações futuras: autenticação de origem, correlação por agência/atendimento/referência, identificação única do evento, proteção contra repetição e regras de precedência. Nenhum webhook público fictício foi criado. A estrutura de dados já separa essas confirmações, preserva referências e permite mapear o retorno homologado para os mesmos estados.
 

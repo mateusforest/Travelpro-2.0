@@ -26,6 +26,10 @@ test('calculator parses BR amounts, converts in both directions, swaps and maint
   w.eval(readFileSync(new URL('../dist/portal-chrome.js',import.meta.url),'utf8'));w.TravelChrome.mount();
   await new Promise(r=>setTimeout(r,20));
   const $=s=>w.document.querySelector(s),change=el=>el.dispatchEvent(new w.Event('change'));
+  assert.equal(w.document.querySelectorAll('.portal-partners').length,1);
+  assert.equal($('.portal-partners').children.length,1);
+  assert.equal($('.portal-partners img').getAttribute('src'),'assets/travelpro-tp-orange.png');
+  assert.doesNotMatch($('.portal-partners').outerHTML,/europlus|operadora/i);
   assert.equal(w.TravelChrome.parseAmount('1.250,50'),1250.5);assert.equal(w.TravelChrome.parseAmount('0,01'),.01);
   for(const bad of ['-1','1,000.50','12a','Infinity','1,2,3',''])assert.equal(w.TravelChrome.parseAmount(bad),null,bad);
   assert.equal(w.TravelChrome.convert(100,'USD','EUR',{USD:5,EUR:6}),500/6);
