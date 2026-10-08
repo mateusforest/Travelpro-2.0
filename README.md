@@ -12,6 +12,8 @@ Consulte [DEPLOY.md](DEPLOY.md) para publicar na Vercel com Supabase e [BACKEND.
 
 ## Estado da entrega
 
+As cotações manuais permitem definir custo líquido, acréscimo ou margem, taxa de serviço e custos de pagamento. O resumo interno fica separado do documento do cliente. Veja [cotação independente](docs/cotacao-independente.md) para o escopo entregue e as dependências da busca e reserva por API.
+
 O financeiro possui contas e saldos, categorias, clientes/fornecedores, parcelas, baixas parciais, estornos, transferências internas, fluxo de caixa e exportação CSV. Veja [o guia financeiro](docs/financeiro.md), incluindo a migração do histórico anterior e a preparação para o Granatum.
 
 A [integração Granatum](docs/granatum.md) importa o histórico e os compromissos futuros já disponíveis, com atualização periódica e credencial cifrada por agência.
