@@ -10,9 +10,10 @@
     const select=(label,name,options,value)=>`<label class="form-field"><span>${label}</span><select name="${name}">${options.map(([k,v])=>`<option value="${k}" ${k===value?'selected':''}>${v}</option>`).join('')}</select></label>`;
     const submit=label=>`<div class="dialog-actions"><button class="primary-button" type="submit">${label}</button></div>`;
     const stamp=value=>!value?'A confirmar':F.date(value)?new Date(value+'T12:00:00').toLocaleDateString('pt-BR')+' · horário não informado':new Date(value).toLocaleString('pt-BR');
-    function pricingFields(saved) {
+    function pricingFields(saved,referenceAmount) {
       const p=saved?.input||{};
-      return `<fieldset class="sales-pricing"><legend>Preço e ganho da agência</legend>${select('Como definir o preço','priceMethod',[['final','Informar preço final'],['markup','Acrescentar percentual ao custo'],['margin','Definir margem sobre a venda']],p.mode||'final')}<div data-pricing-fields ${saved?'':'hidden'}><p class="form-hint">Valores internos. Informe o custo líquido do grupo, com taxas do fornecedor e câmbio já conferidos. Se uma comissão já foi abatida do custo, não a some novamente.</p><div class="form-grid">${input('Custo líquido do grupo (R$)','netCost',p.cost??'','number',false)}${input('Percentual de ganho (%)','gainRate',p.rate??10,'number',false)}${input('Taxa de serviço adicional (R$)','serviceFee',p.serviceFee??0,'number',false)}${input('Taxa do pagamento (%)','paymentPercent',p.paymentPercent??0,'number',false)}${input('Taxa fixa do pagamento (R$)','paymentFixed',p.paymentFixed??0,'number',false)}</div><p class="form-hint">Acréscimo de 10% sobre o custo é diferente de margem de 10% sobre a venda. As taxas de pagamento informadas serão incluídas no preço final.</p></div><output data-pricing-result aria-live="polite"></output><p class="form-hint">Custos e ganho não aparecem no documento do cliente. Resultado previsto antes dos tributos e despesas da agência; não representa comissão recebida.</p></fieldset>`;
+      const reference=typeof referenceAmount==='number'&&Number.isFinite(referenceAmount)&&referenceAmount>0?referenceAmount:null;
+      return `<fieldset class="sales-pricing"><legend>Preço e ganho da agência</legend>${select('Como definir o preço','priceMethod',[['final','Informar preço final'],['markup','Acrescentar percentual ao custo'],['margin','Definir margem sobre a venda']],p.mode||'final')}<div data-pricing-fields ${saved?'':'hidden'}><p class="form-hint">Valores internos. Informe o custo líquido do grupo, com taxas do fornecedor e câmbio já conferidos. Se uma comissão já foi abatida do custo, não a some novamente.</p>${reference!==null?`<div class="sales-cost-reference"><p class="form-hint">Preço pesquisado: <strong>${c.money(reference)}</strong>. Use como custo somente se este for o total a pagar ao fornecedor, com taxas conferidas.</p><button type="button" class="outline-button" data-pricing-use-total="${reference}">Usar preço pesquisado como custo</button></div>`:''}<div class="form-grid">${input('Custo líquido do grupo (R$)','netCost',p.cost??'','number',false)}${input('Percentual de ganho (%)','gainRate',p.rate??10,'number',false)}${input('Taxa de serviço adicional (R$)','serviceFee',p.serviceFee??0,'number',false)}${input('Taxa do pagamento (%)','paymentPercent',p.paymentPercent??0,'number',false)}${input('Taxa fixa do pagamento (R$)','paymentFixed',p.paymentFixed??0,'number',false)}</div><p class="form-hint">Acréscimo de 10% sobre o custo é diferente de margem de 10% sobre a venda. As taxas de pagamento informadas serão incluídas no preço final.</p></div><output data-pricing-result aria-live="polite"></output><p class="form-hint">Custos e ganho não aparecem no documento do cliente. Resultado previsto antes dos tributos e despesas da agência; não representa comissão recebida.</p></fieldset>`;
     }
     const priceData=d=>!d.priceMethod||d.priceMethod==='final'?null:F.priceQuote({mode:d.priceMethod,cost:d.netCost,rate:d.gainRate,serviceFee:d.serviceFee,paymentPercent:d.paymentPercent,paymentFixed:d.paymentFixed});
     function privateSummary(q) {
@@ -30,6 +31,7 @@
         try{const p=priceData(Object.fromEntries(new FormData(form))).result;total.value=(p.saleCents/100).toFixed(2);if(visible){visible.value=(p.saleCents/100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});visible.setCustomValidity('');}total.setCustomValidity('');out.textContent='Venda: '+c.money(p.saleCents/100)+' · Taxas de pagamento: '+c.money(p.paymentFeeCents/100)+' · Resultado previsto: '+c.money(p.contributionCents/100);}
         catch(error){total.value='';if(visible)visible.value='';total.setCustomValidity(error.message);out.textContent=error.message;}
       };
+      form.addEventListener('click',event=>{const button=event.target.closest('[data-pricing-use-total]');if(button&&form.elements.priceMethod.value!=='final'){form.elements.netCost.value=button.dataset.pricingUseTotal;const visible=form.elements.netCost.closest('label')?.querySelector('.portal-currency input');if(visible)visible.value=Number(button.dataset.pricingUseTotal).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});update();}});
       form.addEventListener('input',update);form.addEventListener('change',update);update();
     }
     function flow(t) {
@@ -109,26 +111,33 @@
       // A search selection only prepares the existing review form. It cannot save,
       // set a supplier guarantee, or turn a retail search price into a net cost.
       const q=saved||(prefill?{name:prefill.name,request:prefill,reference:prefill.reference,offers:[{total:prefill.total,inclusions:String(prefill.inclusions||'').split('\n').filter(Boolean),terms:prefill.terms}]}:null),r=q?.request||{},o=q?.offers?.[0]||{};
-      c.dialog(saved?'Editar cotação avulsa':prefill?'Revisar cotação da busca':'Gerar cotação',`<form data-form="sales-quick"><input type="hidden" name="id" value="${e(q?.id||'')}"><p class="form-hint">Prepare uma cotação sem cadastrar cliente ou atendimento. Informe os valores e serviços que deseja apresentar.</p>${input('Título da cotação','name',q?.name||'')}<div class="form-grid">${input('Origem','origin',r.origin||'')}${input('Destino','destination',r.destination||'')}${input('Ida','start',r.start||'','date')}${input('Volta','end',r.end||'','date')}${input('Viajantes','travelers',r.travelers||1,'number')}${input('Válida até','valid',q?.validUntil?.slice(0,10)||'','date')}</div>${area('Serviços incluídos (um por linha)','inclusions',(o.inclusions||[]).join('\n'))}<div class="form-grid">${input('Valor total do grupo (R$)','total',o.total??'','number')}${input('Referência / fornecedor (opcional)','reference',q?.reference||'','text',false)}</div>${pricingFields(q?.privatePricing)}${area('Condições, pagamento e observações','terms',o.terms||'')}<p class="form-hint">Use os preços conferidos com o fornecedor. Gerar a cotação não faz reserva nem cobrança.</p>${submit('Gerar e salvar cotação')}</form>`,'COTAÇÃO AVULSA');
+      c.dialog(saved?'Editar cotação avulsa':prefill?'Revisar cotação da busca':'Gerar cotação',`<form data-form="sales-quick"><input type="hidden" name="id" value="${e(q?.id||'')}"><p class="form-hint">Prepare uma cotação sem cadastrar cliente ou atendimento. Informe os valores e serviços que deseja apresentar.</p>${input('Título da cotação','name',q?.name||'')}<div class="form-grid">${input('Origem · opcional','origin',r.origin||'','text',false)}${input('Destino','destination',r.destination||'')}${input('Início','start',r.start||'','date')}${input('Fim · opcional para serviço de um dia','end',r.end||'','date',false)}${input('Viajantes','travelers',r.travelers||1,'number')}${input('Válida até','valid',q?.validUntil?.slice(0,10)||'','date')}</div>${area('Serviços incluídos (um por linha)','inclusions',(o.inclusions||[]).join('\n'))}<div class="form-grid">${input('Valor total do grupo (R$)','total',o.total??'','number')}${input('Referência / fornecedor (opcional)','reference',q?.reference||'','text',false)}</div>${pricingFields(q?.privatePricing,prefill?.total)}${area('Condições, pagamento e observações','terms',o.terms||'')}<p class="form-hint">Use os preços conferidos com o fornecedor. Gerar a cotação não faz reserva nem cobrança.</p>${submit('Gerar e salvar cotação')}</form>`,'COTAÇÃO AVULSA');
       bindPricing();
     }
     const quickDate=value=>F.date(value)?new Date(value+'T12:00:00').toLocaleDateString('pt-BR'):stamp(value);
     function quickPresentation(q) {
       const r=q.request;
-      return `<article class="quick-quote-preview"><span class="eyebrow">${e(state().agency)} · COTAÇÃO</span><h2>${e(q.name)}</h2><p>${e(r.origin)} → ${e(r.destination)}</p><p>${quickDate(r.start)} a ${quickDate(r.end)} · ${r.travelers} viajante(s)</p>${q.offers.map(o=>`<section><h3>Serviços incluídos</h3><ul>${o.inclusions.map(x=>`<li>${e(x)}</li>`).join('')}</ul><p class="quick-total"><small>Total do grupo</small><strong>${c.money(o.total)}</strong><small>${c.money(o.total/r.travelers)} por viajante</small></p><h3>Condições</h3><p class="sales-pre">${e(o.terms||'Consulte a agência.')}</p></section>`).join('')}<p>Validade: ${quickDate(q.validUntil)}</p><p class="form-hint">Valores sujeitos à disponibilidade e reconfirmação. Este documento não confirma reserva ou emissão.</p></article>`;
+      return `<article class="quick-quote-preview"><span class="eyebrow">${e(state().agency)} · COTAÇÃO</span><h2>${e(q.name)}</h2><p>${r.origin?e(r.origin)+' → ':''}${e(r.destination)}</p><p>${quickDate(r.start)}${r.end&&r.end!==r.start?' a '+quickDate(r.end):''} · ${r.travelers} viajante(s)</p>${q.offers.map(o=>`<section><h3>Serviços incluídos</h3><ul>${o.inclusions.map(x=>`<li>${e(x)}</li>`).join('')}</ul><p class="quick-total"><small>Total do grupo</small><strong>${c.money(o.total)}</strong><small>${c.money(o.total/r.travelers)} por viajante</small></p><h3>Condições</h3><p class="sales-pre">${e(o.terms||'Consulte a agência.')}</p></section>`).join('')}<p>Validade: ${quickDate(q.validUntil)}</p><p class="form-hint">Valores sujeitos à disponibilidade e reconfirmação. Este documento não confirma reserva ou emissão.</p></article>`;
     }
     function quickResult(id) {
       const q=state().quickQuotes?.find(q=>q.id===id);if(!q)throw Error('Cotação não encontrada.');
-      c.dialog('Cotação pronta',quickPresentation(q)+privateSummary(q)+'<div class="dialog-actions">'+btn('Editar cotação','sales-quick-edit',id)+btn('Baixar cotação','sales-quick-download',id,true)+'</div>','REVISAR E COMPARTILHAR');
+      c.dialog('Cotação pronta',quickPresentation(q)+privateSummary(q)+'<div class="dialog-actions">'+btn('Editar cotação','sales-quick-edit',id)+btn('Baixar cotação','sales-quick-download',id)+btn('Preparar proposta em PDF','sales-quick-proposal',id,true)+'</div>','REVISAR E COMPARTILHAR');
     }
     function quickList() {
       const rows=state().quickQuotes||[];
       return `<section class="quick-quotes"><div class="section-heading"><h2>Cotações avulsas</h2><span class="muted-small">${rows.length} salva(s)</span></div>${rows.length?'<div class="budget-list">'+[...rows].reverse().map(q=>`<article class="attendance-card"><div><span class="eyebrow">${F.expired(q.validUntil)?'VALIDADE ENCERRADA':'COTAÇÃO AVULSA'}</span><h2>${e(q.name)}</h2><p>${e(q.request.destination)} · ${q.request.travelers} viajante(s)</p><p>Válida até ${quickDate(q.validUntil)}</p><strong>${c.money(q.offers[0].total)}</strong></div><div class="attendance-actions">${btn('Ver cotação','sales-quick-result',q.id,true)}${btn('Editar','sales-quick-edit',q.id)}</div></article>`).join('')+'</div>':'<div class="empty-state"><h2>Sua próxima cotação começa aqui</h2><p>Informe destino, datas, serviços e valores. O cadastro de cliente não é necessário.</p>'+btn('Gerar cotação','workflow-quote','',true)+'</div>'}</section>`;
     }
+    function quickProposalForm(id) {
+      const q=state().quickQuotes?.find(q=>q.id===id);if(!q)throw Error('Cotação não encontrada.');
+      if(F.expired(q.validUntil))throw Error('A cotação venceu. Confira os valores e atualize a validade antes de preparar a proposta.');
+      const clients=state().clients.filter(client=>!client.deletedAt);
+      c.dialog('Preparar proposta em PDF',`<form data-form="sales-quick-proposal"><input type="hidden" name="id" value="${e(q.id)}"><input type="hidden" name="revision" value="${e(q.updatedAt||q.createdAt||'')}"><p>Use a cotação <strong>${e(q.name)}</strong> para criar uma proposta com a identidade da agência. Os custos e a margem ficam internos.</p>${select('Cliente da proposta','client',[['','Escolha um cliente'],...clients.map(client=>[e(client.id),e(client.name)]),['new','Cadastrar novo cliente']], '')}${input('Nome completo · somente para novo cliente','clientName','','text',false)}<p class="form-hint">Será criado um atendimento vinculado a esta proposta. Nenhuma mensagem, reserva ou cobrança será realizada.</p>${submit('Criar proposta e abrir editor')}</form>`,'DA COTAÇÃO À PROPOSTA');
+    }
     async function action(action,id) {
       if(action.startsWith('sales-quick-')){
         if(action==='sales-quick-edit')quickForm(id);
         if(action==='sales-quick-result')quickResult(id);
+        if(action==='sales-quick-proposal')quickProposalForm(id);
         if(action==='sales-quick-download'){const q=state().quickQuotes?.find(q=>q.id===id);if(!q)throw Error('Cotação não encontrada.');c.download(q.name,`<!doctype html><html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${e(q.name)}</title><style>body{font:16px/1.65 system-ui;color:#28323c;background:#f5f5f5;margin:0}article{max-width:760px;padding:40px;margin:auto;background:white}h2{font-size:30px}strong{font-size:28px}.quick-total>*{display:block}.sales-pre{white-space:pre-wrap}.form-hint{color:#616971}@media print{body{background:white}article{padding:0}}</style>${quickPresentation(q)}</html>`);}
         return true;
       }
@@ -166,14 +175,37 @@
       const privatePricing=['sales-quick','sales-receive'].includes(name)?priceData(d):null;
       if(privatePricing)d={...d,total:String(privatePricing.result.saleCents/100)};
       if(name==='sales-quick'){
-        if(!d.name?.trim()||!d.destination?.trim()||!d.origin?.trim()||!F.date(d.start)||!F.date(d.end)||d.end<d.start||!F.date(d.valid)||!Number.isInteger(Number(d.travelers))||Number(d.travelers)<1||Number(d.travelers)>100||d.total===''||!Number.isFinite(Number(d.total))||Number(d.total)<0)throw Error('Confira título, origem, destino, datas, viajantes, validade e valor.');
+        if(!d.name?.trim()||!d.destination?.trim()||!F.date(d.start)||(d.end&&(!F.date(d.end)||d.end<d.start))||!F.date(d.valid)||!Number.isInteger(Number(d.travelers))||Number(d.travelers)<1||Number(d.travelers)>100||d.total===''||!Number.isFinite(Number(d.total))||Number(d.total)<0)throw Error('Confira título, destino, datas, viajantes, validade e valor.');
         const result=F.normalizeQuote({currency:'BRL',reference:d.reference?.trim()||'Cotação avulsa',validUntil:d.valid,offers:[{name:d.name.trim(),total:Number(d.total),inclusions:String(d.inclusions||'').split('\n').map(x=>x.trim()).filter(Boolean),terms:d.terms||''}]});
         state().quickQuotes||=[];const old=state().quickQuotes.find(q=>q.id===d.id);
         if(d.id&&!old)throw Error('Cotação não encontrada. Reabra a lista.');
-        const q={...result,id:old?.id||c.uid('aq'),name:d.name.trim(),request:{origin:d.origin.trim(),destination:d.destination.trim(),start:d.start,end:d.end,travelers:Number(d.travelers)},source:'manual',createdAt:old?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString()};
+        const q={...result,id:old?.id||c.uid('aq'),name:d.name.trim(),request:{origin:String(d.origin||'').trim(),destination:d.destination.trim(),start:d.start,end:d.end||'',travelers:Number(d.travelers)},source:'manual',createdAt:old?.createdAt||new Date().toISOString(),updatedAt:new Date(Math.max(Date.now(),(Date.parse(old?.updatedAt)||0)+1)).toISOString()};
         if(privatePricing)q.privatePricing=privatePricing;
         if(old){delete old.privatePricing;Object.assign(old,q);}else state().quickQuotes.push(q);
         await c.flush();c.close();c.render();quickResult(q.id);return true;
+      }
+      if(name==='sales-quick-proposal'){
+        const q=state().quickQuotes?.find(q=>q.id===d.id);
+        if(!q||(q.updatedAt||q.createdAt||'')!==d.revision)throw Error('A cotação mudou. Reabra a versão atual antes de preparar a proposta.');
+        let client=state().clients.find(client=>client.id===d.client&&!client.deletedAt),created=false;
+        if(d.client==='new'){
+          const name=String(d.clientName||'').trim();if(!name||name.length>200)throw Error('Informe o nome completo do novo cliente, com até 200 caracteres.');
+          const pending=state().trips.find(t=>state().clients.some(c=>c.id===t.client&&!c.deletedAt&&c.name===name)&&t.sales?.quotes?.some(copy=>copy.quickQuoteId===q.id&&copy.quickQuoteUpdatedAt===(q.updatedAt||q.createdAt||'')));
+          const pendingBudget=pending&&state().budgets.find(b=>b.trip===pending.id&&pending.sales.quotes.some(copy=>copy.id===b.quoteId&&copy.quickQuoteId===q.id));
+          if(pendingBudget){await c.flush();c.close();c.nav('orcamento/'+pendingBudget.id);return true;}
+          if(state().clients.some(client=>!client.deletedAt&&client.name.trim().toLocaleLowerCase('pt-BR')===name.toLocaleLowerCase('pt-BR')))throw Error('Já existe um cliente com esse nome. Selecione o cadastro na lista.');
+          client={id:c.uid('c'),name,phone:'',email:'',status:'Prospect'};created=true;
+        }
+        if(!client)throw Error('Selecione um cliente da agência ou cadastre um novo cliente.');
+        // A repeated click opens the same proposal. An edited quick quote gets a new snapshot.
+        const previous=state().trips.find(t=>t.client===client.id&&t.sales?.quotes?.some(copy=>copy.quickQuoteId===q.id&&copy.quickQuoteUpdatedAt===(q.updatedAt||q.createdAt||'')));
+        const previousQuote=previous?.sales.quotes.find(copy=>copy.quickQuoteId===q.id&&copy.quickQuoteUpdatedAt===(q.updatedAt||q.createdAt||''));
+        const existing=previous&&state().budgets.find(b=>b.trip===previous.id&&b.quoteId===previousQuote.id);
+        if(existing){await c.flush();c.close();c.nav('orcamento/'+existing.id);return true;}
+        const built=F.buildQuickProposal(q,client,{trip:c.uid('t'),quote:c.uid('q'),budget:c.uid('b')});
+        if(created)state().clients.push(client);state().trips.push(built.trip);state().budgets.push(built.budget);
+        // Keep the pending records on a save failure so an explicit retry cannot duplicate them.
+        await c.flush();c.close();c.nav('orcamento/'+built.budget.id);return true;
       }
       if(proposals&&await proposals.submit(name,d))return true;
       if(!name.startsWith('sales-'))return false;

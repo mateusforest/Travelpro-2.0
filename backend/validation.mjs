@@ -18,7 +18,7 @@ export function validateState(s){
   if(s.quickQuotes!==undefined){
     if(!Array.isArray(s.quickQuotes)||s.quickQuotes.length>10000)fail(422,'Lista de cotações inválida.');
     const ids=new Set();for(const q of s.quickQuotes){const r=q?.request;
-      if(!object(q)||typeof q.id!=='string'||!q.id||q.id.length>100||ids.has(q.id)||typeof q.name!=='string'||!q.name.trim()||q.name.length>200||!object(r)||typeof r.origin!=='string'||!r.origin.trim()||typeof r.destination!=='string'||!r.destination.trim()||!date(r.start)||!date(r.end)||r.end<r.start||!Number.isInteger(r.travelers)||r.travelers<1||r.travelers>100||q.source!=='manual')fail(422,'Revise os dados da cotação avulsa.');
+      if(!object(q)||typeof q.id!=='string'||!q.id||q.id.length>100||ids.has(q.id)||typeof q.name!=='string'||!q.name.trim()||q.name.length>200||!object(r)||typeof r.origin!=='string'||r.origin.length>200||typeof r.destination!=='string'||!r.destination.trim()||r.destination.length>200||!date(r.start)||typeof r.end!=='string'||(r.end&&(!date(r.end)||r.end<r.start))||!Number.isInteger(r.travelers)||r.travelers<1||r.travelers>100||q.source!=='manual')fail(422,'Revise os dados da cotação avulsa.');
       ids.add(q.id);try{salesFlow.normalizeQuote(q);}catch(error){fail(422,error.message);}
     }
   }

@@ -305,8 +305,8 @@ test('airport suggestions resolve explicit choices and reject ambiguous city nam
 test('automatic source selection honors destination coverage, occupancy and flexible call budget',async t=>{
   const hotel={...provider,id:'rio-only',kind:'native',categories:['hotels'],coverage:{type:'destinations',destinations:['Rio Grande'],label:'Rede em Rio Grande'},capabilities:{datedQuotes:true,occupancy:{maxRooms:1,children:false}}};
   const sources=[hotel,...Array.from({length:5},(_,i)=>({...provider,id:'source-'+i}))];const ui=await setup(t,{providers:sources});ui.input('destination','Lisboa','change');ui.input('maxCalls','4','change');ui.input('flexDays','1','change');
-  assert.equal(ui.find('[name="provider"][value="rio-only"]').disabled,true);assert.equal(ui.root.querySelectorAll('[name="provider"]:checked').length,1);assert.match(ui.root.textContent,/Fora da cobertura/);
-  await ui.search();assert.equal(ui.requests[1].body.providers.length,1);
+  assert.equal(ui.find('[name="provider"][value="rio-only"]').disabled,true);assert.equal(ui.root.querySelectorAll('[name="provider"]:checked').length,4);assert.match(ui.root.textContent,/Fora da cobertura/);
+  await ui.search();assert.equal(ui.requests[1].body.providers.length,4);
   ui.input('destination','Rio Grande','change');ui.input('childrenAges','5','change');assert.equal(ui.find('[name="provider"][value="rio-only"]').disabled,true);assert.match(ui.root.textContent,/ainda não consulta hospedagem com crianças/);
 });
 
@@ -361,4 +361,54 @@ test('Laghetto destination coverage accepts the same state and country suffixes 
   const hotel={...provider,id:'native-laghetto',categories:['hotels'],coverage:{type:'destinations',destinations:['Gramado']}};
   const ui=await setup(t,{providers:[hotel]});for(const destination of ['Gramado, RS','Gramado / RS / Brasil','Gramado - Brazil']){ui.input('destination',destination,'change');assert.equal(ui.find('[name="provider"]').disabled,false,destination);assert.equal(ui.find('[name="provider"]').checked,true,destination);}
   ui.input('destination','Gramado, RS','change');ui.input('start','2027-01-10');ui.input('end','2027-01-15');ui.submit();await ui.waitFor(()=>!ui.find('.ts-spinner'));assert.equal(ui.requests[1].body.destination,'Gramado, RS');
+});
+
+test('a complete selection becomes one review with all sources and no automatic pricing or saving',async t=>{
+  const flight=offer({id:'flight',title:'Voo para Lisboa',category:'flights',requestSnapshot:{...request(),category:'flights',origin:'POA',destination:'LIS'},price:{amount:6000.05,currency:'BRL',basis:'round_trip',taxesIncluded:true},conditions:{passengerPriceScope:'all_travelers'}});
+  const data={...response([offer(),flight]),request:{...request(),category:'trip',origin:'Porto Alegre',originAirport:'POA',destinationAirport:'LIS'}};
+  const ui=await setup(t,{search:()=>data});await ui.search();
+  ui.find('[data-ts="add-plan"][data-index="0"]').click();ui.find('[data-ts="add-plan"][data-index="1"]').click();
+  const button=ui.find('[data-ts="review-plan"]');assert.equal(button.disabled,false);button.click();
+  assert.equal(ui.chosen.length,1);const draft=ui.chosen[0].draft;
+  assert.equal(draft.total,10200.05);assert.equal(draft.destination,'Lisboa');assert.equal(draft.origin,'POA');assert.equal(draft.travelers,2);
+  assert.match(draft.inclusions,/Hotel Lisboa/);assert.match(draft.inclusions,/Voo para Lisboa/);assert.match(draft.terms,/Hospedagem/);assert.match(draft.terms,/Voos/);
+  assert.equal(draft.netCost,undefined);assert.equal(draft.valid,undefined);assert.equal(ui.requests.length,2);
+});
+
+test('pending, duplicate or expired options cannot silently become a consolidated quote',async t=>{
+  const published=offer({id:'published',category:'activities',details:{priceKind:'published'},price:{amount:90,currency:'BRL',basis:'from'}});
+  const ui=await setup(t,{offers:[offer(),published,offer({id:'alternative'})]});await ui.search();
+  ui.find('[data-ts="add-plan"][data-index="0"]').click();ui.find('[data-ts="add-plan"][data-index="1"]').click();assert.equal(ui.find('[data-ts="review-plan"]').disabled,true);
+  ui.find('[data-ts="remove-plan"][data-index="1"]').click();ui.find('[data-ts="add-plan"][data-index="2"]').click();assert.equal(ui.find('[data-ts="review-plan"]').disabled,true);
+  ui.find('[data-ts="remove-plan"][data-index="1"]').click();
+  const now=Date.now;ui.w.Date.now=()=>now()+3600000;ui.find('[data-ts="review-plan"]').click();
+  assert.equal(ui.chosen.length,0);assert.match(ui.root.textContent,/Atualize as tarifas/);
+});
+
+test('changing services preserves the request and resolves airports only when unambiguous',async t=>{
+  const ui=await setup(t,{locations:true});ui.input('destination','Lisboa');ui.input('start','2027-01-10');ui.input('end','2027-01-15');
+  ui.find('[data-category="activities"]').click();assert.equal(ui.find('[name="destination"]').value,'Lisboa');assert.equal(ui.find('[name="start"]').value,'2027-01-10');
+  ui.find('[data-category="flights"]').click();assert.equal(ui.find('[name="destination"]').value,'LIS');ui.input('origin','POA');
+  ui.find('[data-category="trip"]').click();assert.equal(ui.find('[name="destination"]').value,'Lisboa');assert.equal(ui.find('[name="originAirport"]').value,'POA');assert.equal(ui.find('[name="destinationAirport"]').value,'LIS');
+  ui.input('destinationAirport','');ui.input('destination','São Paulo');ui.find('[data-category="flights"]').click();assert.equal(ui.find('[name="destination"]').value,'');
+});
+
+test('eligibility changes preserve form nodes so a blur does not swallow the submit click',async t=>{
+  const ui=await setup(t);const form=ui.find('form'),submit=ui.find('button[type="submit"]'),destination=ui.find('[name="destination"]');
+  const details=ui.find('.ts-options');details.open=true;destination.focus();ui.input('destination','Lisboa','change');
+  assert.equal(ui.find('form'),form);assert.equal(ui.find('button[type="submit"]'),submit);assert.equal(ui.w.document.activeElement,destination);assert.equal(details.open,true);
+  ui.input('maxCalls','1','change');assert.equal(ui.find('form'),form);
+});
+
+test('failed refresh preserves previous results and comparison, labeled while the next request runs',async t=>{
+  const ui=await setup(t);await ui.search();const box=ui.find('[data-ts-compare="0"]');box.checked=true;box.dispatchEvent(new ui.w.Event('change',{bubbles:true}));
+  let reject;ui.context.api.request=()=>new Promise((resolve,no)=>{reject=no;});ui.submit();
+  assert.ok(ui.find('.ts-spinner'));assert.equal(ui.find('.ts-card h3').textContent,'Hotel Lisboa');assert.match(ui.root.textContent,/consulta anterior/);
+  reject(Error('Falha temporária.'));await ui.waitFor(()=>!ui.find('.ts-spinner'));
+  assert.equal(ui.find('.ts-card h3').textContent,'Hotel Lisboa');assert.ok(ui.find('.ts-comparison'));assert.match(ui.find('[role="alert"]').textContent,/Falha temporária/);
+});
+
+test('service filter narrows mixed results without another source request',async t=>{
+  const ui=await setup(t,{offers:[offer(),offer({id:'tour',category:'activities',title:'Passeio',details:{priceKind:'published'}})]});await ui.search();
+  ui.input('result-category','activities','change');assert.equal(ui.root.querySelectorAll('.ts-card').length,1);assert.equal(ui.find('.ts-card h3').textContent,'Passeio');assert.equal(ui.requests.length,2);
 });

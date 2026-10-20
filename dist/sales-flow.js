@@ -62,6 +62,17 @@
     if(!date(quote.start)||!date(quote.end)||quote.end<quote.start||!Number.isInteger(quote.travelers)||quote.travelers<1)reject('Complete datas e viajantes na cotação.');
     return {id,trip:t.id,client:t.client,name:t.title,destination:quote.destination,start:quote.start,end:quote.end,travelers:quote.travelers,valid:q.validUntil.slice(0,10),validUntil:q.validUntil,quoteId:quote.id,offerIndex,status:'Rascunho',discount:0,items:o.items?structuredClone(o.items):[{name:o.name,qty:1,unit:o.total}],inclusions:[...o.inclusions],notes:o.terms,source:quote.source,sourceReference:q.reference,introduction:'',badge:'',appearance:'classic',decisionHistory:[],...(o.details?{details:structuredClone(o.details)}:{})};
   }
+  function buildQuickProposal(quote,client,ids,now=Date.now()) {
+    if(!quote||!quote.id||!text(quote.name,200)||!quote.name.trim()||!client?.id||client.deletedAt)reject('Escolha uma cotação e um cliente ativo da agência.');
+    const r=quote.request;
+    if(!r||!text(r.origin,200)||!text(r.destination,200)||!r.destination.trim()||!date(r.start)||(r.end&&!date(r.end))||(r.end&&r.end<r.start)||!Number.isInteger(r.travelers)||r.travelers<1)reject('Revise o destino, as datas e os viajantes da cotação.');
+    validatePrivatePricing(quote);
+    const normalized=normalizeQuote(quote);
+    const linked={...normalized,id:ids.quote,trip:ids.trip,client:client.id,destination:r.destination,origin:r.origin,start:r.start,end:r.end||r.start,travelers:r.travelers,source:'manual',receivedAt:new Date(now).toISOString(),quickQuoteId:quote.id,quickQuoteUpdatedAt:quote.updatedAt||quote.createdAt||'',...(quote.privatePricing?{privatePricing:structuredClone(quote.privatePricing)}:{})};
+    const trip={id:ids.trip,client:client.id,title:quote.name,destination:r.destination,origin:r.origin,start:r.start,end:r.end||r.start,travelers:r.travelers,value:0,status:'Preparando proposta',datesPending:false,travelersPending:false,sales:{quotes:[linked],quoteId:linked.id,budgetId:ids.budget}};
+    const budget=buildBudget(trip,linked,0,ids.budget,now);
+    return {trip,budget};
+  }
   function recordDecision(t,b,event,note='',now=Date.now()) {
     if(!b||b.trip!==t.id)reject('Proposta não encontrada neste atendimento.');
     const statuses={sent:'Aguardando aprovação',adjustment:'Ajuste solicitado',approved:'Aprovada'};
@@ -92,5 +103,5 @@
     for(const t of s.trips){if(!t.sales)continue;const x=t.sales;if(!Array.isArray(x.quotes)||x.quotes.length>200)reject('Histórico de cotações inválido.');const ids=new Set();for(const q of x.quotes){if(!text(q.id,100)||!q.id||ids.has(q.id)||q.trip!==t.id||q.client!==t.client||!['operator','manual'].includes(q.source))reject('Cotação vinculada incorretamente.');ids.add(q.id);normalizeQuote(q);}if(x.quoteId&&!ids.has(x.quoteId))reject('Cotação selecionada não encontrada.');if(x.budgetId&&!s.budgets.some(b=>b.id===x.budgetId&&b.trip===t.id&&b.client===t.client))reject('Proposta vinculada incorretamente.');if(x.fulfillment){const copy=structuredClone(t);recordFulfillment(copy,currentBudget(t,s.budgets),x.fulfillment);}}
     for(const b of s.budgets){if(b.details)normalizeDetails(b.details);if(!b.quoteId)continue;const t=s.trips.find(t=>t.id===b.trip);if(!t||t.client!==b.client||!t.sales?.quotes.some(q=>q.id===b.quoteId)||!deadline(b.validUntil)||!text(b.introduction||'',6000)||!text(b.badge||'',60)||!['classic','warm'].includes(b.appearance||'classic')||!Array.isArray(b.inclusions)||b.inclusions.some(v=>!text(v,2000)))reject('Proposta de cotação inválida.');}
   }
-  globalThis.TravelSalesFlow={priceQuote,validatePrivatePricing,normalizeDetails,normalizeQuote,selected,currentBudget,canItinerary,buildBudget,recordDecision,recordFulfillment,validateState,expired,date,deadline};
+  globalThis.TravelSalesFlow={priceQuote,validatePrivatePricing,normalizeDetails,normalizeQuote,buildQuickProposal,selected,currentBudget,canItinerary,buildBudget,recordDecision,recordFulfillment,validateState,expired,date,deadline};
 })();

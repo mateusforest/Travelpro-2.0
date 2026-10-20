@@ -41,3 +41,35 @@ test('search prefills a review draft without saving, supplier validity or fabric
   ui.quickForm('',{name:'Hotel encontrado',origin:'',destination:'Lisboa',start:'2099-01-02',end:'2099-01-05',travelers:2,total:1500,reference:'Busca',inclusions:'Hospedagem',terms:'Impostos precisam ser conferidos.'});
   const form=w.document.querySelector('form');assert.equal(title,'Revisar cotação da busca');assert.equal(form.elements.total.value,'1500');assert.equal(form.elements.name.value,'Hotel encontrado');assert.equal(form.elements.valid.value,'');assert.equal(form.elements.netCost.value,'');assert.equal(form.elements.priceMethod.value,'final');assert.equal(form.elements.id.value,'');assert.match(form.elements.terms.value,/Impostos/);assert.equal(state.quickQuotes.length,0);
 });
+
+test('using a researched price as cost requires an explicit agency action and recalculates immediately',t=>{
+  const dom=new JSDOM('<div id="dialog"></div>',{runScripts:'outside-only'});t.after(()=>dom.window.close());const w=dom.window;
+  for(const name of ['sales-flow.js','sales-flow-ui.js'])w.eval(readFileSync(new URL('../dist/'+name,import.meta.url),'utf8'));
+  const state={quickQuotes:[]};const ui=w.TravelSalesUI.create({state,esc:x=>String(x??''),money:x=>String(x),dialog:(_,html)=>w.document.querySelector('#dialog').innerHTML=html});
+  ui.quickForm('',{name:'Hotel',destination:'Lisboa',start:'2027-01-10',end:'2027-01-15',travelers:2,total:1500,inclusions:'Hotel'});
+  const form=w.document.querySelector('form');assert.equal(form.elements.origin.required,false);assert.equal(form.elements.end.required,false);assert.equal(form.elements.netCost.value,'');
+  form.elements.priceMethod.value='markup';form.elements.priceMethod.dispatchEvent(new w.Event('change',{bubbles:true}));assert.equal(form.elements.netCost.value,'');
+  form.querySelector('[data-pricing-use-total]').click();assert.equal(form.elements.netCost.value,'1500');assert.equal(form.elements.total.value,'1650.00');assert.equal(state.quickQuotes.length,0);
+});
+
+test('quick proposal links an immutable private quote while the customer budget contains only sale values',()=>{
+  const s=JSON.parse(readFileSync(new URL('../backend/initial-state.json',import.meta.url)));s.agency='Agência';
+  const client={id:'c',name:'Ana',phone:'',email:''};s.clients=[client];
+  const quote={id:'quick',name:'Lisboa',request:{origin:'',destination:'Lisboa',start:'2099-12-01',end:'',travelers:2},source:'manual',currency:'BRL',validUntil:'2099-11-30',reference:'Hotel',offers:[{name:'Hospedagem',total:11000,inclusions:['Hotel'],terms:'Conferir disponibilidade'}],privatePricing:price(),updatedAt:'2026-10-20T10:00:00Z'};
+  const before=structuredClone(quote);const built=F.buildQuickProposal(quote,client,{trip:'t',quote:'q',budget:'b'});
+  assert.deepEqual(quote,before);assert.equal(built.trip.sales.quotes[0].privatePricing.result.costCents,1000000);assert.equal(built.budget.items[0].unit,11000);assert.equal(built.budget.end,quote.request.start);
+  assert.doesNotMatch(JSON.stringify(built.budget),/privatePricing|costCents|contributionCents/);s.quickQuotes=[quote];s.trips=[built.trip];s.budgets=[built.budget];validateState(s);
+  assert.throws(()=>F.buildQuickProposal({...quote,validUntil:'2000-01-01'},client,{trip:'t2',quote:'q2',budget:'b2'}),/venceu/);
+  assert.throws(()=>F.buildQuickProposal(quote,{...client,deletedAt:'2026-01-01'},{trip:'t2',quote:'q2',budget:'b2'}),/cliente ativo/);
+});
+
+test('a failed proposal save can be retried without duplicating a newly selected client or proposal',async t=>{
+  const dom=new JSDOM('<div id="dialog"></div>',{runScripts:'outside-only'});t.after(()=>dom.window.close());const w=dom.window;w.structuredClone=structuredClone;
+  for(const name of ['sales-flow.js','sales-flow-ui.js'])w.eval(readFileSync(new URL('../dist/'+name,import.meta.url),'utf8'));
+  const quote={id:'quick',name:'Lisboa',request:{origin:'',destination:'Lisboa',start:'2099-12-01',end:'2099-12-05',travelers:2},source:'manual',currency:'BRL',validUntil:'2099-11-30',reference:'Hotel',offers:[{name:'Hotel',total:1100,inclusions:['Hotel'],terms:''}],updatedAt:'2026-10-20T10:00:00Z'};
+  const state={agency:'Agência',quickQuotes:[quote],clients:[],trips:[],budgets:[]};let saves=0,n=0,opened='';
+  const ui=w.TravelSalesUI.create({state,esc:String,uid:prefix=>prefix+(++n),flush:async()=>{if(++saves===1)throw Error('Falha ao salvar');},close:()=>{},nav:path=>{opened=path;}});
+  const data={id:'quick',revision:quote.updatedAt,client:'new',clientName:'Ana'};
+  await assert.rejects(()=>ui.submitForm('sales-quick-proposal',data),/Falha ao salvar/);assert.equal(opened,'');
+  await ui.submitForm('sales-quick-proposal',data);assert.equal(state.clients.length,1);assert.equal(state.trips.length,1);assert.equal(state.budgets.length,1);assert.equal(opened,'orcamento/'+state.budgets[0].id);
+});

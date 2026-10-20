@@ -1,0 +1,402 @@
+{
+  "checkedAt": "2026-10-20T20:04:31.339Z",
+  "mode": "live_public_http",
+  "paidApisUsed": false,
+  "customerRecordsCreated": false,
+  "scenarios": [
+    {
+      "name": "hotel_rooms_rio_grande",
+      "request": {
+        "category": "hotels",
+        "origin": "",
+        "destination": "Rio Grande",
+        "start": "2026-11-22",
+        "end": "2026-11-27",
+        "adults": 2,
+        "childrenAges": [],
+        "rooms": 1,
+        "currency": "BRL",
+        "providers": [
+          "native-laghetto"
+        ],
+        "flexDays": 0,
+        "maxCalls": 6,
+        "sort": "price",
+        "mode": "quote",
+        "refresh": false,
+        "hotelId": "7620"
+      },
+      "durationMs": 14795,
+      "summary": {
+        "refresh": false,
+        "callsUsed": 1,
+        "networkRequests": 2,
+        "cacheHits": 0,
+        "providersSucceeded": 1,
+        "providersFailed": 0,
+        "totalOffers": 5,
+        "limited": false,
+        "capturedAt": "2026-10-20T20:04:31.340Z"
+      },
+      "providers": [
+        {
+          "id": "native-laghetto",
+          "name": "Laghetto · coleta própria",
+          "status": "success",
+          "message": "Consulta concluída; preços sujeitos à revalidação.",
+          "offerCount": 5,
+          "cached": false,
+          "calls": 1,
+          "cacheHits": 0
+        }
+      ],
+      "completeOffers": 5,
+      "examples": [
+        {
+          "title": "Hotel Laghetto Rio Grande · Luxo (Cama Casal)",
+          "price": {
+            "amount": 1331.66,
+            "currency": "BRL",
+            "basis": "stay",
+            "taxesIncluded": true
+          },
+          "sourceUrl": "https://reservas.laghetto.com.br/hotelresults?c=2143&q=7620&NRooms=1&CheckIn=22112026&CheckOut=27112026&ad=2&ch=&ag=&Code=&group_code=&lang=pt-BR&currencyId=16&version=4",
+          "capturedAt": "2026-10-20T20:04:45.888Z",
+          "evidence": {
+            "documentUrl": "https://reservas.laghetto.com.br/hotelresults?c=2143&q=7620&NRooms=1&CheckIn=22112026&CheckOut=27112026&ad=2&ch=&ag=&Code=&group_code=&lang=pt-BR&currencyId=16&version=4",
+            "sha256": "6d19e883da19eeda9ee2fdad2f70d29270d7a567437cca1073c35177ae527e02",
+            "parserVersion": "laghetto-room-html-v1",
+            "selector": ".roomrate .rate_plan.roomrateinfo[data-total-price-after-tax-public]",
+            "rawPrice": "1331.6576",
+            "rawCurrency": "BRL",
+            "rawDisplayedSubtotal": "R$ 1.280,44",
+            "rawListedTaxes": "51.2176",
+            "collectedAt": "2026-10-20T20:04:45.888Z"
+          }
+        }
+      ]
+    },
+    {
+      "name": "airline_opportunities",
+      "request": {
+        "category": "flights",
+        "origin": "POA",
+        "destination": "CGH",
+        "start": "2026-11-22",
+        "end": "2026-11-27",
+        "adults": 2,
+        "childrenAges": [],
+        "rooms": 1,
+        "currency": "BRL",
+        "providers": [
+          "native-gol",
+          "native-azul"
+        ],
+        "flexDays": 0,
+        "maxCalls": 6,
+        "sort": "price",
+        "mode": "opportunities",
+        "refresh": false
+      },
+      "durationMs": 13393,
+      "summary": {
+        "refresh": false,
+        "callsUsed": 2,
+        "networkRequests": 4,
+        "cacheHits": 0,
+        "providersSucceeded": 2,
+        "providersFailed": 0,
+        "totalOffers": 27,
+        "limited": false,
+        "capturedAt": "2026-10-20T20:04:46.135Z"
+      },
+      "providers": [
+        {
+          "id": "native-gol",
+          "name": "GOL · coleta própria",
+          "status": "success",
+          "message": "Consulta concluída; preços sujeitos à revalidação.",
+          "offerCount": 25,
+          "cached": false,
+          "calls": 1,
+          "cacheHits": 0
+        },
+        {
+          "id": "native-azul",
+          "name": "Azul · coleta própria",
+          "status": "success",
+          "message": "Consulta concluída; preços sujeitos à revalidação.",
+          "offerCount": 2,
+          "cached": false,
+          "calls": 1,
+          "cacheHits": 0
+        }
+      ],
+      "completeOffers": 0,
+      "examples": [
+        {
+          "title": "Azul · POA → CGH",
+          "price": {
+            "amount": 389.59,
+            "currency": "BRL",
+            "basis": "from",
+            "taxesIncluded": null
+          },
+          "sourceUrl": "https://passagens.voeazul.com.br/pt/voos-de-porto-alegre-para-s%C3%A3o-paulo",
+          "capturedAt": "2026-10-20T20:04:59.511Z",
+          "evidence": {
+            "sourceUrl": "https://passagens.voeazul.com.br/pt/voos-de-porto-alegre-para-s%C3%A3o-paulo",
+            "sha256": "f4ccf47d1cff057f59f9ada3ea24110bd1cc6f0b5786ba26316fe201ed2b2bc5",
+            "bytes": 1594223,
+            "extracted": 7,
+            "collectedAt": "2026-10-20T20:04:59.511Z",
+            "schema": "airtrfx-next-public-fares",
+            "documentUrl": "https://passagens.voeazul.com.br/pt/voos-de-porto-alegre-para-s%C3%A3o-paulo",
+            "parserVersion": "airtrfx-next-public-fares/v1",
+            "jsonPath": "$.props.pageProps.apolloState.data[\"StandardFareModule:{\\\"id\\\":\\\"6509b9e21f6ef89e99018c4c\\\"}\"].fares[2]",
+            "rawPrice": 389.59,
+            "rawCurrency": "BRL"
+          }
+        }
+      ]
+    },
+    {
+      "name": "experiences_and_transfers",
+      "request": {
+        "category": "trip",
+        "origin": "",
+        "destination": "Porto Alegre",
+        "start": "2026-11-22",
+        "end": "2026-11-27",
+        "adults": 2,
+        "childrenAges": [],
+        "rooms": 1,
+        "currency": "BRL",
+        "providers": [
+          "native-civitatis",
+          "native-getyourguide",
+          "native-siga"
+        ],
+        "flexDays": 0,
+        "maxCalls": 6,
+        "sort": "price",
+        "mode": "opportunities",
+        "refresh": false
+      },
+      "durationMs": 20005,
+      "summary": {
+        "refresh": false,
+        "callsUsed": 3,
+        "networkRequests": 6,
+        "cacheHits": 0,
+        "providersSucceeded": 1,
+        "providersFailed": 2,
+        "totalOffers": 6,
+        "limited": false,
+        "capturedAt": "2026-10-20T20:04:59.528Z"
+      },
+      "providers": [
+        {
+          "id": "native-civitatis",
+          "name": "Civitatis · coleta própria",
+          "status": "success",
+          "message": "Consulta concluída; preços sujeitos à revalidação.",
+          "offerCount": 6,
+          "cached": false,
+          "calls": 1,
+          "cacheHits": 0
+        },
+        {
+          "id": "native-getyourguide",
+          "name": "GetYourGuide · coleta própria",
+          "status": "error",
+          "message": "Não foi possível consultar esta fonte. Tente novamente mais tarde.",
+          "offerCount": 0,
+          "cached": false,
+          "calls": 1,
+          "cacheHits": 0
+        },
+        {
+          "id": "native-siga",
+          "name": "Siga Turismo · fornecedor direto",
+          "status": "timeout",
+          "message": "A fonte não respondeu dentro do prazo. As outras respostas foram preservadas.",
+          "offerCount": 0,
+          "cached": false,
+          "calls": 1,
+          "cacheHits": 0
+        }
+      ],
+      "completeOffers": 0,
+      "examples": [
+        {
+          "title": "Tour completo por Porto Alegre",
+          "price": {
+            "amount": 502.67,
+            "currency": "BRL",
+            "basis": "from",
+            "taxesIncluded": null
+          },
+          "sourceUrl": "https://www.civitatis.com/br/porto-alegre/tour-completo-porto-alegre/",
+          "capturedAt": "2026-10-20T20:05:07.383Z",
+          "evidence": {
+            "format": "html-card",
+            "path": "article.comfort-card[data-activity=\"137573\"] .comfort-card__price__text",
+            "excerpt": "Tour completo por Porto Alegre: R$ 502,67",
+            "pageUrl": "https://www.civitatis.com/br/porto-alegre/",
+            "documentUrl": "https://www.civitatis.com/br/porto-alegre/",
+            "parserVersion": "native-experiences/1.0.0",
+            "rawPrice": "502,67",
+            "rawCurrency": "R$",
+            "sha256": "c3988f73c7b5e305b88d1a76b96711e8ddabe3c7c55a12175b53fe0ae316276d"
+          }
+        }
+      ]
+    },
+    {
+      "name": "tickets_paris",
+      "request": {
+        "category": "tickets",
+        "origin": "",
+        "destination": "Paris",
+        "start": "2026-11-22",
+        "end": "2026-11-27",
+        "adults": 2,
+        "childrenAges": [],
+        "rooms": 1,
+        "currency": "BRL",
+        "providers": [
+          "native-tiqets"
+        ],
+        "flexDays": 0,
+        "maxCalls": 6,
+        "sort": "price",
+        "mode": "opportunities",
+        "refresh": false
+      },
+      "durationMs": 8274,
+      "summary": {
+        "refresh": false,
+        "callsUsed": 1,
+        "networkRequests": 2,
+        "cacheHits": 0,
+        "providersSucceeded": 1,
+        "providersFailed": 0,
+        "totalOffers": 7,
+        "limited": false,
+        "capturedAt": "2026-10-20T20:05:19.534Z"
+      },
+      "providers": [
+        {
+          "id": "native-tiqets",
+          "name": "Tiqets · coleta própria",
+          "status": "success",
+          "message": "Consulta concluída; preços sujeitos à revalidação.",
+          "offerCount": 7,
+          "cached": false,
+          "calls": 1,
+          "cacheHits": 0
+        }
+      ],
+      "completeOffers": 0,
+      "examples": [
+        {
+          "title": "Museu do Louvre: Entrada com reserva + Visita guiada às obras-primas",
+          "price": {
+            "amount": 83.4,
+            "currency": "GBP",
+            "basis": "from",
+            "taxesIncluded": null
+          },
+          "sourceUrl": "https://www.tiqets.com/pt/atracoes-paris-c66746/bilhetes-para-museu-do-louvre-entrada-com-reserva-visita-guiada-as-obras-primas-p1065031/",
+          "capturedAt": "2026-10-20T20:05:27.805Z",
+          "evidence": {
+            "format": "jsonld",
+            "path": "jsonld[0].@graph.1.itemListElement.0.item.offers",
+            "excerpt": "Museu do Louvre: Entrada com reserva + Visita guiada às obras-primas | GBP 83.4",
+            "pageUrl": "https://www.tiqets.com/pt/bilhetes-museu-do-louvre-l124297/",
+            "documentUrl": "https://www.tiqets.com/pt/bilhetes-museu-do-louvre-l124297/",
+            "parserVersion": "native-experiences/1.0.0",
+            "rawPrice": "83.40",
+            "rawCurrency": "GBP",
+            "sha256": "d8c988871b2b4e97a96954d2407a063775a553b82b65779623f28f7d9a983b9f"
+          }
+        }
+      ]
+    },
+    {
+      "name": "car_prepaid_packages",
+      "request": {
+        "category": "cars",
+        "origin": "",
+        "destination": "São Paulo",
+        "start": "2026-11-22",
+        "end": "2026-11-27",
+        "adults": 2,
+        "childrenAges": [],
+        "rooms": 1,
+        "currency": "BRL",
+        "providers": [
+          "native-movida-prepaid"
+        ],
+        "flexDays": 0,
+        "maxCalls": 6,
+        "sort": "price",
+        "mode": "opportunities",
+        "refresh": false
+      },
+      "durationMs": 14423,
+      "summary": {
+        "refresh": false,
+        "callsUsed": 1,
+        "networkRequests": 2,
+        "cacheHits": 0,
+        "providersSucceeded": 1,
+        "providersFailed": 0,
+        "totalOffers": 3,
+        "limited": false,
+        "capturedAt": "2026-10-20T20:05:27.808Z"
+      },
+      "providers": [
+        {
+          "id": "native-movida-prepaid",
+          "name": "Movida Pré-Pago · coleta própria",
+          "status": "success",
+          "message": "Consulta concluída; preços sujeitos à revalidação.",
+          "offerCount": 3,
+          "cached": false,
+          "calls": 1,
+          "cacheHits": 0
+        }
+      ],
+      "completeOffers": 0,
+      "examples": [
+        {
+          "title": "Movida · Automáticos · pacote de 5 diárias",
+          "price": {
+            "amount": 1449.5,
+            "currency": "BRL",
+            "basis": "from",
+            "taxesIncluded": null
+          },
+          "sourceUrl": "https://www.movida.com.br/prepago",
+          "capturedAt": "2026-10-20T20:05:42.227Z",
+          "evidence": {
+            "sourceUrl": "https://www.movida.com.br/prepago",
+            "sha256": "353b40a06089aca073dcf70bc15ba67cb07ac52789b9a0c48b05c3bb1125456a",
+            "bytes": 345527,
+            "extracted": 3,
+            "collectedAt": "2026-10-20T20:05:42.227Z",
+            "schema": "movida-prepaid-public-html",
+            "documentUrl": "https://www.movida.com.br/prepago",
+            "parserVersion": "movida-prepaid-public-html/v1",
+            "selector": "button.btn-buy-carrosel[data-id=\"13\"]",
+            "rawPrice": "1449.50",
+            "rawCurrency": "R$",
+            "rawDisplayPrice": "1.449,50"
+          }
+        }
+      ]
+    }
+  ]
+}
