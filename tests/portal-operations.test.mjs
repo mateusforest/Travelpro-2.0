@@ -73,6 +73,8 @@ async function fixture(t,{pathname='/portal.html',workspace,chatGate,intake=fals
     }
   };
   w.TravelAPI=api;
+  w.eval(read('dist/marketing-studio.js'));
+  w.TravelMarketing.preview=async()=>{};
   w.eval(read('dist/operations.js'));
   w.eval(read('dist/portal-workflow.js'));
   w.eval(read('dist/reports.js'));
@@ -800,4 +802,14 @@ test('standalone hotel quote becomes a linked PDF proposal without manual duplic
   const revised=f.saved.quickQuotes[0];assert.notEqual(revised.updatedAt,q.updatedAt);
   await f.portal.workspaceSubmit('sales-quick-proposal',{...input,client:f.saved.clients[0].id,revision:revised.updatedAt});assert.equal(f.saved.budgets.length,2);assert.deepEqual(f.saved.trips[0].sales.quotes[0],original);
   await f.portal.workspaceSubmit('sales-quick-proposal',{...input,client:f.saved.clients[0].id});assert.equal(f.saved.budgets.length,2,'stale conversion does not create another proposal');
+});
+
+test('Studio format, briefing and campaign edits persist without duplicating the saved draft',async t=>{
+ const f=await fixture(t,{pathname:'/studio.html'});assert.equal(f.d.querySelectorAll('[data-action="marketing-format"]').length,6);
+ await f.portal.workspaceAction('marketing-format','reels');assert.equal(f.saved.studio.format,'reels');
+ const title=f.d.querySelector('[data-marketing-field="title"]');title.value='Brasil com a nossa agência';title.dispatchEvent(new f.w.Event('input',{bubbles:true}));
+ await f.portal.workspaceAction('marketing-save');assert.equal(f.saved.campaigns.length,1);assert.equal(f.saved.campaigns[0].title,title.value);
+ f.portal.state.studio.caption='Legenda revisada';await f.portal.workspaceAction('marketing-save');assert.equal(f.saved.campaigns.length,1);assert.equal(f.saved.campaigns[0].caption,'Legenda revisada');
+ await f.portal.workspaceAction('marketing-duplicate',f.saved.campaigns[0].id);await f.portal.workspaceAction('marketing-save');assert.equal(f.saved.campaigns.length,2);assert.notEqual(f.saved.campaigns[0].id,f.saved.campaigns[1].id);
+ await f.portal.workspaceAction('marketing-format','carousel');assert.ok(f.d.querySelector('[data-marketing-field="scenes"]'));
 });
