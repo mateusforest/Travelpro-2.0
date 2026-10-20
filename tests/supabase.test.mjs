@@ -1,3 +1,4 @@
+import * as waAKG from '../backend/wa-akg.mjs';
 import * as travelPlans from '../backend/travel-plans.mjs';
 import * as ecosystem from '../backend/ecosystem.mjs';
 import * as travelSearch from '../backend/travel-search.mjs';
@@ -32,6 +33,7 @@ async function fixture({role='owner',workspaceId='agency-a',version=1,platformAd
   const access={workspace:workspaceId?{id:workspaceId,name:'Agency A',type:'operations'}:null,membershipRole:role,profile:null};
   class ApiResponse extends Response{static json(body,init){return new ApiResponse(JSON.stringify(body),{...init,headers:{...init?.headers,'Content-Type':'application/json'}});}static redirect(url){return new ApiResponse(null,{status:307,headers:{Location:String(url)}});}}
   const imports={
+    '../wa-akg.mjs':waAKG,
     '../travel-search.mjs':travelSearch,
     '../travel-plans.mjs':travelPlans,
     "../ecosystem.mjs":ecosystem,
@@ -51,7 +53,7 @@ async function fixture({role='owner',workspaceId='agency-a',version=1,platformAd
   const context=vm.createContext({process:{env},URL,Buffer,console,structuredClone,fetch:async()=>{throw Error('Unexpected external request');}});
   const module=new vm.SourceTextModule(readFileSync(new URL('../backend/supabase/app.mjs',import.meta.url),'utf8'),{context});
   await module.link(async name=>{const values=imports[name];assert.ok(values,'Unexpected import '+name);return new vm.SyntheticModule(Object.keys(values),function(){for(const [k,v]of Object.entries(values))this.setExport(k,v);},{context});});await module.evaluate();
-  const request=(path,method='GET',body)=>module.namespace.handle(new Request('http://localhost:3000/api/'+path,{method,headers:{Host:'localhost:3000',Origin:'http://localhost:3000','Content-Type':'application/json'},body:body===undefined?undefined:JSON.stringify(body)}));
+  const request=(path,method='GET',body,extra={})=>module.namespace.handle(new Request('http://localhost:3000/api/'+path,{method,headers:{Host:'localhost:3000',Origin:'http://localhost:3000','Content-Type':'application/json',...extra},body:body===undefined?undefined:JSON.stringify(body)}));
   return {request,state,calls,providerCalls,get writes(){return writes;},get stored(){return structuredClone(stored);}};
 }
 test('authenticated workspace queries are scoped to the selected agency',async()=>{const f=await fixture();const res=await f.request('workspace');assert.equal(res.status,200);assert.equal((await res.json()).state.agency,'Agency A');assert.ok(f.calls.length>1);assert.ok(f.calls.every(c=>c.filters.workspace_id==='agency-a'));});
@@ -192,4 +194,18 @@ test('Supabase organizer persists historical references with scope, version and 
  const removed=await f.request('travel-plans/'+result.plan.id,'DELETE',{version:changed.version,revision:2});assert.equal(removed.status,200);assert.equal((await removed.json()).plans.length,0);
  assert.ok(f.calls.every(call=>call.filters.workspace_id==='agency-a'));
  const denied=await fixture({workspaceId:null});assert.equal((await denied.request('travel-plans')).status,403);assert.equal(denied.writes,0);
+});
+
+test('WA-AKG session controls require agency management and do not use submitted tenant ids',async()=>{
+ const member=await fixture({role:'member'});assert.equal((await member.request('whatsapp/session')).status,403);assert.equal((await member.request('whatsapp/session','POST',{action:'start',workspaceId:'other'})).status,403);
+ const owner=await fixture(),response=await owner.request('whatsapp/session');assert.equal(response.status,200);assert.equal((await response.json()).connected,false);assert.ok(owner.calls.every(c=>c.filters.workspace_id==='agency-a'));
+});
+test('Supabase WA-AKG signed callback saves to URL-scoped agency and rejects altered session',async()=>{
+ const config={provider:'wa-akg',endpoint:'https://gateway.example.test',key:'fixture-key',sessionId:'travelpro-agency-a',webhookSecret:'fixture-secret'},f=await fixture({integrationConfigs:{whatsapp:config}});
+ const event={event:'message.received',sessionId:config.sessionId,timestamp:new Date().toISOString(),data:{key:{id:'inbound1',fromMe:false},from:'5511999999999@s.whatsapp.net',content:'Quero cotar Lisboa',chatType:'PERSONAL'}};
+ const signature=e=>'sha256='+crypto.createHmac('sha256',config.webhookSecret).update(JSON.stringify(e)).digest('hex');
+ assert.equal((await f.request('webhooks/wa-akg/agency-a','POST',event,{'x-webhook-signature':'bad'})).status,403);
+ const res=await f.request('webhooks/wa-akg/agency-a','POST',event,{'x-webhook-signature':signature(event)});assert.equal(res.status,200,await res.clone().text());assert.equal(f.stored.data.whatsapp.threads.length,1);assert.equal(f.writes,1);
+ await f.request('webhooks/wa-akg/agency-a','POST',event,{'x-webhook-signature':signature(event)});assert.equal(f.writes,1);
+ const changed={...event,sessionId:'other'};assert.equal((await f.request('webhooks/wa-akg/agency-a','POST',changed,{'x-webhook-signature':signature(changed)})).status,403);assert.equal(f.writes,1);
 });

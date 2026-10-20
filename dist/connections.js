@@ -38,9 +38,9 @@
           <div class="conn-card-heading"><span class="conn-icon" aria-hidden="true">${icon(ctx, 'mail')}</span><h3>WhatsApp Business</h3></div>
           <p>Centralize o atendimento aos clientes. O COS pode preparar respostas para sua equipe revisar antes de enviar.</p>
           ${configured('whatsapp') ? tag('Configuração registrada · não verificada', 'review') : tag('Ainda não ativado')}
-          <p class="conn-detail">${configured('whatsapp') ? 'Recebimento e envio de mensagens dependem da validação do canal pela equipe TravelPro.' : 'A equipe TravelPro orienta a ativação do número de atendimento da agência.'}</p>
+          <p class="conn-detail">${configured('whatsapp') ? 'Abra a sessão para verificar a conexão, ativar o recebimento e renovar o QR Code.' : 'Conexão por QR Code com WA-AKG. O servidor precisa estar configurado antes de escanear.'}</p>
         </div>
-        <div class="conn-channel-actions"><button class="conn-button" type="button" data-action="connection-whatsapp-setup">${ctx.businessPhone ? 'Número: '+escape(ctx.businessPhone) : 'Preparar meu número'}</button><button class="conn-button" type="button" data-action="connection-whatsapp-info">Como funciona</button><a class="conn-link" href="#whatsapp">Abrir conversas ${icon(ctx, 'arrow')}</a></div>
+        <div class="conn-channel-actions"><button class="conn-button" type="button" data-action="connection-whatsapp-setup">Conectar por QR Code</button><button class="conn-button" type="button" data-action="connection-whatsapp-info">Como funciona</button><a class="conn-link" href="#whatsapp">Abrir conversas ${icon(ctx, 'arrow')}</a></div>
         <div class="conn-internal-note"><strong>Conversar com o COS pelo WhatsApp</strong><p>Será um canal interno da equipe, separado das conversas com clientes. Está planejado e não é ativado nesta tela.</p></div>
       </article>
     </section>`;
@@ -53,7 +53,7 @@
       </div>
     </section>`;
 
-    const admin = ctx.platformAdmin === true ? `<details class="conn-admin"><summary>Administração TravelPro</summary><div class="conn-admin-content"><p>Configuração técnica da plataforma. Registrar credenciais não confirma que o serviço está funcionando.</p><div class="conn-admin-actions">${[['openai','Configurar serviço de IA'],['operator','Configurar adaptador da operadora'],['whatsapp','Configurar WhatsApp Business']].map(([id, label]) => `<button class="conn-admin-button" type="button" data-action="backend-integration" data-id="${id}">${escape(label)}</button>`).join('')}</div></div></details>` : '';
+    const admin = ctx.platformAdmin === true ? `<details class="conn-admin"><summary>Administração TravelPro</summary><div class="conn-admin-content"><p>Configuração técnica da plataforma. Registrar credenciais não confirma que o serviço está funcionando.</p><div class="conn-admin-actions">${[['openai','Configurar serviço de IA'],['operator','Configurar adaptador da operadora'],['whatsapp','Configurar WA-AKG']].map(([id, label]) => `<button class="conn-admin-button" type="button" data-action="backend-integration" data-id="${id}">${escape(label)}</button>`).join('')}</div></div></details>` : '';
     return `<section class="conn-page">${header}${included}${channels}${planned}${admin}</section>`;
   }
 

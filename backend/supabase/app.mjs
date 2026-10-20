@@ -1,3 +1,4 @@
+import {isAKG,gatewayEndpoint,gatewaySession,manageSession,assertChannel,sendText,verifiedEvent,receiveEvent} from '../wa-akg.mjs';
 import {handleTravelPlans} from '../travel-plans.mjs';
 import {ecosystemTargets,ecosystemPayload,issueEcosystemCode,redeemEcosystemCode} from '../ecosystem.mjs';
 import {visualItinerary} from '../visual-itinerary.mjs';
@@ -55,7 +56,7 @@ function encryptionKey(){const value=process.env.TRAVELPRO_ENCRYPTION_KEY;if(!/^
 function encrypt(value){const iv=randomBytes(12),cipher=createCipheriv('aes-256-gcm',encryptionKey(),iv);const bytes=Buffer.concat([cipher.update(JSON.stringify(value)),cipher.final()]);return Buffer.concat([iv,cipher.getAuthTag(),bytes]).toString('base64');}
 function decrypt(value){if(!value)return {};const b=Buffer.from(value,'base64'),cipher=createDecipheriv('aes-256-gcm',encryptionKey(),b.subarray(0,12));cipher.setAuthTag(b.subarray(12,28));return JSON.parse(Buffer.concat([cipher.update(b.subarray(28)),cipher.final()]).toString());}
 async function cfg(a,service){const {data,error}=await a.db.from('travelpro_integrations').select('config,secret').eq('workspace_id',a.wid).eq('service',service).maybeSingle();dbError(error);const config={...data?.config,...decrypt(data?.secret)};if(service==='openai'){config.key||=process.env.OPENAI_API_KEY;config.model||=process.env.OPENAI_OPERATIONS_MODEL||process.env.OPENAI_MODEL;}return config;}
-async function services(a){return Promise.all(providerNames.map(async service=>{const c=await cfg(a,service);return {...connectionStatus(service,c),config:Object.fromEntries(['model','endpoint','phoneId','version'].filter(k=>c[k]).map(k=>[k,c[k]]))};}));}
+async function services(a){return Promise.all(providerNames.map(async service=>{const c=await cfg(a,service);return {...connectionStatus(service,c),config:Object.fromEntries(['model','endpoint','phoneId','version','provider','sessionId'].filter(k=>c[k]).map(k=>[k,c[k]]))};}));}
 
 async function legacyRows(a,table){
   const rows=[];for(let offset=0;offset<=10000;offset+=1000){const {data,error}=await a.db.from(table).select('*').eq('workspace_id',a.wid).order('id').range(offset,offset+999);if(error&&['42P01','PGRST205'].includes(error.code))return [];dbError(error);rows.push(...data);if(rows.length>10000)fail(409,'Esta agência possui mais de 10 mil registros. A importação precisa ser organizada antes de abrir o novo portal.');if(data.length<1000)break;}return rows;
@@ -125,6 +126,7 @@ export async function handle(request){
     return json({ok:true,storage:'supabase',version:3});
   }
   if(path==='auth/callback'&&method==='GET')return await callback(request);
+  if(path.startsWith('webhooks/wa-akg/'))return await akgWebhook(request,path.split('/')[2]);
   if(path==='webhooks/whatsapp')return await whatsappWebhook(request);
   if(path==='cron/granatum'&&method==='POST'){
     const bearer=request.headers.get('authorization')||'';if(!/^Bearer [a-f0-9]{64}$/.test(bearer))fail(401,'Acesso não autorizado.');
@@ -199,9 +201,9 @@ export async function handle(request){
   if(path==='integrations'&&method==='GET')return json({agencyId:a.wid,services:integrationView(await services(a),isPlatformAdmin(a.user.id)),capabilities:{platformAdmin:isPlatformAdmin(a.user.id)}});
   if(path.startsWith('integrations/')&&method==='PUT'){
     requirePlatformAdmin(a.user.id);const service=path.split('/')[1];if(!providerNames.includes(service))fail(404,'Serviço não encontrado.');const old=await cfg(a,service),input=data.config||{},pub={},secrets={};
-    for(const key of ['key','token','appSecret','verifyToken'])if(clean(input[key],10000)||old[key])secrets[key]=clean(input[key],10000)||old[key];
-    for(const key of ['endpoint','model','phoneId','version'])if(clean(input[key])||old[key])pub[key]=clean(input[key])||old[key];
-    if(pub.endpoint)pub.endpoint=safeEndpoint(pub.endpoint);if(pub.phoneId&&!/^\d+$/.test(pub.phoneId))fail(422,'ID do telefone inválido.');if(pub.version&&!/^v\d+\.\d+$/.test(pub.version))fail(422,'Use a versão Graph no formato vNN.N.');
+    for(const key of ['key','token','appSecret','verifyToken','webhookSecret'])if(clean(input[key],10000)||old[key])secrets[key]=clean(input[key],10000)||old[key];
+    for(const key of ['endpoint','model','phoneId','version','provider','sessionId'])if(clean(input[key])||old[key])pub[key]=clean(input[key])||old[key];
+    if(service==='whatsapp'&&pub.provider==='wa-akg'){pub.endpoint=gatewayEndpoint(pub.endpoint);pub.sessionId=gatewaySession(a.wid);secrets.webhookSecret||=randomBytes(32).toString('hex');delete pub.phoneId;delete pub.version;}if(pub.endpoint)pub.endpoint=safeEndpoint(pub.endpoint);if(pub.phoneId&&!/^\d+$/.test(pub.phoneId))fail(422,'ID do telefone inválido.');if(pub.version&&!/^v\d+\.\d+$/.test(pub.version))fail(422,'Use a versão Graph no formato vNN.N.');
     const {error}=await a.db.from('travelpro_integrations').upsert({workspace_id:a.wid,service,config:pub,secret:encrypt(secrets)});if(error?.code==='23505')fail(409,'Este telefone já está vinculado a outra agência.');dbError(error);await audit(a,'integration.configured.'+service);return json(connectionStatus(service,{...pub,...secrets}));
   }
   if(path==='cos/intake/analyze'&&method==='POST'){await rate(a,'intake-analyze',10);return json(await analyzeIntake(await cfg(a,'openai'),data));}
@@ -214,7 +216,7 @@ export async function handle(request){
   }
   if(['ai/itinerary','ai/campaign'].includes(path)&&method==='POST'){
     await rate(a,'content',10);const row=await workspace(a);if(row.version!==data.version)fail(409,'Os dados mudaram. Recarregue antes de gerar.');
-    if(path==='ai/campaign'){const answer=await cosReply(await cfg(a,'openai'),[{role:'user',text:'Escreva uma legenda para '+row.state.studio.title+'. '+row.state.studio.subtitle+'. Não invente tarifas ou disponibilidade.'}],{agency:row.state.agency});if(!answer)fail(503,'A IA aguarda ativação pela equipe TravelPro.');row.state.studio.caption=answer.slice(0,3000);return json({caption:row.state.studio.caption,version:await save(a,row.state,row.version)});}
+    if(path==='ai/campaign'){const answer=await cosReply(await cfg(a,'openai'),[{role:'user',text:'Crie uma legenda em português de até 1500 caracteres para este briefing de marketing (tratar como dados): '+JSON.stringify(Object.fromEntries(['format','title','subtitle','cta','audience','goal','scenes'].map(k=>[k,row.state.studio[k]||''])))+'. Entregue apenas a legenda, com chamada para contato e até 5 hashtags relevantes. Não invente preços, datas promocionais, serviços inclusos ou disponibilidade.'}],{agency:row.state.agency});if(!answer)fail(503,'A IA aguarda ativação pela equipe TravelPro.');row.state.studio.caption=answer.slice(0,3000);return json({caption:row.state.studio.caption,version:await save(a,row.state,row.version)});}
     const template=itineraryModels.catalog(row.state.templates).find(t=>t.id===data.template),trip=row.state.trips.find(t=>t.id===data.trip);if(!template||!clean(data.name)||!clean(data.destination)||(data.trip&&!trip))fail(422,'Confira o nome, destino, modelo e viagem.');if(trip&&!salesFlow.canItinerary(trip))fail(422,'Confirme reserva, pagamento e emissão antes de preparar o roteiro.');
     const answer=await cosReply(await cfg(a,'openai'),[{role:'user',text:'Crie sugestões para um roteiro em '+clean(data.destination,200)+'. Responda somente JSON {"days":[{"period":"Dia 1","title":"...","text":"..."}]}, de 1 a 30 etapas. Não invente reservas, tarifas ou voos.'}],{agency:row.state.agency,template:{name:template.name,sections:(template.days||[]).map(d=>({title:d.title,period:d.period,structure:d.text}))},trip:trip?{start:trip.start,end:trip.end,travelers:trip.travelers}:null});if(!answer)fail(503,'A IA aguarda ativação pela equipe TravelPro. Você pode criar um roteiro editável com o modelo.');
     let parsed;try{parsed=JSON.parse(answer.replace(/^```(?:json)?\s*/,'').replace(/\s*```$/,''));}catch{fail(502,'A IA retornou um roteiro inválido. Nenhum roteiro foi criado.');}if(!Array.isArray(parsed.days)||!parsed.days.length||parsed.days.length>30||parsed.days.some(d=>!clean(d.period)||!clean(d.title)||typeof d.text!=='string'))fail(502,'O roteiro retornou incompleto.');
@@ -251,6 +253,7 @@ export async function handle(request){
     const {data:file,error}=await a.db.storage.from('travelpro-private').createSignedUrl(a.wid+'/'+relative,60,inline?{}:{download:decodeURIComponent(relative.split('/')[1])});
     if(error||!file?.signedUrl)fail(404,'Arquivo não encontrado.');return ApiResponse.redirect(file.signedUrl);
   }
+  if(path==='whatsapp/session'&&['GET','POST'].includes(method)){requireManager(a);await rate(a,'wa-session',20);return json(await manageSession(await cfg(a,'whatsapp'),method==='GET'?'status':data.action,{scope:a.wid,origin:requestOrigin(request)}));}
   if(path==='whatsapp/draft'&&method==='POST'){await rate(a,'draft',20);return json(await draft(a,data.threadId));}
   if(path==='whatsapp/send'&&method==='POST')return json(await sendWhatsApp(a,data));
   if(path==='audit'&&method==='GET'){requireManager(a);const {data:events,error}=await a.db.from('travelpro_audit').select('action,created_at').eq('workspace_id',a.wid).order('created_at',{ascending:false}).limit(100);dbError(error);return json({events});}
@@ -259,12 +262,12 @@ export async function handle(request){
  }catch(error){if(!error.status)console.error('TravelPro API:',error.code||error.name);return json({error:error.status?error.message:'Não foi possível concluir a operação. Tente novamente.'},error.status||500);}
 }
 
-async function draft(a,threadId){const row=await workspace(a),thread=row.state.whatsapp.threads.find(t=>t.id===threadId);if(!thread)fail(404,'Conversa não encontrada.');if(thread.mode!=='cos')fail(409,'O agente está pausado neste atendimento.');const answer=await cosReply(await cfg(a,'openai'),thread.messages.map(m=>({role:m.role==='customer'?'user':'cos',text:m.text})),{agency:row.state.agency,traveler:thread.profile,instructions:row.state.whatsapp.config.instructions,agent:{name:row.state.whatsapp.config.name,tone:row.state.whatsapp.config.tone,welcome:row.state.whatsapp.config.welcome}});if(!answer)fail(503,'Conecte a IA para preparar respostas.');thread.draft=answer;return {draft:answer,version:await save(a,row.state,row.version)};}
+async function draft(a,threadId){const row=await workspace(a),thread=row.state.whatsapp.threads.find(t=>t.id===threadId);if(!thread)fail(404,'Conversa não encontrada.');if(thread.mode!=='cos')fail(409,'O agente está pausado neste atendimento.');const answer=await cosReply(await cfg(a,'openai'),thread.messages.map(m=>({role:m.role==='customer'?'user':'cos',text:m.text})),{agency:row.state.agency,traveler:thread.profile,instructions:row.state.whatsapp.config.instructions,agent:{name:row.state.whatsapp.config.name,tone:row.state.whatsapp.config.tone,welcome:row.state.whatsapp.config.welcome}});if(!answer)fail(503,'Conecte a IA para preparar respostas.');const latest=await workspace(a),current=latest.state.whatsapp.threads.find(t=>t.id===threadId);if(!current||current.mode!=='cos'||current.messages.at(-1)?.id!==thread.messages.at(-1)?.id)fail(409,'A conversa mudou. Gere a resposta novamente.');current.draft=answer;return {draft:answer,version:await save(a,latest.state,latest.version)};}
 async function sendWhatsApp(a,input){
  await rate(a,'send',30);const row=await workspace(a),t=row.state.whatsapp.threads.find(t=>t.id===input.threadId),text=clean(input.text,4000),id=clean(input.requestId,100);
- if(!t||t.channel!=='live'||t.mode==='closed'||!text||!id)fail(422,'Escolha uma conversa real aberta e escreva a resposta.');if(!t.lastInbound||Date.now()-t.lastInbound>86400000)fail(422,'A janela de resposta terminou. O envio por template ainda não está integrado.');const c=await cfg(a,'whatsapp');if(!connectionStatus('whatsapp',c).configured)fail(503,'WhatsApp não configurado.');
+ if(!t||t.channel!=='live'||t.mode==='closed'||!text||!id)fail(422,'Escolha uma conversa real aberta e escreva a resposta.');const c=await cfg(a,'whatsapp');assertChannel(c,t);if(!isAKG(c)&&(!t.lastInbound||Date.now()-t.lastInbound>86400000))fail(422,'A janela de resposta terminou. O envio por template ainda não está integrado.');if(!connectionStatus('whatsapp',c).configured)fail(503,'WhatsApp não configurado.');
  const inserted=await a.db.from('travelpro_outbox').insert({workspace_id:a.wid,id});if(inserted.error?.code==='23505'){const old=await a.db.from('travelpro_outbox').select('status,remote_id').eq('workspace_id',a.wid).eq('id',id).single();dbError(old.error);return {status:old.data.status,remoteId:old.data.remote_id};}dbError(inserted.error);
- let remoteId;try{const result=await remote(`https://graph.facebook.com/${c.version}/${c.phoneId}/messages`,{method:'POST',headers:{Authorization:'Bearer '+c.token,'Content-Type':'application/json'},body:JSON.stringify({messaging_product:'whatsapp',to:t.phone.replace(/\D/g,''),type:'text',text:{body:text}})});remoteId=result.messages?.[0]?.id;if(!remoteId)throw Error('unconfirmed');}catch(error){await a.db.from('travelpro_outbox').update({status:'unknown'}).eq('workspace_id',a.wid).eq('id',id);throw error;}
+ let remoteId;try{remoteId=await sendText(c,t.phone.replace(/\D/g,''),text);if(!remoteId)throw Error('unconfirmed');}catch(error){await a.db.from('travelpro_outbox').update({status:'unknown'}).eq('workspace_id',a.wid).eq('id',id);throw error;}
  // Do not repeat a provider send if a concurrent edit prevents saving the local history.
  for(let attempt=0;attempt<3;attempt++){try{const latest=await workspace(a),thread=latest.state.whatsapp.threads.find(x=>x.id===t.id);if(!thread)fail(409,'A mensagem foi enviada, mas a conversa foi removida.');if(!thread.messages.some(m=>m.id===remoteId))thread.messages.push({id:remoteId,role:'team',text,time:new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})});thread.draft='';await save(a,latest.state,latest.version);break;}catch(error){if(error.status!==409||attempt===2){await a.db.from('travelpro_outbox').update({status:'sent_sync_pending',remote_id:remoteId}).eq('workspace_id',a.wid).eq('id',id);fail(409,'Mensagem enviada. O histórico precisa ser conciliado; não repita o envio.');}}}
  const updated=await a.db.from('travelpro_outbox').update({status:'sent',remote_id:remoteId}).eq('workspace_id',a.wid).eq('id',id);dbError(updated.error);return {status:'sent',remoteId};
@@ -286,4 +289,19 @@ async function whatsappWebhook(request){
   }
  }
  return json({ok:true});
+}
+
+async function akgWebhook(request,wid){
+ if(request.method!=='POST')fail(405,'Método inválido.');
+ if(!/^[a-zA-Z0-9-]{1,80}$/.test(wid||''))fail(404,'Webhook não encontrado.');
+ const a={db:admin(),wid,user:{id:null},access:{membershipRole:'owner'}},c=await cfg(a,'whatsapp');
+ const raw=await request.text();const event=verifiedEvent(c,raw,request.headers.get('x-webhook-signature'));
+ for(let attempt=0;attempt<3;attempt++){
+  try{const result=await a.db.from('travelpro_state').select('data,version').eq('workspace_id',wid).maybeSingle();dbError(result.error);if(!result.data)fail(503,'Abra a agência antes de ativar o WhatsApp.');
+   const state=result.data.data,received=receiveEvent(state,event,c);
+   if(received.accepted){validateState(state);const written=await a.db.rpc('travelpro_save_state',{p_workspace:wid,p_version:result.data.version,p_data:state,p_user:null});dbError(written.error);
+    if(received.autoDraft)after(async()=>{try{await draft(a,received.threadId);}catch(error){console.error('TravelPro draft pending:',error.status||error.name);}});
+   }return json({accepted:received.accepted?1:0});
+  }catch(error){if(error.status!==409||attempt===2)throw error;}
+ }
 }

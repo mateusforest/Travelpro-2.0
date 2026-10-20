@@ -1,0 +1,57 @@
+# Deployment template; requires a Docker host and DNS pointed to it.
+# Source inspected at the fixed upstream revision below. No floating branch builds.
+services:
+  gateway:
+    build:
+      context: https://github.com/mrifqidaffaaditya/WA-AKG.git#936b26bf7c96bb5776e00224c3803c1bf39c7c71
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: mysql://travelpro:${WA_DB_PASSWORD:?Set WA_DB_PASSWORD}@db:3306/wa_akg
+      AUTH_SECRET: ${WA_AUTH_SECRET:?Set WA_AUTH_SECRET}
+      BASE_URL: https://${WA_DOMAIN:?Set WA_DOMAIN}
+      NEXTAUTH_URL: https://${WA_DOMAIN}
+      AUTH_TRUST_HOST: "true"
+      NEXT_PUBLIC_APP_URL: https://${WA_DOMAIN}
+      NEXT_PUBLIC_API_URL: https://${WA_DOMAIN}/api
+      NEXT_PUBLIC_SWAGGER_ENABLED: "false"
+      ADMIN_EMAIL: ${WA_ADMIN_EMAIL:?Set WA_ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${WA_ADMIN_PASSWORD:?Set WA_ADMIN_PASSWORD}
+      TZ: America/Sao_Paulo
+      LOCALE: pt-BR
+      DEFAULT_LANGUAGE: pt-BR
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - gateway_data:/app/data
+  db:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: wa_akg
+      MYSQL_USER: travelpro
+      MYSQL_PASSWORD: ${WA_DB_PASSWORD:?Set WA_DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${WA_DB_ROOT_PASSWORD:?Set WA_DB_ROOT_PASSWORD}
+    volumes:
+      - database:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+  https:
+    image: caddy:2.10-alpine
+    restart: unless-stopped
+    environment:
+      WA_DOMAIN: ${WA_DOMAIN:?Set WA_DOMAIN}
+    ports: ["80:80", "443:443"]
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - certificates:/data
+      - caddy_config:/config
+    depends_on: [gateway]
+volumes:
+  gateway_data:
+  database:
+  certificates:
+  caddy_config:

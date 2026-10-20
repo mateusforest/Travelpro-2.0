@@ -1,3 +1,4 @@
+import {isAKG,sendPDF} from './wa-akg.mjs';
 import {createHash} from 'node:crypto';
 import {fail,salesFlow} from './validation.mjs';
 import {connectionStatus,remote} from './providers.mjs';
@@ -18,8 +19,8 @@ export function deliveryEligibility(state,snapshot,config,now=Date.now()){
  if(!connectionStatus('whatsapp',config).configured)return {ready:false,reason:'Conecte o WhatsApp Business da agência em Conexões para enviar por aqui.'};
  const phone=digits(snapshot.client.phone);
  if(!/^[1-9]\d{9,14}$/.test(phone))return {ready:false,reason:'Complete o telefone do cliente com código do país e DDD na ficha dele.'};
- const thread=state.whatsapp.threads.find(t=>t.clientId===snapshot.client.id&&digits(t.phone)===phone&&t.channel==='live'&&t.mode!=='closed'&&t.lastInbound<=now&&now-t.lastInbound<86400000);
- if(!thread)return {ready:false,reason:'O cliente precisa ter enviado uma mensagem nas últimas 24 horas. Fora desse período, será necessário ativar um modelo aprovado pela Meta.'};
+ const thread=state.whatsapp.threads.find(t=>t.clientId===snapshot.client.id&&digits(t.phone)===phone&&t.channel==='live'&&t.mode!=='closed'&&(isAKG(config)?t.provider==='wa-akg'&&t.gatewaySession===config.sessionId:t.lastInbound<=now&&now-t.lastInbound<86400000));
+ if(!thread)return {ready:false,reason:isAKG(config)?'O cliente precisa ter uma conversa aberta no número conectado por QR Code.':'O cliente precisa ter enviado uma mensagem nas últimas 24 horas. Fora desse período, será necessário ativar um modelo aprovado pela Meta.'};
  if(salesFlow.expired(snapshot.b.validUntil||snapshot.b.valid,now))return {ready:false,reason:'A cotação venceu. Atualize os valores com a operadora antes de enviar.'};
  if(snapshot.trip.sales?.fulfillment||snapshot.b.status==='Aprovada')return {ready:false,reason:'Esta proposta já está aprovada. Consulte o atendimento para acompanhar a reserva.'};
  return {ready:true,phone,threadId:thread.id};
@@ -37,11 +38,12 @@ export async function deliverProposal(repo,input,config,{request=remote,now=Date
  const id='proposal-'+hash([repo.scope,s.fingerprint]);
  const old=await repo.find(id);if(old)return {status:old.status,remoteId:old.remote_id};
  const ready=deliveryEligibility(row.state,s,config,now);if(!ready.ready)fail(422,ready.reason);
- if(!/^v\d+\.\d+$/.test(config.version)||!/^\d+$/.test(config.phoneId))fail(422,'Revise a configuração do WhatsApp com a equipe TravelPro.');
+ if(!isAKG(config)&&(!/^v\d+\.\d+$/.test(config.version)||!/^\d+$/.test(config.phoneId)))fail(422,'Revise a configuração do WhatsApp com a equipe TravelPro.');
  const pdf=await proposalPDF(row.state,s.b);
  if(!await repo.claim(id,ready.threadId,message))return {status:'sending'};
  let remoteId;
  try{
+   if(isAKG(config)){const latest=await repo.load(),check=proposalSnapshot(latest.state,input.id);if(check.fingerprint!==s.fingerprint||!deliveryEligibility(latest.state,check,config).ready)throw Error('Proposta alterada.');remoteId=await sendPDF(config,ready.phone,pdf,s.filename,message,{request});}else{
    const form=new FormData();form.set('messaging_product','whatsapp');form.set('type','application/pdf');form.set('file',new Blob([pdf],{type:'application/pdf'}),s.filename);
    const headers={Authorization:'Bearer '+config.token},base=`https://graph.facebook.com/${config.version}/${config.phoneId}`;
    const media=await request(base+'/media',{method:'POST',headers,body:form});
@@ -50,7 +52,7 @@ export async function deliverProposal(repo,input,config,{request=remote,now=Date
    const latest=await repo.load(),check=proposalSnapshot(latest.state,input.id);
    if(check.fingerprint!==s.fingerprint||!deliveryEligibility(latest.state,check,config).ready)throw Error('A proposta ou o atendimento mudou durante a preparação.');
    const result=await request(base+'/messages',{method:'POST',headers:{...headers,'Content-Type':'application/json'},body:JSON.stringify({messaging_product:'whatsapp',to:ready.phone,type:'document',document:{id:media.id,filename:s.filename,caption:message}})});
-   remoteId=result.messages?.[0]?.id;if(!remoteId)throw Error('Envio não confirmado pelo WhatsApp.');
+   remoteId=result.messages?.[0]?.id;if(!remoteId)throw Error('Envio não confirmado pelo WhatsApp.');}
  }catch(error){await repo.update(id,'unknown');fail(502,'O envio não foi confirmado. Confira a conversa antes de qualquer nova tentativa.');}
  await repo.update(id,'sent_sync_pending',remoteId);
  for(let attempt=0;attempt<3;attempt++){

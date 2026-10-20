@@ -1,0 +1,4 @@
+{$WA_DOMAIN} {
+    encode zstd gzip
+    reverse_proxy gateway:3000
+}

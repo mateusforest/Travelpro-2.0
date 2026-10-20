@@ -1,6 +1,6 @@
 import {fail} from './validation.mjs';
 
-const publicConfigFields = ['model', 'endpoint', 'phoneId', 'version'];
+const publicConfigFields = ['model', 'endpoint', 'phoneId', 'version', 'provider', 'sessionId'];
 
 // Agency ownership and membership roles do not confer platform access.
 export function isPlatformAdmin(userId, env = process.env) {
@@ -23,6 +23,7 @@ export function integrationView(services, platformAdmin) {
   return services.map(source => {
     const view = {
       service: source.service,
+      ...(source.service==='whatsapp'&&source.provider?{provider:source.provider}:{}),
       configured: source.configured === true,
       mode: source.mode,
       verified: source.verified === true,
