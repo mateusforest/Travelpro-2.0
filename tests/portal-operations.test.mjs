@@ -783,3 +783,21 @@ test('validation notices remain visible inside the active modal and reset on reo
  await f.portal.workspaceAction('backend-password');
  assert.equal(f.d.querySelector('[data-dialog-notice]').hidden,true);
 });
+
+test('standalone hotel quote becomes a linked PDF proposal without manual duplication or private price leakage',async t=>{
+  const f=await fixture(t,{pathname:'/cotacao.html'});
+  const draft={name:'Hospedagem Lisboa',origin:'',destination:'Lisboa',start:'2027-04-10',end:'2027-04-18',travelers:'2',valid:'2027-03-01',total:'',inclusions:'Hotel central\nCafé da manhã',terms:'Reconfirmar disponibilidade',reference:'Hotel direto',priceMethod:'markup',netCost:'1000',gainRate:'10',serviceFee:'0',paymentPercent:'0',paymentFixed:'0'};
+  await f.portal.workspaceSubmit('sales-quick',draft);const q=f.saved.quickQuotes[0];assert.ok(q);assert.equal(q.request.origin,'');assert.equal(q.offers[0].total,1100);
+  await f.portal.workspaceAction('sales-quick-proposal',q.id);const form=f.d.querySelector('[data-form="sales-quick-proposal"]');assert.ok(form);assert.equal(f.saved.clients.length,0);
+  const input={id:q.id,revision:q.updatedAt,client:'new',clientName:'Cliente da proposta'};
+  await f.portal.workspaceSubmit('sales-quick-proposal',input);
+  assert.equal(f.saved.clients.length,1);assert.equal(f.saved.trips.length,1);assert.equal(f.saved.budgets.length,1);assert.equal(f.saved.budgets[0].items[0].unit,1100);
+  assert.equal(f.saved.trips[0].sales.quotes[0].privatePricing.result.costCents,100000);assert.doesNotMatch(JSON.stringify(f.saved.budgets[0]),/privatePricing|costCents|contributionCents/);
+  assert.equal(f.saved.trips[0].sales.fulfillment,undefined);assert.equal(f.saved.budgets[0].status,'Rascunho');
+  await f.portal.workspaceAction('sales-preview',f.saved.budgets[0].id);assert.ok(f.d.querySelector('.proposal-pdf-preview'));
+  await f.portal.workspaceSubmit('sales-quick-proposal',input);assert.equal(f.saved.trips.length,1);assert.equal(f.saved.budgets.length,1);
+  const original=clone(f.saved.trips[0].sales.quotes[0]);await f.portal.workspaceSubmit('sales-quick',{...draft,id:q.id,netCost:'1200'});
+  const revised=f.saved.quickQuotes[0];assert.notEqual(revised.updatedAt,q.updatedAt);
+  await f.portal.workspaceSubmit('sales-quick-proposal',{...input,client:f.saved.clients[0].id,revision:revised.updatedAt});assert.equal(f.saved.budgets.length,2);assert.deepEqual(f.saved.trips[0].sales.quotes[0],original);
+  await f.portal.workspaceSubmit('sales-quick-proposal',{...input,client:f.saved.clients[0].id});assert.equal(f.saved.budgets.length,2,'stale conversion does not create another proposal');
+});
