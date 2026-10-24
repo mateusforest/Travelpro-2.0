@@ -17,7 +17,7 @@ async function waitFor(predicate,label){
   throw new Error('Portal did not reach expected state: '+label);
 }
 
-async function fixture(t,{pathname='/portal.html',workspace,chatGate,intake=false,intakeGate,dropFirstIntakeResponse=false,extractError=false}={}){
+async function fixture(t,{pathname='/portal.html',workspace,chatGate,intake=false,intakeGate,dropFirstIntakeResponse=false,extractError=false,bootError=false}={}){
   let saved=clone(workspace||JSON.parse(read('backend/initial-state.json'))),version=1;
   saved.agency='Agência de teste isolada';
   const writes=[],chats=[],uploads=[],intakes=[];
@@ -32,7 +32,7 @@ async function fixture(t,{pathname='/portal.html',workspace,chatGate,intake=fals
   w.HTMLDialogElement.prototype.close=function(){this.open=false;};
   const services=['openai','operator','whatsapp'].map(service=>({service,configured:false}));
   const api={version:1,user:{id:'isolated-user',name:'Pessoa de teste',email:'portal@example.invalid'},
-    async session(){return this.user;},
+    async session(){if(bootError)throw Error('Falha isolada de autenticação');return this.user;},
     async request(route,options={}){
       if(route==='/workspace'&&options.method==='PUT'){
         assert.equal(options.body.version,version,'workspace write uses current server version');
@@ -85,9 +85,9 @@ async function fixture(t,{pathname='/portal.html',workspace,chatGate,intake=fals
   w.eval(read('dist/sales-flow-ui.js'));
   if(intake)w.eval(read('dist/intake.js'));
   const source=read('dist/portal.js').replace(/\}\)\(\);\s*$/,
-    'window.__portalTests={state,render,workspaceSubmit,workspaceAction,sendCos,executeIntake,readRoute,flush,acceptFile};})();');
+    'window.__portalTests={state,render,workspaceSubmit,workspaceAction,sendCos,executeIntake,readRoute,flush,acceptFile,waReceive,waConversation,syncError};})();');
   w.eval(source);
-  await waitFor(()=>w.__portalTests.state.agency==='Agência de teste isolada'&&d.querySelector('#portal-main').children.length>0,'authenticated workspace boot');
+  await waitFor(()=>bootError?!!d.querySelector('#boot-error'):w.__portalTests.state.agency==='Agência de teste isolada'&&d.querySelector('#portal-main').children.length>0,'authenticated workspace boot');
   return {w,d,api,portal:w.__portalTests,writes,chats,uploads,intakes,remoteUpdate(change){change(saved);validateState(saved);version++;},get saved(){return clone(saved);},get version(){return version;}};
 }
 
@@ -812,4 +812,41 @@ test('Studio format, briefing and campaign edits persist without duplicating the
  f.portal.state.studio.caption='Legenda revisada';await f.portal.workspaceAction('marketing-save');assert.equal(f.saved.campaigns.length,1);assert.equal(f.saved.campaigns[0].caption,'Legenda revisada');
  await f.portal.workspaceAction('marketing-duplicate',f.saved.campaigns[0].id);await f.portal.workspaceAction('marketing-save');assert.equal(f.saved.campaigns.length,2);assert.notEqual(f.saved.campaigns[0].id,f.saved.campaigns[1].id);
  await f.portal.workspaceAction('marketing-format','carousel');assert.ok(f.d.querySelector('[data-marketing-field="scenes"]'));
+});
+
+test('logout remains usable when autosave is blocked by a version conflict',async t=>{
+ const f=await fixture(t);let logouts=0;f.api.logout=async()=>{logouts++;};f.w.confirm=()=>true;
+ f.portal.state.agency='Unsaved change';f.portal.syncError(Object.assign(Error('Conflict'),{status:409}));
+ await f.portal.workspaceAction('backend-logout');assert.equal(logouts,1);
+});
+test('canceling logout preserves unsaved changes for export',async t=>{
+ const f=await fixture(t);let logouts=0;f.api.logout=async()=>{logouts++;};f.w.confirm=()=>false;
+ f.portal.state.agency='Unsaved change';f.portal.syncError(Object.assign(Error('Conflict'),{status:409}));
+ await f.portal.workspaceAction('backend-logout');assert.equal(logouts,0);assert.equal(f.portal.state.agency,'Unsaved change');
+});
+test('a simulation for a real WhatsApp contact never modifies its live conversation',async t=>{
+ const f=await fixture(t),live={id:'live-1',channel:'live',name:'Real contact',phone:'5511999900808',mode:'human',lead:true,draft:'',profile:{},messages:[],events:[]};
+ f.portal.state.whatsapp.threads.push(live);const before=clone(live);
+ f.portal.waReceive({name:'Simulated contact',phone:live.phone,scenario:'hello'});
+ assert.deepEqual(clone(live),before);assert.equal(f.portal.state.whatsapp.threads.length,2);
+ assert.equal(f.portal.state.whatsapp.threads[0].channel,'simulation');assert.doesNotMatch(f.portal.waConversation(live),/data-action="wa-scenario"/);
+ await f.portal.flush();assert.equal(f.saved.whatsapp.threads.length,2);
+});
+test('legacy identifiers render as text and new markup identifiers are rejected',async t=>{
+ const f=await fixture(t),id='client"><img src=x onerror="window.injected=true">';
+ f.portal.state.clients.push({id,name:'Legacy client',phone:'',email:'',status:'Ativo'});
+ f.w.location.hash='#clientes';f.portal.render();assert.equal(f.d.querySelector('#portal-main img[onerror]'),null);
+ assert.throws(()=>validateState(clone(f.portal.state)),/Identificador inválido/);
+});
+test('all main portal sections render from the authenticated workspace',async t=>{
+ const f=await fixture(t);
+ for(const route of ['inicio','atendimentos','agencia','clientes','agenda','financeiro','cotacao','orcamentos','roteiros','studio','documentos','integracoes','plano','seguranca','faturamento','whatsapp','leads','agente','configuracoes','travelmatch','vuei']){
+  f.w.location.hash='#'+route;f.portal.render();assert.ok(f.d.querySelector('#portal-main').textContent.trim().length>50,route);assert.doesNotMatch(f.d.querySelector('#portal-main').innerHTML,/undefined/,route);
+ }
+});
+
+test('navigation cannot render demonstration records while authentication is unavailable',async t=>{
+ const f=await fixture(t,{bootError:true});const before=f.d.querySelector('#portal-main').textContent;
+ for(const route of ['clientes','studio','seguranca']){f.w.location.hash='#'+route;f.portal.render();assert.equal(f.d.querySelector('#portal-main').textContent,before);}
+ await f.portal.workspaceAction('report-clients');assert.equal(f.d.querySelector('#portal-dialog').open,false);
 });

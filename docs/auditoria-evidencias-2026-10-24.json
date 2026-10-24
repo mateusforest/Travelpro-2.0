@@ -1,0 +1,699 @@
+{
+  "baselineTests": 353,
+  "publicPages": [
+    {
+      "path": "/cliente.html",
+      "status": 200,
+      "error": null
+    },
+    {
+      "path": "/faturamento.html",
+      "status": 200,
+      "error": null
+    },
+    {
+      "path": "/proposta-imersiva.html",
+      "status": 200,
+      "error": null
+    },
+    {
+      "path": "/agenda.html",
+      "status": 200,
+      "error": null
+    },
+    {
+      "path": "/login.html",
+      "status": 200,
+      "error": null
+    },
+    {
+      "path": "/cadastro.html",
+      "status": 200,
+      "error": null
+    },
+    {
+      "path": "/viagem.html",
+      "status": 200,
+      "error": null
+    },
+    {
+      "path": "/seguranca.html",
+      "status": 200,
+      "error": null
+    },
+    {
+      "path": "/viagens.html",
+      "status": 200,
+      "error": null
+    },
+    {
+      "path": "/atendimentos.html",
+      "status": 200,
+      "error": null
+    },
+    {
+      "path": "/orcamento.html",
+      "status": 200,
+      "error": null
+    },
+    {
+      "path": "/index.html",
+      "status": 200,
+      "error": null
+    },
+    {
+      "path": "/portal.html",
+      "status": 200,
+      "error": null
+    },
+    {
+      "path": "/clientes.html",
+      "status": 200,
+      "error": null
+    },
+    {
+      "path": "/configuracoes.html",
+      "status": 200,
+      "error": null
+    },
+    {
+      "path": "/roteiro.html",
+      "status": 200,
+      "error": null
+    },
+    {
+      "path": "/studio.html",
+      "status": 200,
+      "error": null
+    },
+    {
+      "path": "/orcamentos.html",
+      "status": 200,
+      "error": null
+    },
+    {
+      "path": "/whatsapp.html",
+      "status": 200,
+      "error": null
+    },
+    {
+      "path": "/leads.html",
+      "status": 200,
+      "error": null
+    },
+    {
+      "path": "/travelmatch.html",
+      "status": 200,
+      "error": null
+    },
+    {
+      "path": "/agente.html",
+      "status": 200,
+      "error": null
+    },
+    {
+      "path": "/integracoes.html",
+      "status": 200,
+      "error": null
+    },
+    {
+      "path": "/plano.html",
+      "status": 200,
+      "error": null
+    },
+    {
+      "path": "/vuei.html",
+      "status": 200,
+      "error": null
+    },
+    {
+      "path": "/documentos.html",
+      "status": 200,
+      "error": null
+    },
+    {
+      "path": "/cotacao.html",
+      "status": 200,
+      "error": null
+    },
+    {
+      "path": "/roteiros.html",
+      "status": 200,
+      "error": null
+    },
+    {
+      "path": "/agencia.html",
+      "status": 200,
+      "error": null
+    },
+    {
+      "path": "/documento.html",
+      "status": 200,
+      "error": null
+    },
+    {
+      "path": "/financeiro.html",
+      "status": 200,
+      "error": null
+    },
+    {
+      "path": "/api/health",
+      "status": 200,
+      "error": null
+    },
+    {
+      "path": "/api/auth/session",
+      "status": 401,
+      "error": null
+    },
+    {
+      "path": "/api/workspace",
+      "status": 401,
+      "error": null
+    },
+    {
+      "path": "/api/integrations",
+      "status": 401,
+      "error": null
+    },
+    {
+      "path": "/api/finance",
+      "status": 401,
+      "error": null
+    },
+    {
+      "path": "/api/travel-search/providers",
+      "status": 401,
+      "error": null
+    },
+    {
+      "path": "/api/whatsapp/session",
+      "status": 401,
+      "error": null
+    },
+    {
+      "path": "/api/files",
+      "status": 401,
+      "error": null
+    },
+    {
+      "path": "/api/auth/sessions",
+      "status": 401,
+      "error": null
+    }
+  ],
+  "missingAssets": [],
+  "initialNegativeProbes": [
+    {
+      "test": "foreign-origin",
+      "status": 403,
+      "expected": 403
+    },
+    {
+      "test": "missing-origin",
+      "status": 403,
+      "expected": 403
+    },
+    {
+      "test": "wrong-content-type",
+      "status": 415,
+      "expected": 415
+    },
+    {
+      "test": "malformed-json",
+      "status": 503,
+      "expected": 400
+    },
+    {
+      "test": "unauthenticated-write",
+      "status": 401,
+      "expected": 401
+    },
+    {
+      "test": "unsigned-webhook",
+      "status": 500,
+      "expected": 401
+    }
+  ],
+  "productionDependencyAudit": {
+    "vulnerabilities": {
+      "info": 0,
+      "low": 0,
+      "moderate": 0,
+      "high": 0,
+      "critical": 0,
+      "total": 0
+    },
+    "dependencies": {
+      "prod": 96,
+      "dev": 1,
+      "optional": 10,
+      "peer": 0,
+      "peerOptional": 0,
+      "total": 106
+    }
+  },
+  "nativeFirstAttempt": {
+    "checkedAt": "2026-10-24T01:02:55.066Z",
+    "scenarios": [
+      {
+        "name": "hotel_rooms_rio_grande",
+        "request": {
+          "category": "hotels",
+          "origin": "",
+          "destination": "Rio Grande",
+          "start": "2026-11-26",
+          "end": "2026-12-01",
+          "adults": 2,
+          "childrenAges": [],
+          "rooms": 1,
+          "currency": "BRL",
+          "providers": [
+            "native-laghetto"
+          ],
+          "flexDays": 0,
+          "maxCalls": 6,
+          "sort": "price",
+          "mode": "quote",
+          "refresh": false,
+          "hotelId": "7620"
+        },
+        "offers": 5,
+        "complete": 5,
+        "providers": [
+          {
+            "id": "native-laghetto",
+            "name": "Laghetto · coleta própria",
+            "status": "success",
+            "message": "Consulta concluída; preços sujeitos à revalidação.",
+            "offerCount": 5,
+            "cached": false,
+            "calls": 1,
+            "cacheHits": 0
+          }
+        ]
+      },
+      {
+        "name": "airline_opportunities",
+        "request": {
+          "category": "flights",
+          "origin": "POA",
+          "destination": "CGH",
+          "start": "2026-11-26",
+          "end": "2026-12-01",
+          "adults": 2,
+          "childrenAges": [],
+          "rooms": 1,
+          "currency": "BRL",
+          "providers": [
+            "native-gol",
+            "native-azul"
+          ],
+          "flexDays": 0,
+          "maxCalls": 6,
+          "sort": "price",
+          "mode": "opportunities",
+          "refresh": false
+        },
+        "offers": 2,
+        "complete": 0,
+        "providers": [
+          {
+            "id": "native-gol",
+            "name": "GOL · coleta própria",
+            "status": "error",
+            "message": "Não foi possível consultar esta fonte. Tente novamente mais tarde.",
+            "offerCount": 0,
+            "cached": false,
+            "calls": 1,
+            "cacheHits": 0
+          },
+          {
+            "id": "native-azul",
+            "name": "Azul · coleta própria",
+            "status": "success",
+            "message": "Consulta concluída; preços sujeitos à revalidação.",
+            "offerCount": 2,
+            "cached": false,
+            "calls": 1,
+            "cacheHits": 0
+          }
+        ]
+      },
+      {
+        "name": "experiences_and_transfers",
+        "request": {
+          "category": "trip",
+          "origin": "",
+          "destination": "Porto Alegre",
+          "start": "2026-11-26",
+          "end": "2026-12-01",
+          "adults": 2,
+          "childrenAges": [],
+          "rooms": 1,
+          "currency": "BRL",
+          "providers": [
+            "native-civitatis",
+            "native-getyourguide",
+            "native-siga"
+          ],
+          "flexDays": 0,
+          "maxCalls": 6,
+          "sort": "price",
+          "mode": "opportunities",
+          "refresh": false
+        },
+        "offers": 0,
+        "complete": 0,
+        "providers": [
+          {
+            "id": "native-civitatis",
+            "name": "Civitatis · coleta própria",
+            "status": "error",
+            "message": "Não foi possível consultar esta fonte. Tente novamente mais tarde.",
+            "offerCount": 0,
+            "cached": false,
+            "calls": 1,
+            "cacheHits": 0
+          },
+          {
+            "id": "native-getyourguide",
+            "name": "GetYourGuide · coleta própria",
+            "status": "error",
+            "message": "Não foi possível consultar esta fonte. Tente novamente mais tarde.",
+            "offerCount": 0,
+            "cached": false,
+            "calls": 1,
+            "cacheHits": 0
+          },
+          {
+            "id": "native-siga",
+            "name": "Siga Turismo · fornecedor direto",
+            "status": "error",
+            "message": "Não foi possível consultar esta fonte. Tente novamente mais tarde.",
+            "offerCount": 0,
+            "cached": false,
+            "calls": 1,
+            "cacheHits": 0
+          }
+        ]
+      },
+      {
+        "name": "tickets_paris",
+        "request": {
+          "category": "tickets",
+          "origin": "",
+          "destination": "Paris",
+          "start": "2026-11-26",
+          "end": "2026-12-01",
+          "adults": 2,
+          "childrenAges": [],
+          "rooms": 1,
+          "currency": "BRL",
+          "providers": [
+            "native-tiqets"
+          ],
+          "flexDays": 0,
+          "maxCalls": 6,
+          "sort": "price",
+          "mode": "opportunities",
+          "refresh": false
+        },
+        "offers": 0,
+        "complete": 0,
+        "providers": [
+          {
+            "id": "native-tiqets",
+            "name": "Tiqets · coleta própria",
+            "status": "error",
+            "message": "Não foi possível consultar esta fonte. Tente novamente mais tarde.",
+            "offerCount": 0,
+            "cached": false,
+            "calls": 1,
+            "cacheHits": 0
+          }
+        ]
+      },
+      {
+        "name": "car_prepaid_packages",
+        "request": {
+          "category": "cars",
+          "origin": "",
+          "destination": "São Paulo",
+          "start": "2026-11-26",
+          "end": "2026-12-01",
+          "adults": 2,
+          "childrenAges": [],
+          "rooms": 1,
+          "currency": "BRL",
+          "providers": [
+            "native-movida-prepaid"
+          ],
+          "flexDays": 0,
+          "maxCalls": 6,
+          "sort": "price",
+          "mode": "opportunities",
+          "refresh": false
+        },
+        "offers": 0,
+        "complete": 0,
+        "providers": [
+          {
+            "id": "native-movida-prepaid",
+            "name": "Movida Pré-Pago · coleta própria",
+            "status": "error",
+            "message": "Não foi possível consultar esta fonte. Tente novamente mais tarde.",
+            "offerCount": 0,
+            "cached": false,
+            "calls": 1,
+            "cacheHits": 0
+          }
+        ]
+      }
+    ]
+  },
+  "nativeRepeat": {
+    "checkedAt": "2026-10-24T01:06:07.984Z",
+    "scenarios": [
+      {
+        "name": "hotel_rooms_rio_grande",
+        "request": {
+          "category": "hotels",
+          "origin": "",
+          "destination": "Rio Grande",
+          "start": "2026-11-26",
+          "end": "2026-12-01",
+          "adults": 2,
+          "childrenAges": [],
+          "rooms": 1,
+          "currency": "BRL",
+          "providers": [
+            "native-laghetto"
+          ],
+          "flexDays": 0,
+          "maxCalls": 6,
+          "sort": "price",
+          "mode": "quote",
+          "refresh": false,
+          "hotelId": "7620"
+        },
+        "offers": 5,
+        "complete": 5,
+        "providers": [
+          {
+            "id": "native-laghetto",
+            "name": "Laghetto · coleta própria",
+            "status": "success",
+            "message": "Consulta concluída; preços sujeitos à revalidação.",
+            "offerCount": 5,
+            "cached": false,
+            "calls": 1,
+            "cacheHits": 0
+          }
+        ]
+      },
+      {
+        "name": "airline_opportunities",
+        "request": {
+          "category": "flights",
+          "origin": "POA",
+          "destination": "CGH",
+          "start": "2026-11-26",
+          "end": "2026-12-01",
+          "adults": 2,
+          "childrenAges": [],
+          "rooms": 1,
+          "currency": "BRL",
+          "providers": [
+            "native-gol",
+            "native-azul"
+          ],
+          "flexDays": 0,
+          "maxCalls": 6,
+          "sort": "price",
+          "mode": "opportunities",
+          "refresh": false
+        },
+        "offers": 27,
+        "complete": 0,
+        "providers": [
+          {
+            "id": "native-gol",
+            "name": "GOL · coleta própria",
+            "status": "success",
+            "message": "Consulta concluída; preços sujeitos à revalidação.",
+            "offerCount": 25,
+            "cached": false,
+            "calls": 1,
+            "cacheHits": 0
+          },
+          {
+            "id": "native-azul",
+            "name": "Azul · coleta própria",
+            "status": "success",
+            "message": "Consulta concluída; preços sujeitos à revalidação.",
+            "offerCount": 2,
+            "cached": false,
+            "calls": 1,
+            "cacheHits": 0
+          }
+        ]
+      },
+      {
+        "name": "experiences_and_transfers",
+        "request": {
+          "category": "trip",
+          "origin": "",
+          "destination": "Porto Alegre",
+          "start": "2026-11-26",
+          "end": "2026-12-01",
+          "adults": 2,
+          "childrenAges": [],
+          "rooms": 1,
+          "currency": "BRL",
+          "providers": [
+            "native-civitatis",
+            "native-getyourguide",
+            "native-siga"
+          ],
+          "flexDays": 0,
+          "maxCalls": 6,
+          "sort": "price",
+          "mode": "opportunities",
+          "refresh": false
+        },
+        "offers": 41,
+        "complete": 0,
+        "providers": [
+          {
+            "id": "native-civitatis",
+            "name": "Civitatis · coleta própria",
+            "status": "success",
+            "message": "Consulta concluída; preços sujeitos à revalidação.",
+            "offerCount": 6,
+            "cached": false,
+            "calls": 1,
+            "cacheHits": 0
+          },
+          {
+            "id": "native-getyourguide",
+            "name": "GetYourGuide · coleta própria",
+            "status": "error",
+            "message": "Não foi possível consultar esta fonte. Tente novamente mais tarde.",
+            "offerCount": 0,
+            "cached": false,
+            "calls": 1,
+            "cacheHits": 0
+          },
+          {
+            "id": "native-siga",
+            "name": "Siga Turismo · fornecedor direto",
+            "status": "success",
+            "message": "Consulta concluída; preços sujeitos à revalidação.",
+            "offerCount": 35,
+            "cached": false,
+            "calls": 1,
+            "cacheHits": 0
+          }
+        ]
+      },
+      {
+        "name": "tickets_paris",
+        "request": {
+          "category": "tickets",
+          "origin": "",
+          "destination": "Paris",
+          "start": "2026-11-26",
+          "end": "2026-12-01",
+          "adults": 2,
+          "childrenAges": [],
+          "rooms": 1,
+          "currency": "BRL",
+          "providers": [
+            "native-tiqets"
+          ],
+          "flexDays": 0,
+          "maxCalls": 6,
+          "sort": "price",
+          "mode": "opportunities",
+          "refresh": false
+        },
+        "offers": 7,
+        "complete": 0,
+        "providers": [
+          {
+            "id": "native-tiqets",
+            "name": "Tiqets · coleta própria",
+            "status": "success",
+            "message": "Consulta concluída; preços sujeitos à revalidação.",
+            "offerCount": 7,
+            "cached": false,
+            "calls": 1,
+            "cacheHits": 0
+          }
+        ]
+      },
+      {
+        "name": "car_prepaid_packages",
+        "request": {
+          "category": "cars",
+          "origin": "",
+          "destination": "São Paulo",
+          "start": "2026-11-26",
+          "end": "2026-12-01",
+          "adults": 2,
+          "childrenAges": [],
+          "rooms": 1,
+          "currency": "BRL",
+          "providers": [
+            "native-movida-prepaid"
+          ],
+          "flexDays": 0,
+          "maxCalls": 6,
+          "sort": "price",
+          "mode": "opportunities",
+          "refresh": false
+        },
+        "offers": 3,
+        "complete": 0,
+        "providers": [
+          {
+            "id": "native-movida-prepaid",
+            "name": "Movida Pré-Pago · coleta própria",
+            "status": "success",
+            "message": "Consulta concluída; preços sujeitos à revalidação.",
+            "offerCount": 3,
+            "cached": false,
+            "calls": 1,
+            "cacheHits": 0
+          }
+        ]
+      }
+    ]
+  },
+  "finalTests": {
+    "tests": 368,
+    "passed": 368,
+    "failed": 0
+  }
+}

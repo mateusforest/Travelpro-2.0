@@ -11,7 +11,7 @@ export function fail(status,message){const e=new Error(message);e.status=status;
 const object=x=>x&&typeof x==='object'&&!Array.isArray(x);
 export function validateState(s){
   if(!object(s)||typeof s.agency!=='string'||!s.agency.trim()||s.agency.length>150)fail(422,'Informe o nome da agência.');
-  const scan=(x,depth=0)=>{if(depth>18)fail(422,'Estrutura de dados muito profunda.');if(typeof x==='string'&&x.length>500000)fail(422,'Conteúdo muito longo.');if(x&&typeof x==='object')for(const [k,v]of Object.entries(x)){if(['__proto__','constructor','prototype'].includes(k))fail(422,'Campo inválido.');scan(v,depth+1);}};scan(s);
+  const scan=(x,depth=0)=>{if(depth>18)fail(422,'Estrutura de dados muito profunda.');if(typeof x==='string'&&x.length>500000)fail(422,'Conteúdo muito longo.');if(x&&typeof x==='object')for(const [k,v]of Object.entries(x)){if(['__proto__','constructor','prototype'].includes(k))fail(422,'Campo inválido.');if((k==='id'||k.endsWith('Id'))&&typeof v==='string'&&/[<>"'`\u0000-\u001f]/.test(v))fail(422,'Identificador inválido.');scan(v,depth+1);}};scan(s);
   for(const key of collections){if(!Array.isArray(s[key])||s[key].length>10000)fail(422,'Lista inválida: '+key);const ids=new Set();for(const row of s[key]){if(!object(row)||typeof row.id!=='string'||!row.id||row.id.length>100||ids.has(row.id))fail(422,'Identificador inválido em '+key);ids.add(row.id);}}
   const refs=(key,id)=>s[key].some(x=>x.id===id),num=(v,min=0)=>typeof v==='number'&&Number.isFinite(v)&&v>=min;
   const date=x=>{try{return /^\d{4}-\d{2}-\d{2}$/.test(x)&&new Date(x+'T12:00:00Z').toISOString().slice(0,10)===x;}catch{return false;}};
