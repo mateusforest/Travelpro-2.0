@@ -13,6 +13,7 @@
 - Verificação de dependências de produção: `npm audit --omit=dev`, zero vulnerabilidades conhecidas reportadas. Isso não equivale à ausência de falhas no aplicativo.
 - Testes locais usam contas/bancos descartáveis, jsdom e substitutos isolados do Supabase; não enviam mensagens, não alteram clientes de produção e não criam reservas ou cobranças.
 - Não foram testados em produção: entrega de e-mail de confirmação/recuperação, login com credenciais reais, administração do Supabase, backups/restauração, QR com telefone real, emissões e transações bancárias. A exportação nativa de vídeo ainda precisa de validação em navegador compatível; o download do Chromium falhou nesta sessão.
+- Após o primeiro deploy, os 34 arquivos conferidos (31 páginas e três scripts alterados) corresponderam exatamente ao código publicado e apresentaram os cabeçalhos de segurança. Saúde da API, recusa anônima, bloqueio de origem estrangeira e rejeição do webhook foram confirmados. A conferência encontrou uma diferença adicional no erro de parsing da Vercel, tratada em correção complementar.
 - A execução sofreu uma interrupção temporária do ambiente e foi retomada. As consultas externas com falha foram repetidas; os dois resultados estão preservados na evidência resumida.
 
 ## Problemas encontrados e correções
@@ -26,7 +27,7 @@
 | Média | Navegar por hash durante falha no carregamento podia renderizar dados demonstrativos. | Renderização e ações dependem do carregamento autenticado. | Regressão de falha de autenticação seguida de navegação e ação de relatório. |
 | Média | Simular uma mensagem para um telefone real reutilizava e alterava a conversa real. | Simulação procura somente conversas de teste; conversa real não oferece o botão de simular. | Conversa real preservada byte a byte e simulação salva separadamente. |
 | Média | Páginas estáticas sem proteção global contra enquadramento e sem política de conteúdo básica. | Cabeçalhos globais de frame, MIME, referência, base, objetos e envio de formulários. | Verificação de configuração e conferência HTTP após publicação. CSP básica: ainda não restringe scripts por nonce. |
-| Baixa | JSON inválido retornou 503 em produção quando a camada Vercel tentou decodificar o corpo. | Captura específica de erro do parser antes de entrar no aplicativo; retorna 400. | Regressão no adaptador serverless com getter de corpo que lança SyntaxError. |
+| Baixa | JSON inválido retornou 503 em produção quando a camada Vercel tentou decodificar o corpo. | Captura específica de erro do parser antes de entrar no aplicativo; retorna 400. | Regressão no adaptador serverless com getter de corpo que lança SyntaxError ou ApiError com statusCode 400, conforme o parser da Vercel. |
 | Baixa | Webhook WA-AKG sem assinatura e agência inválida alcançava consulta UUID e retornava 500. | Rejeita assinatura ausente/malformada antes do banco; valida UUID do destino. | Regressão sem consultas ao banco, além dos testes existentes de HMAC, sessão e repetição. |
 
 ## Revisão por seção

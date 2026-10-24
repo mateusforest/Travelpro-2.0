@@ -695,5 +695,261 @@
     "tests": 368,
     "passed": 368,
     "failed": 0
-  }
+  },
+  "firstPostDeployment": [
+    {
+      "path": "/cliente.html",
+      "status": 200,
+      "matchesSource": true,
+      "securityHeaders": true
+    },
+    {
+      "path": "/faturamento.html",
+      "status": 200,
+      "matchesSource": true,
+      "securityHeaders": true
+    },
+    {
+      "path": "/proposta-imersiva.html",
+      "status": 200,
+      "matchesSource": true,
+      "securityHeaders": true
+    },
+    {
+      "path": "/agenda.html",
+      "status": 200,
+      "matchesSource": true,
+      "securityHeaders": true
+    },
+    {
+      "path": "/login.html",
+      "status": 200,
+      "matchesSource": true,
+      "securityHeaders": true
+    },
+    {
+      "path": "/cadastro.html",
+      "status": 200,
+      "matchesSource": true,
+      "securityHeaders": true
+    },
+    {
+      "path": "/viagem.html",
+      "status": 200,
+      "matchesSource": true,
+      "securityHeaders": true
+    },
+    {
+      "path": "/seguranca.html",
+      "status": 200,
+      "matchesSource": true,
+      "securityHeaders": true
+    },
+    {
+      "path": "/viagens.html",
+      "status": 200,
+      "matchesSource": true,
+      "securityHeaders": true
+    },
+    {
+      "path": "/atendimentos.html",
+      "status": 200,
+      "matchesSource": true,
+      "securityHeaders": true
+    },
+    {
+      "path": "/orcamento.html",
+      "status": 200,
+      "matchesSource": true,
+      "securityHeaders": true
+    },
+    {
+      "path": "/index.html",
+      "status": 200,
+      "matchesSource": true,
+      "securityHeaders": true
+    },
+    {
+      "path": "/portal.html",
+      "status": 200,
+      "matchesSource": true,
+      "securityHeaders": true
+    },
+    {
+      "path": "/clientes.html",
+      "status": 200,
+      "matchesSource": true,
+      "securityHeaders": true
+    },
+    {
+      "path": "/configuracoes.html",
+      "status": 200,
+      "matchesSource": true,
+      "securityHeaders": true
+    },
+    {
+      "path": "/roteiro.html",
+      "status": 200,
+      "matchesSource": true,
+      "securityHeaders": true
+    },
+    {
+      "path": "/studio.html",
+      "status": 200,
+      "matchesSource": true,
+      "securityHeaders": true
+    },
+    {
+      "path": "/orcamentos.html",
+      "status": 200,
+      "matchesSource": true,
+      "securityHeaders": true
+    },
+    {
+      "path": "/whatsapp.html",
+      "status": 200,
+      "matchesSource": true,
+      "securityHeaders": true
+    },
+    {
+      "path": "/leads.html",
+      "status": 200,
+      "matchesSource": true,
+      "securityHeaders": true
+    },
+    {
+      "path": "/travelmatch.html",
+      "status": 200,
+      "matchesSource": true,
+      "securityHeaders": true
+    },
+    {
+      "path": "/agente.html",
+      "status": 200,
+      "matchesSource": true,
+      "securityHeaders": true
+    },
+    {
+      "path": "/integracoes.html",
+      "status": 200,
+      "matchesSource": true,
+      "securityHeaders": true
+    },
+    {
+      "path": "/plano.html",
+      "status": 200,
+      "matchesSource": true,
+      "securityHeaders": true
+    },
+    {
+      "path": "/vuei.html",
+      "status": 200,
+      "matchesSource": true,
+      "securityHeaders": true
+    },
+    {
+      "path": "/documentos.html",
+      "status": 200,
+      "matchesSource": true,
+      "securityHeaders": true
+    },
+    {
+      "path": "/cotacao.html",
+      "status": 200,
+      "matchesSource": true,
+      "securityHeaders": true
+    },
+    {
+      "path": "/roteiros.html",
+      "status": 200,
+      "matchesSource": true,
+      "securityHeaders": true
+    },
+    {
+      "path": "/agencia.html",
+      "status": 200,
+      "matchesSource": true,
+      "securityHeaders": true
+    },
+    {
+      "path": "/documento.html",
+      "status": 200,
+      "matchesSource": true,
+      "securityHeaders": true
+    },
+    {
+      "path": "/financeiro.html",
+      "status": 200,
+      "matchesSource": true,
+      "securityHeaders": true
+    },
+    {
+      "path": "/api.js",
+      "status": 200,
+      "matchesSource": true,
+      "securityHeaders": true
+    },
+    {
+      "path": "/auth.js",
+      "status": 200,
+      "matchesSource": true,
+      "securityHeaders": true
+    },
+    {
+      "path": "/portal.js",
+      "status": 200,
+      "matchesSource": true,
+      "securityHeaders": true
+    },
+    {
+      "check": "health",
+      "status": 200,
+      "expected": 200,
+      "pass": true,
+      "body": "{\"ok\":true,\"storage\":\"supabase\",\"version\":3}"
+    },
+    {
+      "check": "private-session",
+      "status": 401,
+      "expected": 401,
+      "pass": true,
+      "body": "{\"error\":\"Entre na sua conta para continuar.\"}"
+    },
+    {
+      "check": "private-workspace",
+      "status": 401,
+      "expected": 401,
+      "pass": true,
+      "body": "{\"error\":\"Entre na sua conta para continuar.\"}"
+    },
+    {
+      "check": "private-search",
+      "status": 401,
+      "expected": 401,
+      "pass": true,
+      "body": "{\"error\":\"Entre na sua conta para continuar.\"}"
+    },
+    {
+      "check": "foreign-origin",
+      "status": 403,
+      "expected": 403,
+      "pass": true,
+      "body": "{\"error\":\"Origem não autorizada. Reabra o TravelPro neste endereço.\"}"
+    },
+    {
+      "check": "malformed-json",
+      "status": 503,
+      "expected": 400,
+      "pass": false,
+      "body": "{\"error\":\"Não foi possível iniciar o portal. Confira a configuração do servidor.\"}"
+    },
+    {
+      "check": "unsigned-webhook",
+      "status": 403,
+      "expected": 403,
+      "pass": true,
+      "body": "{\"error\":\"Assinatura do webhook inválida.\"}"
+    }
+  ],
+  "postDeploymentNote": "A diferença remanescente do JSON malformado foi corrigida para o ApiError statusCode=400 do parser Vercel; exige nova conferência após o deploy complementar."
 }
