@@ -30,7 +30,7 @@ export default async function nodeHandler(req,res){
     for(const [name,value] of Object.entries(req.headers))if(value!==undefined)headers.set(name,Array.isArray(value)?value.join(', '):value);
     let body;
     if(!['GET','HEAD'].includes(req.method)){
-      let parsed;try{parsed=req.body;}catch(error){if(error instanceof SyntaxError||error.name==='SyntaxError')throw Object.assign(new Error('Dados inválidos.'),{status:400});throw error;}
+      let parsed;try{parsed=req.body;}catch(error){if(error instanceof SyntaxError||error.name==='SyntaxError'||error.statusCode===400)throw Object.assign(new Error('Dados inválidos.'),{status:400});throw error;}
       if(parsed!==undefined)body=typeof parsed==='string'||Buffer.isBuffer(parsed)?parsed:JSON.stringify(parsed);
       else {const parts=[];let size=0;for await(const part of req){size+=part.length;if(size>4400000)throw Object.assign(new Error('Solicitação muito grande.'),{status:413});parts.push(part);}body=Buffer.concat(parts);}
       if(Buffer.byteLength(body)>4400000)throw Object.assign(new Error('Solicitação muito grande.'),{status:413});
