@@ -41,9 +41,9 @@ async function fixture({role='owner',workspaceId='agency-a',version=1,platformAd
     '../template-extraction.mjs':templateExtraction,
     '../visual-itinerary.mjs':visualItinerary,
     '../cos-support.mjs':cosSupport,
-    'node:crypto':crypto,'./runtime.mjs':{ApiResponse,after:()=>{},cookies:async()=>({get:()=>undefined})},
+    'node:crypto':crypto,'./runtime.mjs':{ApiResponse,after:()=>{},cookies:async()=>({get:()=>undefined,delete:key=>calls.push({deletedCookie:key})})},
     '@supabase/supabase-js':{createClient:()=>{throw Error('Unexpected external auth');}},
-    './clients.mjs':{createSupabaseServerClient:async()=>({auth:{getUser:async()=>({data:{user}})}}),createSupabaseAdminClient:()=>db,supabaseConfigured:()=>true},
+    './clients.mjs':{createSupabaseServerClient:async()=>({auth:{getUser:async()=>({data:{user}}),getSession:async()=>({data:{session:{access_token:'header.'+Buffer.from(JSON.stringify({session_id:'session-a'})).toString('base64url')+'.signature'}}}),signOut:async options=>{calls.push({signOut:options});return {error:null};}}}),createSupabaseAdminClient:()=>db,supabaseConfigured:()=>true},
     './access.mjs':{getUserAccessForUser:async()=>access,ensureAppAccessForUser:async()=>({access}),canManageWorkspace:a=>['owner','admin'].includes(a.membershipRole),resolvePostAuthPath:()=>'/portal'},
     '../initial-state.json':{default:initial},'../granatum.mjs':connectHarness?{...granatum,connectGranatum:async(db,wid,token)=>{calls.push({connectWorkspace:wid});return {connected:true};}}:granatum,'../finance-api.mjs':connectHarness?{...financeAPI,handleFinance:async()=>({})}:financeAPI,'../validation.mjs':validation,'../providers.mjs':{...providers,cosReply:async()=>null,remote:async()=>{throw Error('Unexpected provider request');}},
     '../integration-access.mjs':{...integrationAccess,isPlatformAdmin:id=>integrationAccess.isPlatformAdmin(id,env),requirePlatformAdmin:id=>integrationAccess.requirePlatformAdmin(id,env)},
@@ -201,11 +201,16 @@ test('WA-AKG session controls require agency management and do not use submitted
  const owner=await fixture(),response=await owner.request('whatsapp/session');assert.equal(response.status,200);assert.equal((await response.json()).connected,false);assert.ok(owner.calls.every(c=>c.filters.workspace_id==='agency-a'));
 });
 test('Supabase WA-AKG signed callback saves to URL-scoped agency and rejects altered session',async()=>{
- const config={provider:'wa-akg',endpoint:'https://gateway.example.test',key:'fixture-key',sessionId:'travelpro-agency-a',webhookSecret:'fixture-secret'},f=await fixture({integrationConfigs:{whatsapp:config}});
+ const config={provider:'wa-akg',endpoint:'https://gateway.example.test',key:'fixture-key',sessionId:'travelpro-agency-a',webhookSecret:'fixture-secret'},f=await fixture({workspaceId:'11111111-1111-1111-1111-111111111111',integrationConfigs:{whatsapp:config}});
  const event={event:'message.received',sessionId:config.sessionId,timestamp:new Date().toISOString(),data:{key:{id:'inbound1',fromMe:false},from:'5511999999999@s.whatsapp.net',content:'Quero cotar Lisboa',chatType:'PERSONAL'}};
  const signature=e=>'sha256='+crypto.createHmac('sha256',config.webhookSecret).update(JSON.stringify(e)).digest('hex');
- assert.equal((await f.request('webhooks/wa-akg/agency-a','POST',event,{'x-webhook-signature':'bad'})).status,403);
- const res=await f.request('webhooks/wa-akg/agency-a','POST',event,{'x-webhook-signature':signature(event)});assert.equal(res.status,200,await res.clone().text());assert.equal(f.stored.data.whatsapp.threads.length,1);assert.equal(f.writes,1);
- await f.request('webhooks/wa-akg/agency-a','POST',event,{'x-webhook-signature':signature(event)});assert.equal(f.writes,1);
- const changed={...event,sessionId:'other'};assert.equal((await f.request('webhooks/wa-akg/agency-a','POST',changed,{'x-webhook-signature':signature(changed)})).status,403);assert.equal(f.writes,1);
+ assert.equal((await f.request('webhooks/wa-akg/11111111-1111-1111-1111-111111111111','POST',event,{'x-webhook-signature':'bad'})).status,403);
+ const res=await f.request('webhooks/wa-akg/11111111-1111-1111-1111-111111111111','POST',event,{'x-webhook-signature':signature(event)});assert.equal(res.status,200,await res.clone().text());assert.equal(f.stored.data.whatsapp.threads.length,1);assert.equal(f.writes,1);
+ await f.request('webhooks/wa-akg/11111111-1111-1111-1111-111111111111','POST',event,{'x-webhook-signature':signature(event)});assert.equal(f.writes,1);
+ const changed={...event,sessionId:'other'};assert.equal((await f.request('webhooks/wa-akg/11111111-1111-1111-1111-111111111111','POST',changed,{'x-webhook-signature':signature(changed)})).status,403);assert.equal(f.writes,1);
 });
+
+test('logout remains available after workspace membership revocation',async()=>{const f=await fixture({workspaceId:null});const r=await f.request('auth/logout','POST',{});assert.equal(r.status,200);assert.deepEqual(JSON.parse(JSON.stringify(f.calls)),[{signOut:{scope:'local'}},{deletedCookie:'tp-recovery'}]);});
+test('session reports an opaque stable activity scope and the server inactivity mode',async()=>{const f=await fixture();const r=await f.request('auth/session');assert.equal(r.status,200);const data=await r.json();assert.match(data.sessionKey,/^[a-f0-9]{64}$/);assert.equal(data.serverIdleEnforced,false);assert.equal(JSON.stringify(data).includes('signature'),false);});
+
+test('malformed WA-AKG callback credentials are rejected without querying the database',async()=>{const f=await fixture();assert.equal((await f.request('webhooks/wa-akg/not-a-uuid','POST',{})).status,403);assert.equal((await f.request('webhooks/wa-akg/not-a-uuid','POST',{}, {'x-webhook-signature':'sha256='+'a'.repeat(64)})).status,404);assert.equal(f.calls.length,0);});

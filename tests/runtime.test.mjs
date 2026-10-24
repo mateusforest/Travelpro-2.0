@@ -42,5 +42,6 @@ test('Vercel adapter restores rewritten API path and preserves independent cooki
     const headers={};const res={setHeader(k,v){headers[k.toLowerCase()]=v;},end(body){this.body=JSON.parse(body.toString());}};
     await module.namespace.default(req,res);assert.equal(res.statusCode,200);assert.equal(headers['set-cookie'].length,2);assert.equal(calls,1);
     await module.namespace.default({...req,headers:{...req.headers,host:'evil.example'}},res);assert.equal(res.statusCode,403);assert.equal(calls,1);
+    const malformed={...req};Object.defineProperty(malformed,'body',{get(){throw new SyntaxError('Invalid JSON');}});await module.namespace.default(malformed,res);assert.equal(res.statusCode,400);assert.equal(calls,1);assert.deepEqual(res.body,{error:'Dados inválidos.'});
   }finally{for(const [key,value]of Object.entries(saved))if(value===undefined)delete process.env[key];else process.env[key]=value;}
 });

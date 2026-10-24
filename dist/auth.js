@@ -103,6 +103,7 @@
   const params=new URLSearchParams(location.search);
   const token=params.get('reset')||params.get('recovery');
   if(params.get('expired')==='1'&&page==='login'){const notice=document.getElementById('session-notice');if(notice)notice.hidden=false;}
+  if(params.get('logout')==='local'){const output=document.getElementById('login-result');if(output){output.hidden=false;output.textContent='Os dados foram ocultados neste navegador, mas não foi possível confirmar o encerramento no servidor. Entre novamente quando a conexão voltar e use Sair para concluir.';}}
   if(params.has('erro')){const output=document.getElementById('login-result');if(output){output.hidden=false;output.textContent='Este link é inválido ou expirou. Solicite um novo link de acesso.';}}
   if(token&&page==='login'){
     showPanel('reset-panel');document.getElementById('reset-title').textContent='Crie uma nova senha';

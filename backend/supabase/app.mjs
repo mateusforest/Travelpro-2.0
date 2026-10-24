@@ -154,8 +154,15 @@ export async function handle(request){
     if(typeof data.password!=='string'||data.password.length<10||data.password.length>256)fail(422,'Use uma senha de 10 a 256 caracteres.');
     const {error}=await supabase.auth.updateUser({password:data.password});if(error)fail(400,'Não foi possível atualizar a senha. Escolha uma senha diferente.');jar.delete('tp-recovery');await supabase.auth.signOut();return json({ok:true});
   }
+  // Signing out must remain possible after membership revocation or idle expiry.
+  if(path==='auth/logout'&&method==='POST'){
+    const supabase=await createSupabaseServerClient();
+    const {error}=await supabase.auth.signOut({scope:'local'});
+    if(error&&![401,403,404].includes(error.status))fail(503,'Não foi possível encerrar a sessão no servidor. Tente novamente.');
+    const jar=await cookies();jar.delete('tp-recovery');return json({ok:true});
+  }
   const a=await actor();
-  if(path!=='auth/logout')await enforceIdle(a,request);
+  await enforceIdle(a,request);
   if(path==='travel-plans'||path.startsWith('travel-plans/')){if(method!=='GET')await rate(a,'travel-plans',30);return json(await handleTravelPlans({path:path.slice('travel-plans'.length),method,input:data,load:()=>workspace(a),save:(state,version)=>save(a,state,version)}),method==='POST'?201:200);}
   if(path==='travel-search/providers'&&method==='GET')return json({providers:travelSearch.providers(),limits:travelSearchLimits});
   if(path==='travel-search'&&method==='POST'){await rate(a,'travel-search',10,'workspace:'+a.wid);return json(await travelSearch.search(data,{tenantId:a.wid}));}
@@ -185,8 +192,8 @@ export async function handle(request){
     return json(await runGranatum(a.db,a.wid,{force:true}));
   }
   if(path==='finance'||path.startsWith('finance/'))return json(await handleFinance({path,method,input:data,query:Object.fromEntries(url.searchParams),repo:supabaseRepository(a),getWorkspace:()=>workspace(a),manager:canManageWorkspace(a.access)}));
-  if(path==='auth/session'&&method==='GET')return json({csrf:'',user:{id:a.user.id,email:a.user.email,name:a.access.profile?.full_name||a.user.user_metadata?.name||a.user.email,agencyId:a.wid}});
-  if(path==='auth/logout'&&method==='POST'){const {error}=await a.supabase.auth.signOut({scope:'local'});if(error)fail(503,'Não foi possível encerrar a sessão. Tente novamente.');return json({ok:true});}
+  if(path==='auth/session'&&method==='GET'){const session=await a.supabase.auth.getSession();let sessionId='';try{sessionId=JSON.parse(Buffer.from(session.data.session.access_token.split('.')[1],'base64url').toString()).session_id||'';}catch{}return json({sessionKey:sessionId?createHash('sha256').update(sessionId).digest('hex'):'',serverIdleEnforced:process.env.TRAVELPRO_SERVER_IDLE_ENFORCEMENT==='true',csrf:'',user:{id:a.user.id,email:a.user.email,name:a.access.profile?.full_name||a.user.user_metadata?.name||a.user.email,agencyId:a.wid}});}
+
   if(path==='auth/password'&&method==='POST'){
     if(typeof data.password!=='string'||data.password.length<10||data.password.length>256||typeof data.current!=='string')fail(422,'Confira a senha atual e use uma nova senha de pelo menos 10 caracteres.');
     await rate(a,'password',5);const check=createClient(process.env.NEXT_PUBLIC_SUPABASE_URL,process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,{auth:{persistSession:false,autoRefreshToken:false}});
@@ -293,7 +300,8 @@ async function whatsappWebhook(request){
 
 async function akgWebhook(request,wid){
  if(request.method!=='POST')fail(405,'Método inválido.');
- if(!/^[a-zA-Z0-9-]{1,80}$/.test(wid||''))fail(404,'Webhook não encontrado.');
+ if(!/^sha256=[a-f0-9]{64}$/.test(request.headers.get('x-webhook-signature')||''))fail(403,'Assinatura do webhook inválida.');
+ if(!/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(wid||''))fail(404,'Webhook não encontrado.');
  const a={db:admin(),wid,user:{id:null},access:{membershipRole:'owner'}},c=await cfg(a,'whatsapp');
  const raw=await request.text();const event=verifiedEvent(c,raw,request.headers.get('x-webhook-signature'));
  for(let attempt=0;attempt<3;attempt++){
