@@ -54,6 +54,7 @@
     const result=document.getElementById(form.dataset.result),buttons=[...form.querySelectorAll('button[type="submit"]')];
     buttons.forEach(b=>b.disabled=true);result.hidden=false;result.textContent='Aguarde…';
     try {
+      if(form.id==='signup-form'&&globalThis.TravelAccessHealth&&!(await globalThis.TravelAccessHealth.ensureAvailable())){result.textContent='O cadastro está temporariamente indisponível. Seus dados não foram enviados. Tente novamente em alguns instantes.';return;}
       let route,body;
       if(form.id==='signup-form'){route='/auth/register';body={name:document.getElementById('signup-name').value,agency:document.getElementById('signup-agency').value,email:document.getElementById('signup-email').value,password:document.getElementById('signup-password').value};}
       else if(form.id==='login-form'){route='/auth/login';body={email:document.getElementById('login-email').value,password:document.getElementById('login-password').value};}

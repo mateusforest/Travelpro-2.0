@@ -27,6 +27,7 @@ test('calculator parses BR amounts, converts in both directions, swaps and maint
   await new Promise(r=>setTimeout(r,20));
   const $=s=>w.document.querySelector(s),change=el=>el.dispatchEvent(new w.Event('change'));
   assert.equal(w.document.querySelectorAll('.portal-partners').length,1);
+  assert.equal($('.portal-header .market-clocks'),null);assert.ok($('#exchange-dialog .market-clocks'));assert.ok($('#exchange-dialog .market-rates'));
   assert.equal($('.portal-partners').children.length,1);
   assert.equal($('.portal-partners img').getAttribute('src'),'assets/travelpro-tp-orange.png');
   assert.doesNotMatch($('.portal-partners').outerHTML,/europlus|operadora/i);

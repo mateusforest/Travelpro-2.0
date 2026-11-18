@@ -16,6 +16,7 @@ function setup(t,ctx={}) {
 test('agency connections hide technical configuration and explain client WhatsApp and planned channels',t=>{
   const root=setup(t,{services:[]});
   assert.match(root.textContent,/Conexões/);
+  assert.equal(root.querySelector('[data-action="connection-whatsapp-setup"]').disabled,true);assert.equal(root.querySelector('.conn-future').open,false);
   assert.equal(root.querySelector('[data-action="backend-integration"]'),null);
   assert.equal(root.querySelector('input,form'),null);
   assert.equal(root.querySelector('[data-action="connection-whatsapp-info"]').textContent,'Como funciona');
@@ -35,7 +36,7 @@ test('saved credentials are not shown or described as verified provider access',
     Object.freeze({service:'whatsapp',configured:true,config:{token:'SECRET-WHATSAPP'}})
   ]);
   const root=setup(t,{services});
-  assert.equal(root.querySelectorAll('.conn-tag-review').length,3);
+  assert.equal(root.querySelectorAll('.conn-tag-review').length,3);assert.equal(root.querySelector('[data-action="connection-whatsapp-setup"]').disabled,false);
   assert.match(root.textContent,/Configuração registrada · não verificada/);
   assert.match(root.textContent,/a conexão com a operadora ainda não foi validada/);
   assert.doesNotMatch(root.innerHTML,/europlus/i);
