@@ -243,7 +243,7 @@ test('client referral and relationship survive editing; manual confirmation reco
 
 test('home steps and quote CTA open real operational routes; trips filter existing records',async t=>{
   const f=await fixture(t);
-  assert.ok(f.d.querySelector('.launch-start [data-action="new-attendance"]'));assert.equal(f.d.querySelectorAll('.workflow-steps button').length,0);
+  assert.equal(f.d.querySelector('.launch-start'),null);assert.equal(f.d.querySelectorAll('.operation-action').length,4);assert.equal(f.d.querySelectorAll('.operation-metrics strong').length,4);assert.ok(f.d.querySelector('.operation-actions [data-action="new-attendance"]'));assert.equal(f.d.querySelectorAll('.workflow-steps button').length,0);
   assert.ok(f.d.querySelector('#portal-dock a[href="cotacao.html"]'));
   assert.ok(f.d.querySelector('#portal-dock a[href="orcamentos.html"]'));assert.equal(f.d.querySelector('#portal-dock a[href="viagens.html"]'),null);
   await f.portal.workspaceAction('workflow-quote');assert.equal(f.d.querySelector('#dialog-title').textContent,'Gerar cotação');
@@ -374,7 +374,7 @@ test('new attendance saves client and pending trip together without fictional da
   assert.match(trip.notes,/período e quantidade ainda serão combinados/);
   assert.equal(f.api.version,f.version);
   assert.match(f.d.querySelector('#portal-main').textContent,/A confirmar/i,'the pending traveler count is shown honestly');
-  f.w.history.pushState({},'','/portal.html');f.portal.render();assert.equal(f.d.querySelector('.launch-start'),null);assert.equal(f.d.querySelectorAll('.workflow-steps button').length,5);
+  f.w.history.pushState({},'','/portal.html');f.portal.render();assert.equal(f.d.querySelector('.launch-start'),null);assert.equal(f.d.querySelectorAll('.workflow-steps button').length,0);assert.equal(f.d.querySelector('.operation-metrics strong').textContent,'1');
 });
 
 test('attendance reuses an existing client without duplicating or overwriting its profile',async t=>{
@@ -584,7 +584,7 @@ test('completing an agenda commitment saves its history and removes it from Hoje
   const event={id:'event-to-complete',title:'Retornar sobre os hotéis escolhidos',date:'2020-01-02',time:'09:30',type:'Retorno',trip:''};
   workspace.events=[event];
   const f=await fixture(t,{workspace}),main=f.d.querySelector('#portal-main');
-  assert.ok(main.textContent.includes(event.title),'a pending past commitment is visible for review');
+  assert.equal(main.querySelector('[data-action="notifications"] strong').textContent,'1');main.querySelector('[data-action="notifications"]').click();assert.ok(f.d.querySelector('#dialog-body').textContent.includes(event.title),'the summary opens the pending commitment for review');
   assert.ok(f.w.TravelOperations.model({state:f.portal.state}).priorities.some(item=>item.id==='event:'+event.id));
   await f.portal.workspaceAction('event-detail',event.id);
   const dialog=f.d.querySelector('#portal-dialog');assert.equal(dialog.open,true);
