@@ -14,7 +14,7 @@
       : '<header class="conn-heading"><h1>Conexões</h1><p>Os serviços que apoiam o trabalho da sua agência.</p></header>';
 
     const included = `<section class="conn-section" aria-labelledby="conn-included-title">
-      <div class="conn-section-heading"><h2 id="conn-included-title">Incluído no TravelPro</h2><p>A equipe TravelPro cuida da ativação e do funcionamento.</p></div>
+      <div class="conn-section-heading"><h2 id="conn-included-title">Serviços de apoio</h2><p>Confira o que está configurado antes de usar cada serviço.</p></div>
       <div class="conn-included-grid">
         <article class="conn-card">
           <div class="conn-card-heading"><span class="conn-icon" aria-hidden="true">${icon(ctx, 'spark')}</span><h3>COS, seu assistente</h3></div>
@@ -40,7 +40,7 @@
           ${configured('whatsapp') ? tag('Configuração registrada · não verificada', 'review') : tag('Ainda não ativado')}
           <p class="conn-detail">${configured('whatsapp') ? 'Abra a sessão para verificar a conexão, ativar o recebimento e renovar o QR Code.' : 'Conexão por QR Code com WA-AKG. O servidor precisa estar configurado antes de escanear.'}</p>
         </div>
-        <div class="conn-channel-actions"><button class="conn-button" type="button" data-action="connection-whatsapp-setup">Conectar por QR Code</button><button class="conn-button" type="button" data-action="connection-whatsapp-info">Como funciona</button><a class="conn-link" href="#whatsapp">Abrir conversas ${icon(ctx, 'arrow')}</a></div>
+        <div class="conn-channel-actions"><button class="conn-button" type="button" data-action="connection-whatsapp-setup" ${configured('whatsapp')?'':'disabled'}>${configured('whatsapp')?'Conectar por QR Code':'Ativação pendente'}</button><button class="conn-button" type="button" data-action="connection-whatsapp-info">Como funciona</button><a class="conn-link" href="#whatsapp">Abrir conversas ${icon(ctx, 'arrow')}</a></div>
         <div class="conn-internal-note"><strong>Conversar com o COS pelo WhatsApp</strong><p>Será um canal interno da equipe, separado das conversas com clientes. Está planejado e não é ativado nesta tela.</p></div>
       </article>
     </section>`;
@@ -54,7 +54,7 @@
     </section>`;
 
     const admin = ctx.platformAdmin === true ? `<details class="conn-admin"><summary>Administração TravelPro</summary><div class="conn-admin-content"><p>Configuração técnica da plataforma. Registrar credenciais não confirma que o serviço está funcionando.</p><div class="conn-admin-actions">${[['openai','Configurar serviço de IA'],['operator','Configurar adaptador da operadora'],['whatsapp','Configurar WA-AKG']].map(([id, label]) => `<button class="conn-admin-button" type="button" data-action="backend-integration" data-id="${id}">${escape(label)}</button>`).join('')}</div></div></details>` : '';
-    return `<section class="conn-page">${header}${included}${channels}${planned}${admin}</section>`;
+    return `<section class="conn-page">${header}${included}${channels}<details class="conn-future"><summary>Conexões em preparação</summary>${planned}</details>${admin}</section>`;
   }
 
   window.TravelConnections = Object.freeze({render});

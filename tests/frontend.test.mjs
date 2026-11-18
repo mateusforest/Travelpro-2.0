@@ -7,7 +7,7 @@ test('signup stays on the confirmation message until Supabase issues a session',
  const source=fs.readFileSync(new URL('../dist/auth.js',import.meta.url),'utf8').replace(/\}\)\(\);\s*$/,'globalThis.finish=finish;})();');vm.runInContext(source,context);
  const form={id:'signup-form',dataset:{result:'signup-result'},querySelectorAll(){return[];}};
  await context.finish(form);assert.equal(result.textContent,'Confirme seu e-mail.');assert.equal(location.href,'');
- response={redirectTo:'/portal.html'};await context.finish(form);assert.equal(location.href,'portal.html');
+ response={redirectTo:'/portal.html'};context.TravelAccessHealth={ensureAvailable:async()=>false};await context.finish(form);assert.equal(location.href,'');assert.match(result.textContent,/dados não foram enviados/);delete context.TravelAccessHealth;await context.finish(form);assert.equal(location.href,'portal.html');
 });
 test('API rejects static hosting responses instead of reporting a successful login',async()=>{
  let response;
@@ -37,7 +37,7 @@ test('portal loads persistent empty account and saves linked forms',async()=>{
  const t=context.test;assert.equal(t.state.agency,'Agência integrada');assert.equal(t.state.clients.length,0);
  for(const route of ['whatsapp','leads','agente','cotacao','orcamentos','integracoes','plano','seguranca','faturamento','clientes','agenda','financeiro','roteiros','studio','documentos','configuracoes','travelmatch','vuei']){const html=t.renderWorkspace(route);assert.ok(!html.includes('undefined'),route);assert.ok(html.length>400,route);}
  const connections=t.renderWorkspace('integracoes');
- for(const label of ['Conexões','Incluído no TravelPro','COS, seu assistente','Fluxo com operadoras','WhatsApp Business','Open Finance','Aguardando ativação pela equipe'])assert.ok(connections.includes(label),'agency connections include '+label);
+ for(const label of ['Conexões','Serviços de apoio','COS, seu assistente','Fluxo com operadoras','WhatsApp Business','Open Finance','Aguardando ativação pela equipe'])assert.ok(connections.includes(label),'agency connections include '+label);
  assert.doesNotMatch(connections,/europlus/i);
  assert.doesNotMatch(connections,/data-action="backend-integration"|conn-admin|<input\b|Chave da API|Token de acesso|Phone ID|Webhook/i,'the agency does not see platform credentials or technical configuration controls');
  assert.match(t.agency(),/href="#integracoes"/,'the agency tools still link to the connections route');

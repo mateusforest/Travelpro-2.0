@@ -243,9 +243,9 @@ test('client referral and relationship survive editing; manual confirmation reco
 
 test('home steps and quote CTA open real operational routes; trips filter existing records',async t=>{
   const f=await fixture(t);
-  assert.equal(f.d.querySelectorAll('.workflow-steps button').length,5);
+  assert.ok(f.d.querySelector('.launch-start [data-action="new-attendance"]'));assert.equal(f.d.querySelectorAll('.workflow-steps button').length,0);
   assert.ok(f.d.querySelector('#portal-dock a[href="cotacao.html"]'));
-  assert.ok(f.d.querySelector('#portal-dock a[href="viagens.html"]'));
+  assert.ok(f.d.querySelector('#portal-dock a[href="orcamentos.html"]'));assert.equal(f.d.querySelector('#portal-dock a[href="viagens.html"]'),null);
   await f.portal.workspaceAction('workflow-quote');assert.equal(f.d.querySelector('#dialog-title').textContent,'Gerar cotação');
   assert.ok(f.d.querySelector('#dialog-body [data-form="sales-quick"]'));
   assert.equal(f.d.querySelector('#dialog-body [name="client"]'),null);
@@ -374,6 +374,7 @@ test('new attendance saves client and pending trip together without fictional da
   assert.match(trip.notes,/período e quantidade ainda serão combinados/);
   assert.equal(f.api.version,f.version);
   assert.match(f.d.querySelector('#portal-main').textContent,/A confirmar/i,'the pending traveler count is shown honestly');
+  f.w.history.pushState({},'','/portal.html');f.portal.render();assert.equal(f.d.querySelector('.launch-start'),null);assert.equal(f.d.querySelectorAll('.workflow-steps button').length,5);
 });
 
 test('attendance reuses an existing client without duplicating or overwriting its profile',async t=>{
@@ -850,3 +851,12 @@ test('navigation cannot render demonstration records while authentication is una
  for(const route of ['clientes','studio','seguranca']){f.w.location.hash='#'+route;f.portal.render();assert.equal(f.d.querySelector('#portal-main').textContent,before);}
  await f.portal.workspaceAction('report-clients');assert.equal(f.d.querySelector('#portal-dialog').open,false);
 });
+
+test('launch navigation prioritizes proposals and preserves secondary routes without data changes',async t=>{
+ const f=await fixture(t),before=clone(f.saved);f.w.history.pushState({},'','/agencia.html');f.portal.render();
+ for(const page of ['viagens','agenda','documentos','roteiros','studio','configuracoes','integracoes','seguranca'])assert.ok(f.d.querySelector('#portal-main a[href="'+page+'.html"]'),page);
+ for(const page of ['travelmatch','vuei','plano','faturamento','whatsapp'])assert.equal(f.d.querySelector('#portal-main a[href="'+page+'.html"]'),null,page);
+ f.portal.state.whatsapp.threads.push({id:'existing',name:'Existing',phone:'5511999999999',mode:'human',profile:{},messages:[],events:[]});f.portal.render();assert.ok(f.d.querySelector('#portal-main a[href="whatsapp.html"]'));
+ assert.deepEqual(f.saved,before);assert.equal(f.writes.length,0);
+});
+test('sign out remains available when workspace boot fails',async t=>{const f=await fixture(t,{bootError:true});let signedOut=false;f.api.logout=async()=>{signedOut=true;};await f.portal.workspaceAction('backend-logout');assert.equal(signedOut,true);});
